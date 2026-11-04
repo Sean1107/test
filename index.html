@@ -3,1656 +3,1511 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>高中物理光學溫習與測驗平台</title>
+  <title>化學大測溫習系統：化學反應速率與化學平衡</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
-
-    :root {
-      --primary: #1e3a8a;
-      --primary-light: #2563eb;
-      --primary-bg: #eff6ff;
-      --secondary: #0d9488;
-      --accent: #d97706;
-      --danger: #dc2626;
-      --success: #16a34a;
-      --text-main: #0f172a;
-      --text-muted: #475569;
-      --bg-main: #f8fafc;
-      --bg-card: #ffffff;
-      --border-color: #cbd5e1;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
-      --radius: 10px;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap');
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      line-height: 1.65;
+      font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
     }
-
-    /* 頂部導航與標題 */
-    header {
-      background: #ffffff;
-      border-bottom: 1px solid var(--border-color);
-      padding: 1.8rem 1rem 0;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    .math-font {
+      font-family: 'Cambria Math', 'Latin Modern Math', 'Inter', 'Noto Sans TC', serif;
     }
-    .header-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      text-align: center;
+    .overline-m {
+      text-decoration: overline;
     }
-    .main-title {
-      font-size: 1.9rem;
-      font-weight: 800;
-      color: #2563eb;
-      letter-spacing: -0.01em;
-      margin-bottom: 0.3rem;
+    .tab-btn-active {
+      background-color: #1e3a8a;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25);
     }
-    .sub-title {
-      font-size: 0.95rem;
-      color: var(--text-muted);
-      margin-bottom: 1.2rem;
-    }
-    
-    .nav-tabs {
-      display: flex;
-      justify-content: center;
-      gap: 1.5rem;
-      border-bottom: 2px solid transparent;
-      overflow-x: auto;
-    }
-    .tab-btn {
-      padding: 0.7rem 1.4rem;
-      background: transparent;
-      border: none;
-      border-bottom: 3px solid transparent;
-      color: #64748b;
-      font-weight: 700;
-      font-size: 1rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-    }
-    .tab-btn:hover {
-      color: #2563eb;
-    }
-    .tab-btn.active {
-      color: #2563eb;
-      border-bottom-color: #2563eb;
-    }
-
-    /* 頂部快捷操作欄（下載、複製與列印） */
-    .top-actions-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      max-width: 1100px;
-      margin: 1rem auto 0;
-      padding: 0 1rem;
-    }
-    .action-btn-group {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.45rem 0.9rem;
-      border-radius: 6px;
-      font-size: 0.86rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid var(--border-color);
-      background: white;
+    .tab-btn-inactive {
+      background-color: #ffffff;
       color: #334155;
-      transition: all 0.15s ease;
-    }
-    .btn:hover { background: #f1f5f9; border-color: #94a3b8; }
-    .btn-download {
-      background: #16a34a;
-      color: white;
-      border-color: #16a34a;
-      font-weight: 700;
-    }
-    .btn-download:hover { background: #15803d; }
-    .btn-primary { background: #2563eb; color: white; border-color: #2563eb; }
-    .btn-primary:hover { background: #1d4ed8; }
-
-    /* 主容器 */
-    main {
-      max-width: 1100px;
-      margin: 1.5rem auto 4rem;
-      padding: 0 1rem;
-    }
-
-    .tab-content { display: none; }
-    .tab-content.active { display: block; animation: fadeIn 0.2s ease-in; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    /* 標題欄裝飾 */
-    .section-bar-title {
-      font-size: 1.25rem;
-      font-weight: 800;
-      color: #0f172a;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin: 1.5rem 0 1rem;
-    }
-    .section-bar-title::before {
-      content: "";
-      display: inline-block;
-      width: 4px;
-      height: 1.2em;
-      background: #2563eb;
-      border-radius: 2px;
-    }
-
-    /* 2x2 知識卡片佈局 */
-    .overview-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
-      gap: 1.2rem;
-      margin-bottom: 2rem;
-    }
-    @media (max-width: 768px) {
-      .overview-grid { grid-template-columns: 1fr; }
-    }
-    .overview-card {
-      background: #f0f7ff;
-      border: 1px solid #dbeafe;
-      border-radius: var(--radius);
-      padding: 1.2rem 1.4rem;
-      box-shadow: var(--shadow-sm);
-    }
-    .overview-card-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #1d4ed8;
-      margin-bottom: 0.6rem;
-    }
-    .overview-list {
-      list-style-type: disc;
-      padding-left: 1.2rem;
-      font-size: 0.92rem;
-      color: #1e293b;
-      line-height: 1.8;
-    }
-    .overview-list li {
-      margin-bottom: 0.3rem;
-    }
-
-    /* 物理數學公式排版 */
-    .math-sym {
-      font-family: "Cambria Math", "Latin Modern Math", "Times New Roman", serif;
-      font-style: italic;
-      font-weight: bold;
-      color: #1e3a8a;
-      padding: 0 0.1em;
-    }
-    /* 垂直真分數 */
-    .frac {
-      display: inline-flex;
-      flex-direction: column;
-      vertical-align: middle;
-      text-align: center;
-      padding: 0 0.25em;
-      font-size: 0.9em;
-      line-height: 1.1;
-      font-family: "Cambria Math", "Times New Roman", serif;
-      font-weight: bold;
-      color: #1e3a8a;
-    }
-    .frac .num {
-      border-bottom: 1.5px solid #1e3a8a;
-      padding-bottom: 1px;
-    }
-    .frac .den {
-      padding-top: 1px;
-    }
-
-    /* 模塊大卡片 */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .formula-banner {
-      background: #f8fafc;
-      border-left: 4px solid #2563eb;
-      border-radius: 6px;
-      padding: 0.8rem 1.1rem;
-      margin: 0.8rem 0;
-      font-size: 0.95rem;
-    }
-
-    .callout {
-      padding: 0.9rem 1.1rem;
-      border-radius: 8px;
-      margin: 0.9rem 0;
-      display: flex;
-      gap: 0.7rem;
-      font-size: 0.92rem;
-    }
-    .callout-info { background: #eff6ff; border-left: 4px solid #3b82f6; }
-    .callout-warning { background: #fffbeb; border-left: 4px solid #f59e0b; }
-    .callout-success { background: #f0fdf4; border-left: 4px solid #22c55e; }
-
-    /* SVG 圖解 */
-    .svg-container {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 0.8rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 0.8rem 0;
-    }
-    .svg-caption {
-      font-size: 0.84rem;
-      color: var(--text-muted);
-      margin-top: 0.5rem;
-      text-align: center;
-    }
-
-    /* 測驗卷樣式 */
-    .exam-header {
-      background: #ffffff;
-      border: 2px solid #1e293b;
-      border-radius: 10px;
-      padding: 1.5rem;
-      margin-bottom: 1.8rem;
-      text-align: center;
-    }
-    .exam-header h2 {
-      font-size: 1.65rem;
-      color: #0f172a;
-      margin-bottom: 0.4rem;
-    }
-    .exam-meta {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      font-size: 0.92rem;
-      color: var(--text-muted);
-      margin: 0.5rem 0 1rem;
-      flex-wrap: wrap;
-    }
-    .exam-student-bar {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      font-size: 0.95rem;
-      padding-top: 0.8rem;
-      border-top: 1px dashed #cbd5e1;
-      flex-wrap: wrap;
-    }
-    .fill-line {
-      display: inline-block;
-      min-width: 100px;
-      border-bottom: 1px solid #334155;
-      padding: 0 0.4rem;
-      outline: none;
-    }
-
-    .section-title-box {
-      background: #f1f5f9;
-      border-left: 5px solid #2563eb;
-      padding: 0.7rem 1.1rem;
-      border-radius: 6px;
-      margin: 1.6rem 0 1rem;
-      font-weight: 700;
-      font-size: 1.1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
-    .badge-blue { background: #dbeafe; color: #1e40af; }
-    .badge-teal { background: #ccfbf1; color: #0f766e; }
-    .badge-amber { background: #fef3c7; color: #92400e; }
-    .badge-red { background: #fee2e2; color: #991b1b; }
-    .badge-purple { background: #f3e8ff; color: #6b21a8; }
-
-    .q-card {
-      background: white;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 1.2rem;
-      margin-bottom: 1.1rem;
-      box-shadow: var(--shadow-sm);
-    }
-    .q-card:hover { border-color: #94a3b8; }
-    .q-header { font-weight: 700; margin-bottom: 0.5rem; }
-    .q-num { color: #2563eb; margin-right: 0.3rem; }
-    .q-pts { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
-    .q-content { font-size: 0.96rem; margin-bottom: 0.8rem; line-height: 1.7; }
-
-    /* 判斷題按鈕 */
-    .tf-box { display: flex; gap: 0.8rem; margin: 0.5rem 0; }
-    .tf-btn {
-      padding: 0.45rem 1.2rem;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      background: #f8fafc;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.15s;
-    }
-    .tf-btn:hover { background: #e2e8f0; }
-    .tf-btn.correct-highlight { background: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
-    .tf-btn.wrong-highlight { background: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
-
-    /* 選擇題選項 */
-    .opt-list { display: flex; flex-direction: column; gap: 0.45rem; }
-    .opt-item {
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-      padding: 0.6rem 0.9rem;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      background: #fafafa;
-      cursor: pointer;
-      font-size: 0.93rem;
-      transition: all 0.15s;
-    }
-    .opt-item:hover { background: #f1f5f9; border-color: #cbd5e1; }
-    .opt-item.selected { background: #eff6ff; border-color: #3b82f6; font-weight: 600; }
-    .opt-item.correct-highlight { background: #dcfce7 !important; border-color: #22c55e !important; color: #15803d; }
-    .opt-item.wrong-highlight { background: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c; }
-    .opt-circle {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: white;
-      border: 1.5px solid #cbd5e1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 0.8rem;
-    }
-    .opt-item.selected .opt-circle { background: #3b82f6; border-color: #3b82f6; color: white; }
-
-    .textarea-ans {
-      width: 100%;
-      min-height: 80px;
-      padding: 0.65rem;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      font-family: inherit;
-      font-size: 0.92rem;
-      margin: 0.4rem 0;
-      resize: vertical;
-    }
-
-    .sol-card {
-      display: none;
-      background: #f8fafc;
       border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      padding: 0.85rem 1rem;
-      margin-top: 0.7rem;
-      font-size: 0.9rem;
     }
-    .sol-card.show { display: block; animation: fadeIn 0.2s ease; }
-    .sol-title { color: #0f766e; font-weight: 700; margin-bottom: 0.3rem; }
-    .rubric {
-      background: white;
-      border: 1px dashed #cbd5e1;
-      border-radius: 4px;
-      padding: 0.6rem 0.8rem;
-      margin-top: 0.4rem;
-      font-size: 0.86rem;
-      color: #334155;
+    .tab-btn-inactive:hover {
+      background-color: #f1f5f9;
     }
-
-    /* 表格 */
-    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; margin: 0.8rem 0; }
-    th, td { padding: 0.65rem 0.85rem; border: 1px solid var(--border-color); text-align: left; }
-    th { background: #f1f5f9; font-weight: 700; color: #334155; }
-    tr:nth-child(even) td { background: #f8fafc; }
-
-    /* 實驗室滑桿 */
-    .lab-box {
-      background: white;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      padding: 1.3rem;
-      margin-bottom: 1.5rem;
-    }
-    .slider-row {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin: 0.6rem 0;
-    }
-    .slider-title { width: 140px; font-weight: 600; font-size: 0.9rem; }
-    .slider-ctrl { flex: 1; accent-color: #2563eb; }
-    .slider-val { width: 75px; font-family: monospace; font-weight: 700; color: #1e3a8a; text-align: right; }
-
-    /* 懸浮得分列 */
-    .bottom-score-bar {
-      position: sticky;
-      bottom: 1rem;
-      background: #0f172a;
-      color: white;
-      padding: 0.85rem 1.4rem;
-      border-radius: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: var(--shadow-md);
-      z-index: 90;
-      margin-top: 1.5rem;
-    }
-
-    /* 代碼彈窗 Modal */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
-      z-index: 999;
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal-box {
-      background: white;
-      width: 90%;
-      max-width: 800px;
-      height: 80vh;
-      border-radius: 12px;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.25);
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-    .modal-textarea {
-      flex: 1;
-      width: 100%;
-      font-family: monospace;
-      font-size: 0.85rem;
-      padding: 0.8rem;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      resize: none;
-      background: #f8fafc;
-    }
-
     @media print {
-      header, .nav-tabs, .top-actions-bar, .bottom-score-bar, .btn, .tf-box, #tab-lab, .modal-overlay {
-        display: none !important;
-      }
-      body { background: white !important; color: black !important; font-size: 11pt; }
-      main { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
-      .tab-content { display: none !important; }
-      #tab-exam { display: block !important; }
-      .q-card, .card {
-        border: 1px solid #ccc !important;
-        box-shadow: none !important;
-        page-break-inside: avoid;
-      }
-      .sol-card { display: none !important; }
+      .no-print { display: none !important; }
+      .tab-panel { display: block !important; page-break-after: always; }
     }
-
   </style>
 </head>
-<body>
-  <header>
-    <div class="header-inner">
-      <h1 class="main-title">高中物理：光學綜合學習平台</h1>
-      <div class="sub-title">範圍：光的反射、折射、全反射、干涉、衍射、偏振</div>
-      <nav class="nav-tabs">
-        <button class="tab-btn active" data-tab="notes" onclick="switchTab('notes', this)">📖 溫習筆記</button>
-        <button class="tab-btn" data-tab="exam" onclick="switchTab('exam', this)">📝 實戰大測卷 (100分)</button>
-        <button class="tab-btn" data-tab="answers" onclick="switchTab('answers', this)">💡 答案與評分細則</button>
-        <button class="tab-btn" data-tab="formula" onclick="switchTab('formula', this)">⚡ 核心公式速查</button>
-        <button class="tab-btn" data-tab="lab" onclick="switchTab('lab', this)">🧪 虛擬實驗室</button>
-      </nav>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Header Banner -->
+  <header class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-5 sm:px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30 mb-2">
+          <span>理科溫習系統</span>
+          <span>&bull;</span>
+          <span>互動網頁版 (GitHub Pages Ready)</span>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight">化學大測專項溫習與計算練習：化學反應速率與化學平衡</h1>
+        <p class="text-xs sm:text-sm text-slate-300 mt-1">涵蓋速率方程、活化能曲線、勒沙特列原理、K<sub>c</sub> / K<sub>p</sub> 與 ICE 三段式計算</p>
+      </div>
+
+      <!-- Exam Timer & Score Widget -->
+      <div class="no-print flex items-center gap-3 bg-slate-800/90 border border-slate-700 rounded-xl px-4 py-2.5 self-start md:self-auto">
+        <div>
+          <div class="text-[11px] uppercase tracking-wider text-slate-400">大測計時器</div>
+          <div id="timer-display" class="text-lg font-mono font-bold text-amber-400">60:00</div>
+        </div>
+        <div class="flex gap-1.5">
+          <button id="btn-timer-toggle" type="button" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition">開始</button>
+          <button id="btn-timer-reset" type="button" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 transition">重設</button>
+        </div>
+        <div class="border-l border-slate-700 pl-3 ml-1">
+          <div class="text-[11px] uppercase tracking-wider text-slate-400">目前得分</div>
+          <div id="header-score" class="text-lg font-bold text-emerald-400">0 / 100</div>
+        </div>
+      </div>
     </div>
   </header>
-  <div class="top-actions-bar">
-    <div style="font-size: 0.88rem; color: #64748b;">💡 溫馨提示：若平台頂部下載按鈕出現 403 錯誤，可直接使用本頁專屬下載按鈕 ⬇️</div>
-    <div class="action-btn-group">
-      <button class="btn btn-download" onclick="downloadCurrentHTML()">📥 一鍵下載本網頁 HTML (免403)</button>
-      <button class="btn" onclick="openCodeModal()">📋 查看/複製源代碼</button>
-      <button class="btn" onclick="toggleAllSolutions()" id="toggle-sol-btn">👁️ 顯示/隱藏全卷答案解析</button>
-      <button class="btn btn-primary" onclick="window.print()">🖨️ 列印考卷 (Print)</button>
+
+  <!-- Navigation Tabs -->
+  <nav class="no-print sticky top-0 z-20 bg-slate-100/95 backdrop-blur border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap gap-2">
+      <button type="button" data-tab="notes" class="nav-tab-btn tab-btn-active px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition">
+        1. 核心重點筆記與圖表
+      </button>
+      <button type="button" data-tab="pitfalls" class="nav-tab-btn tab-btn-inactive px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition">
+        2. 8 大易錯陷阱剖析
+      </button>
+      <button type="button" data-tab="calculator" class="nav-tab-btn tab-btn-inactive px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition">
+        3. ICE 三段式互動計算機
+      </button>
+      <button type="button" data-tab="exam" class="nav-tab-btn tab-btn-inactive px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition">
+        4. 大測實戰試卷 (100分)
+      </button>
+      <button type="button" data-tab="deploy" class="nav-tab-btn tab-btn-inactive px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition">
+        5. 匯出與 GitHub Pages 部署
+      </button>
     </div>
-  </div>
-  <main>
-    <section id="tab-notes" class="tab-content active">
-      <div class="section-bar-title">核心知識點回顧</div>
-      <div class="overview-grid">
-        <div class="overview-card">
-          <div class="overview-card-title">1. 光的反射與折射</div>
-          <ul class="overview-list">
-            <li><strong>反射定律</strong>：入射角等於反射角（<span class="math-sym">i = r</span>）。平面鏡成等大對稱虛像；鏡面旋轉角度 <span class="math-sym">θ</span>，反射光線偏轉 <span class="math-sym">2θ</span>。</li>
-            <li><strong>折射定律 (Snell's Law)</strong>：<span class="math-sym">n₁ sin θ₁ = n₂ sin θ₂</span>。光疏入光密向法線偏折（<span class="math-sym">θ₂ &lt; θ₁</span>）。</li>
-            <li><strong>折射率</strong>：<span class="math-sym">n = <span class="frac"><span class="num">c</span><span class="den">v</span></span> = <span class="frac"><span class="num">λ₀</span><span class="den">λ</span></span></span>（真空光速與介質光速之比）。跨介質時頻率 <span class="math-sym">f</span> 恆定不變。</li>
-            <li><strong>垂直視深</strong>：<span class="math-sym">d' = <span class="frac"><span class="num">d</span><span class="den">n</span></span></span>（水中物體看起來比實際更淺）。</li>
-            <li><strong>色散現象</strong>：紫光頻率高、折射率大、偏折最大；紅光折射率小、偏折最小。</li>
-          </ul>
+  </nav>
+
+  <!-- Toast Notification -->
+  <div id="toast-box" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg border border-slate-700 text-sm font-medium"></div>
+
+  <!-- Main Content Container -->
+  <main class="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 flex-1">
+
+    <!-- ==================== TAB 1: 核心重點筆記與互動圖表 ==================== -->
+    <section id="tab-notes" class="tab-panel space-y-6">
+      <!-- 1.1 化學反應速率定義與計量關係 -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+        <h2 class="text-lg sm:text-xl font-bold text-blue-950 flex items-center gap-2 mb-3">
+          <span class="w-7 h-7 rounded-lg bg-blue-900 text-white text-xs flex items-center justify-center font-bold">01</span>
+          化學反應速率的定義、化學計量數換算與速率方程
+        </h2>
+        <p class="text-sm text-slate-700 leading-relaxed mb-3">
+          化學反應速率用來衡量反應進行的快慢，通常以單位時間內反應物濃度的減少量或生成物濃度的增加量表示（取正值）：
+        </p>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-sm sm:text-base font-semibold text-blue-950 math-font">
+          v = &Delta;c / &Delta;t = &Delta;n / (V &middot; &Delta;t) &emsp;（常用單位：mol&middot;L<sup>&minus;1</sup>&middot;s<sup>&minus;1</sup> 或 mol&middot;L<sup>&minus;1</sup>&middot;min<sup>&minus;1</sup>）
         </div>
-        <div class="overview-card">
-          <div class="overview-card-title">2. 全反射 (Total Internal Reflection)</div>
-          <ul class="overview-list">
-            <li><strong>發生條件</strong>：① 光必須由光密介質射向光疏介質（<span class="math-sym">n₁ &gt; n₂</span>）；② 入射角大於或等於臨界角（<span class="math-sym">θ₁ ≥ C</span>）。</li>
-            <li><strong>臨界角公式</strong>：<span class="math-sym">sin C = <span class="frac"><span class="num">n<sub>疏</sub></span><span class="den">n<sub>密</sub></span></span></span>（若射向空氣，則 <span class="math-sym">sin C = <span class="frac"><span class="num">1</span><span class="den">n</span></span></span>）。</li>
-            <li><strong>典型臨界角</strong>：水（<span class="math-sym">C ≈ 48.8°</span>）、玻璃（<span class="math-sym">C ≈ 41.8°</span>）、鑽石（<span class="math-sym">C ≈ 24.4°</span>，極易全反射故閃耀璀璨）。</li>
-            <li><strong>工程應用</strong>：光纖通信（纖芯折射率大於包層 <span class="math-sym">n<sub>core</sub> &gt; n<sub>cladding</sub></span>）、等腰直角稜鏡（90°/180°光路轉向）、海市蜃樓。</li>
-          </ul>
+        <p class="text-sm text-slate-700 leading-relaxed mb-3">
+          對於通式反應 <span class="math-font font-semibold">aA(g) + bB(g) &rightleftharpoons; cC(g) + dD(g)</span>，同一時間段內各物質表示的平均速率之比等於<strong>化學計量數（係數）之比</strong>：
+        </p>
+        <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-4 mb-4 text-sm sm:text-base font-semibold text-amber-900 math-font">
+          v(A) : v(B) : v(C) : v(D) = a : b : c : d &emsp;&rArr;&emsp; v<sub>歸一化</sub> = v(A)/a = v(B)/b = v(C)/c = v(D)/d
         </div>
-        <div class="overview-card">
-          <div class="overview-card-title">3. 光的干涉 (Interference)</div>
-          <ul class="overview-list">
-            <li><strong>相干光條件</strong>：頻率相同、相位差恆定、振動方向相同。干涉確立了光的波動學說。</li>
-            <li><strong>光程差公式</strong>：<span class="math-sym">Δr = r₂ - r₁ = d sin θ ≈ <span class="frac"><span class="num">dx</span><span class="den">l</span></span></span>（其中 <span class="math-sym">x</span> 為屏上點至中央亮紋之距離）。</li>
-            <li><strong>明暗條紋條件</strong>：明紋 <span class="math-sym">Δr = mλ ⇒ x<sub>m</sub> = m<span class="frac"><span class="num">lλ</span><span class="den">d</span></span></span>；暗紋 <span class="math-sym">Δr = (m + ½)λ ⇒ x<sub>m</sub>' = (m + ½)<span class="frac"><span class="num">lλ</span><span class="den">d</span></span></span>。</li>
-            <li><strong>條紋間距公式</strong>：<span class="math-sym">Δx = <span class="frac"><span class="num">lλ</span><span class="den">d</span></span></span>（條紋等間距、等寬度）。紅光條紋寬於藍光；若入水波長變短條紋變窄。</li>
-            <li><strong>白光干涉</strong>：中央為白色亮紋，兩側為彩色條紋，且靠近中央側偏紫、外側偏紅（內紫外紅）。</li>
-          </ul>
+        <ul class="space-y-2 text-sm text-slate-700 list-disc pl-5">
+          <li><strong>比較不同條件下的反應快慢</strong>：必須遵循「<strong>一統單位</strong>（全部換成 <span class="math-font">mol&middot;L<sup>&minus;1</sup>&middot;s<sup>&minus;1</sup></span>，注意 <span class="math-font">1 mol&middot;L<sup>&minus;1</sup>&middot;s<sup>&minus;1</sup> = 60 mol&middot;L<sup>&minus;1</sup>&middot;min<sup>&minus;1</sup></span>）、<strong>二除係數</strong>（計算 <span class="math-font">v(X)/係數</span>）」，歸一化數值愈大代表反應愈快。</li>
+          <li><strong>速率定律（Rate Law）與反應級數</strong>：在一定溫度下，瞬時速率 <span class="math-font">v = k[A]<sup>m</sup>[B]<sup>n</sup></span>。指數 <span class="math-font">m, n</span> 為<strong>反應級數</strong>，必須由實驗數據（初始速率法）測定，<strong>不一定等於化學計量數 <span class="math-font">a, b</span></strong>。</li>
+          <li><strong>速率常數 <span class="math-font">k</span> 的性質與單位</strong>：<span class="math-font">k</span> 只受<strong>溫度</strong>與<strong>催化劑</strong>影響，與反應物濃度無關。總級數為 <span class="math-font">N = m + n</span> 的反應，<span class="math-font">k</span> 的單位為 <span class="math-font">mol<sup>1&minus;N</sup>&middot;L<sup>N&minus;1</sup>&middot;s<sup>&minus;1</sup></span>（例如二級反應為 <span class="math-font">L&middot;mol<sup>&minus;1</sup>&middot;s<sup>&minus;1</sup></span>）。</li>
+        </ul>
+      </div>
+
+      <!-- 1.2 互動圖表模擬器：活化能曲線 & 化學平衡濃度曲線 -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h2 class="text-lg sm:text-xl font-bold text-blue-950 flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-blue-900 text-white text-xs flex items-center justify-center font-bold">02</span>
+            互動式活化能與化學平衡動態曲線模擬
+          </h2>
+          <div class="flex flex-wrap gap-2">
+            <button id="btn-toggle-catalyst" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-500 text-white transition">
+              切換：顯示/隱藏催化劑路徑
+            </button>
+            <button id="btn-toggle-eq-speed" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-teal-700 hover:bg-teal-600 text-white transition">
+              模擬在合成氨中加入催化劑 (縮短達平衡時間)
+            </button>
+          </div>
         </div>
-        <div class="overview-card">
-          <div class="overview-card-title">4. 光的衍射與偏振 (Diffraction & Polarization)</div>
-          <ul class="overview-list">
-            <li><strong>顯著衍射條件</strong>：障礙物或狹縫尺寸與波長相當或更小（<span class="math-sym">a ≤ λ</span>）。</li>
-            <li><strong>單縫衍射特徵</strong>：中央明紋極寬（約為兩側一級明紋的 2 倍）、極亮；兩側亮度急劇衰減，條紋寬度不均勻。</li>
-            <li><strong>衍射光柵</strong>：<span class="math-sym">d sin θ = mλ</span>。條紋銳利明亮，分光性能優良。</li>
-            <li><strong>偏振與橫波</strong>：縱波（如聲波）絕無偏振現象，<strong>偏振唯一證明光是橫波 (Transverse Wave)</strong>。</li>
-            <li><strong>馬呂斯定律</strong>：<span class="math-sym">I = I₀ cos²θ</span>。自然光過單偏振片光強減半（<span class="math-sym">I = ½I₀</span>）；正交消光（<span class="math-sym">θ = 90° ⇒ I = 0</span>）。</li>
-            <li><strong>布儒斯特角</strong>：<span class="math-sym">tan θ<sub>B</sub> = n</span>，此時反射光與折射光互相垂直，反射光為完全偏振光。</li>
-          </ul>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <h3 class="text-sm font-bold text-slate-800 mb-2">(a) 催化劑對活化能 E<sub>a</sub> 與反應焓變 &Delta;H 的影響</h3>
+            <div class="relative h-64">
+              <canvas id="chart-ea"></canvas>
+            </div>
+            <p id="ea-caption" class="text-xs text-slate-600 mt-2">
+              正催化劑提供低能障反應路徑，使活化能由 E<sub>a</sub> (52 kJ&middot;mol<sup>&minus;1</sup>) 降至 E<sub>a</sub>' (26 kJ&middot;mol<sup>&minus;1</sup>)，正逆速率同倍數加快，但反應熱 &Delta;H (&minus;25 kJ&middot;mol<sup>&minus;1</sup>) 完全不變。
+            </p>
+          </div>
+
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <h3 class="text-sm font-bold text-slate-800 mb-2">(b) 合成氨 N<sub>2</sub> + 3H<sub>2</sub> &rightleftharpoons; 2NH<sub>3</sub> 濃度隨時間變化曲線</h3>
+            <div class="relative h-64">
+              <canvas id="chart-eq"></canvas>
+            </div>
+            <p id="eq-caption" class="text-xs text-slate-600 mt-2">
+              目前狀態：無額外催化劑（於 t = 10 min 達致平衡）。三種物質的濃度變化量 |&Delta;c(N<sub>2</sub>)| : |&Delta;c(H<sub>2</sub>)| : |&Delta;c(NH<sub>3</sub>)| = 0.4 : 1.2 : 0.8 = 1 : 3 : 2。
+            </p>
+          </div>
         </div>
       </div>
-      <div class="card">
-        <div class="section-bar-title" style="margin-top: 0;">原理光路示意圖解</div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 1rem;">
-          <div class="svg-container">
-            <svg width="300" height="200" viewBox="0 0 300 200">
-              <rect x="10" y="100" width="280" height="90" fill="#eff6ff" stroke="#bfdbfe"/>
-              <text x="20" y="30" font-size="11" fill="#64748b">空氣 (n=1.0)</text>
-              <text x="20" y="180" font-size="11" fill="#1e40af">介質 (n=1.5)</text>
-              <line x1="10" y1="100" x2="290" y2="100" stroke="#334155" stroke-width="2"/>
-              <line x1="150" y1="15" x2="150" y2="185" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3"/>
-              <line x1="60" y1="170" x2="150" y2="100" stroke="#dc2626" stroke-width="2.5"/>
-              <line x1="150" y1="100" x2="240" y2="170" stroke="#dc2626" stroke-width="2.5"/>
-              <text x="180" y="150" font-size="11" fill="#dc2626" font-weight="bold">全反射 (i &gt; C)</text>
-              <path d="M 150,135 A 35,35 0 0,1 115,138" fill="none" stroke="#dc2626" stroke-width="1.2"/>
-              <text x="125" y="132" font-size="10" fill="#dc2626">i</text>
-            </svg>
-            <div class="svg-caption">圖 A：全反射臨界與全反射光路示意</div>
+
+      <!-- 1.3 碰撞理論與五大影響因素對比表 -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+        <h2 class="text-lg sm:text-xl font-bold text-blue-950 flex items-center gap-2 mb-3">
+          <span class="w-7 h-7 rounded-lg bg-blue-900 text-white text-xs flex items-center justify-center font-bold">03</span>
+          碰撞理論與影響反應速率的五大因素對比表
+        </h2>
+        <p class="text-sm text-slate-700 mb-3">
+          有效碰撞必須同時滿足：(1) 粒子能量 &ge; 活化能 <span class="math-font">E<sub>a</sub></span>；(2) 碰撞取向正確。以下為大測高頻辨析表：
+        </p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="border-b-2 border-blue-900 text-blue-950 bg-slate-50">
+                <th class="py-2.5 px-3">改變條件</th>
+                <th class="py-2.5 px-3">活化能 E<sub>a</sub></th>
+                <th class="py-2.5 px-3">活化分子百分數</th>
+                <th class="py-2.5 px-3">單位體積活化分子數</th>
+                <th class="py-2.5 px-3">速率常數 k</th>
+                <th class="py-2.5 px-3">正、逆反應速率變化</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+              <tr>
+                <td class="py-2.5 px-3 font-semibold">增大反應物濃度</td>
+                <td class="py-2.5 px-3">不變</td>
+                <td class="py-2.5 px-3">不變</td>
+                <td class="py-2.5 px-3 text-emerald-700 font-medium">增加（總分子變密）</td>
+                <td class="py-2.5 px-3">不變</td>
+                <td class="py-2.5 px-3">v<sub>正</sub> 瞬間增大</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 font-semibold">加壓（縮小氣體體積）</td>
+                <td class="py-2.5 px-3">不變</td>
+                <td class="py-2.5 px-3">不變</td>
+                <td class="py-2.5 px-3 text-emerald-700 font-medium">增加（氣體濃度增大）</td>
+                <td class="py-2.5 px-3">不變</td>
+                <td class="py-2.5 px-3">v<sub>正</sub>、v<sub>逆</sub> 均增大</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 font-semibold">升高溫度</td>
+                <td class="py-2.5 px-3">不變</td>
+                <td class="py-2.5 px-3 text-amber-700 font-bold">顯著增加</td>
+                <td class="py-2.5 px-3 text-amber-700 font-bold">顯著增加</td>
+                <td class="py-2.5 px-3 text-amber-700 font-bold">增大</td>
+                <td class="py-2.5 px-3">v<sub>正</sub>、v<sub>逆</sub> 均增大</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 font-semibold">加入正催化劑</td>
+                <td class="py-2.5 px-3 text-amber-700 font-bold">降低（低能障路徑）</td>
+                <td class="py-2.5 px-3 text-amber-700 font-bold">顯著增加</td>
+                <td class="py-2.5 px-3 text-amber-700 font-bold">顯著增加</td>
+                <td class="py-2.5 px-3 text-amber-700 font-bold">增大</td>
+                <td class="py-2.5 px-3">v<sub>正</sub>、v<sub>逆</sub> 同倍數增大</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 font-semibold">增大固體表面積</td>
+                <td class="py-2.5 px-3">不變</td>
+                <td class="py-2.5 px-3">不變</td>
+                <td class="py-2.5 px-3 text-emerald-700 font-medium">接觸面積增大</td>
+                <td class="py-2.5 px-3">不變</td>
+                <td class="py-2.5 px-3">表面反應速率加快</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 1.4 化學平衡常數 Kc、Kp、反應商 Qc 與勒沙特列原理 -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+        <h2 class="text-lg sm:text-xl font-bold text-blue-950 flex items-center gap-2 mb-3">
+          <span class="w-7 h-7 rounded-lg bg-blue-900 text-white text-xs flex items-center justify-center font-bold">04</span>
+          化學平衡常數 K<sub>c</sub> / K<sub>p</sub>、反應商 Q<sub>c</sub> 與勒沙特列原理
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <div class="text-xs font-bold uppercase text-blue-900 mb-1">濃度平衡常數 K<sub>c</sub> 與壓強平衡常數 K<sub>p</sub></div>
+            <p class="text-sm font-semibold text-slate-900 math-font mb-2">
+              K<sub>c</sub> = ([C]<sup>c</sup> &middot; [D]<sup>d</sup>) / ([A]<sup>a</sup> &middot; [B]<sup>b</sup>)<br>
+              K<sub>p</sub> = (p(C)<sup>c</sup> &middot; p(D)<sup>d</sup>) / (p(A)<sup>a</sup> &middot; p(B)<sup>b</sup>)
+            </p>
+            <p class="text-xs text-slate-600">
+              &bull; <strong>純固體 (s) 與純液體 (l) 不寫入表達式</strong>（活性視為 1）。<br>
+              &bull; <strong>K<sub>c</sub> 與 K<sub>p</sub> 只受溫度影響</strong>，與起始濃度、壓強、催化劑無關。
+            </p>
           </div>
-          <div class="svg-container">
-            <svg width="300" height="200" viewBox="0 0 300 200">
-              <rect x="30" y="20" width="6" height="65" fill="#334155"/>
-              <rect x="30" y="95" width="6" height="15" fill="#334155"/>
-              <rect x="30" y="120" width="6" height="65" fill="#334155"/>
-              <text x="15" y="90" font-size="10" fill="#2563eb" font-weight="bold">S₁</text>
-              <text x="15" y="120" font-size="10" fill="#2563eb" font-weight="bold">S₂</text>
-              <rect x="250" y="15" width="5" height="170" fill="#64748b"/>
-              <line x1="36" y1="103" x2="250" y2="103" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3,3"/>
-              <text x="260" y="107" font-size="10" fill="#dc2626">O(中央)</text>
-              <line x1="36" y1="85" x2="250" y2="55" stroke="#2563eb" stroke-width="1.5"/>
-              <line x1="36" y1="120" x2="250" y2="55" stroke="#2563eb" stroke-width="1.5"/>
-              <text x="260" y="58" font-size="10" fill="#2563eb" font-weight="bold">P(位置 x)</text>
-              <line x1="270" y1="55" x2="270" y2="103" stroke="#2563eb" stroke-width="1"/>
-              <text x="275" y="80" font-size="9" fill="#2563eb">x</text>
-              <text x="135" y="190" font-size="10" fill="#64748b">屏距 l</text>
-            </svg>
-            <div class="svg-caption">圖 B：楊氏雙縫干涉光程差幾何推導模型（條紋間距 Δx = lλ/d）</div>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <div class="text-xs font-bold uppercase text-amber-800 mb-1">反應商 Q<sub>c</sub> 判斷平衡移動方向</div>
+            <ul class="text-xs sm:text-sm text-slate-700 space-y-1.5 mt-2">
+              <li>&bull; <strong>Q<sub>c</sub> &lt; K<sub>c</sub></strong>：v<sub>正</sub> &gt; v<sub>逆</sub>，反應向<strong>正反應方向（右）</strong>進行。</li>
+              <li>&bull; <strong>Q<sub>c</sub> = K<sub>c</sub></strong>：v<sub>正</sub> = v<sub>逆</sub> &gt; 0，體系<strong>處於化學平衡狀態</strong>。</li>
+              <li>&bull; <strong>Q<sub>c</sub> &gt; K<sub>c</sub></strong>：v<sub>正</sub> &lt; v<sub>逆</sub>，反應向<strong>逆反應方向（左）</strong>進行。</li>
+            </ul>
           </div>
-          <div class="svg-container">
-            <svg width="300" height="200" viewBox="0 0 300 200">
-              <circle cx="35" cy="100" r="14" fill="none" stroke="#64748b" stroke-width="1.5"/>
-              <line x1="35" y1="70" x2="35" y2="130" stroke="#64748b" stroke-width="1.2"/>
-              <line x1="5" y1="100" x2="65" y2="100" stroke="#64748b" stroke-width="1.2"/>
-              <text x="10" y="155" font-size="10" fill="#64748b">自然光 (I₀)</text>
-              <rect x="100" y="45" width="12" height="110" rx="3" fill="#bfdbfe" stroke="#2563eb" stroke-width="1.5"/>
-              <line x1="106" y1="55" x2="106" y2="145" stroke="#1d4ed8" stroke-width="2"/>
-              <text x="90" y="175" font-size="10" fill="#1d4ed8">P₁起偏(豎直)</text>
-              <line x1="120" y1="100" x2="185" y2="100" stroke="#2563eb" stroke-width="2"/>
-              <text x="135" y="85" font-size="9" fill="#2563eb">I = ½I₀</text>
-              <rect x="195" y="45" width="12" height="110" rx="3" fill="#fecaca" stroke="#dc2626" stroke-width="1.5"/>
-              <line x1="190" y1="100" x2="212" y2="100" stroke="#b91c1c" stroke-width="2"/>
-              <text x="185" y="175" font-size="10" fill="#b91c1c">P₂檢偏(水平)</text>
-              <text x="225" y="105" font-size="11" fill="#dc2626" font-weight="bold">消光 (I=0)</text>
-            </svg>
-            <div class="svg-caption">圖 C：兩偏振片正交（夾角90°）完全消光模型</div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="border-b-2 border-blue-900 text-blue-950 bg-slate-50">
+                <th class="py-2 px-3">外界條件改變</th>
+                <th class="py-2 px-3">速率瞬間與過程變化</th>
+                <th class="py-2 px-3">平衡移動方向</th>
+                <th class="py-2 px-3">平衡常數 K<sub>c</sub></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+              <tr>
+                <td class="py-2 px-3 font-semibold">增大反應物濃度</td>
+                <td class="py-2 px-3">v<sub>正</sub> 突增，v<sub>逆</sub> 漸增至新平衡</td>
+                <td class="py-2 px-3 text-blue-900 font-medium">向正反應方向移動</td>
+                <td class="py-2 px-3">不變</td>
+              </tr>
+              <tr>
+                <td class="py-2 px-3 font-semibold">增大壓強（縮小體積）</td>
+                <td class="py-2 px-3">氣體濃度皆增，係數和大的一側增幅更大</td>
+                <td class="py-2 px-3 text-blue-900 font-medium">向氣體分子數減小（&Delta;n<sub>氣</sub> &lt; 0）方向移動</td>
+                <td class="py-2 px-3">不變</td>
+              </tr>
+              <tr>
+                <td class="py-2 px-3 font-semibold">升高溫度</td>
+                <td class="py-2 px-3">v<sub>正</sub>、v<sub>逆</sub> 均增大，吸熱方向增幅更大</td>
+                <td class="py-2 px-3 text-amber-800 font-medium">向吸熱反應方向（&Delta;H &gt; 0）移動</td>
+                <td class="py-2 px-3 font-semibold">吸熱增大；放熱減小</td>
+              </tr>
+              <tr>
+                <td class="py-2 px-3 font-semibold">加入正催化劑</td>
+                <td class="py-2 px-3">v<sub>正</sub>、v<sub>逆</sub> 同等倍數增大</td>
+                <td class="py-2 px-3 text-slate-600">不移動（僅縮短達平衡時間）</td>
+                <td class="py-2 px-3">不變</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: 8 大易錯陷阱剖析 ==================== -->
+    <section id="tab-pitfalls" class="tab-panel hidden space-y-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-blue-950">大測最常失分的 8 大易錯陷阱剖析</h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-0.5">點擊下方分類篩選，或點擊卡片切換展開／收合避坑詳解</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" data-pitfall-filter="all" class="pitfall-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-900 text-white">全部 (8)</button>
+            <button type="button" data-pitfall-filter="rate" class="pitfall-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">速率與單位陷阱</button>
+            <button type="button" data-pitfall-filter="eq" class="pitfall-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">平衡判據與移動陷阱</button>
+            <button type="button" data-pitfall-filter="calc" class="pitfall-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Kc 與三段式計算陷阱</button>
+          </div>
+        </div>
+
+        <div id="pitfalls-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: ICE 三段式互動計算機 ==================== -->
+    <section id="tab-calculator" class="tab-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+        <h2 class="text-lg sm:text-xl font-bold text-blue-950 mb-2">ICE 三段式（起始、變化、平衡）與 K<sub>c</sub> 互動驗算機</h2>
+        <p class="text-xs sm:text-sm text-slate-600 mb-4">
+          選擇大測經典反應模型或自訂參數，即時計算三段式濃度、平均反應速率 <span class="math-font">v</span>、平衡轉化率 <span class="math-font">&alpha;</span>、平衡常數 <span class="math-font">K<sub>c</sub></span> 及恆溫恆容壓強比：
+        </p>
+
+        <!-- Preset Buttons -->
+        <div class="flex flex-wrap gap-2 mb-5">
+          <button type="button" data-preset="nh3" class="calc-preset-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-900 text-white">
+            模型 A：N₂(g) + 3H₂(g) ⇌ 2NH₃(g)（試卷第 8 題數據）
+          </button>
+          <button type="button" data-preset="co" class="calc-preset-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">
+            模型 B：C(s) + CO₂(g) ⇌ 2CO(g)（試卷第 9 題含固體反應）
+          </button>
+          <button type="button" data-preset="hi" class="calc-preset-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">
+            模型 C：H₂(g) + I₂(g) ⇌ 2HI(g)（Δn氣 = 0 模型）
+          </button>
+        </div>
+
+        <!-- Calculator Inputs -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-5">
+          <div>
+            <label for="calc-vol" class="block text-xs font-semibold text-slate-700 mb-1">容器體積 V (L)</label>
+            <input id="calc-vol" type="number" step="0.1" min="0.1" value="2.0" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-mono">
+          </div>
+          <div>
+            <label for="calc-time" class="block text-xs font-semibold text-slate-700 mb-1">達平衡時間 &Delta;t (min)</label>
+            <input id="calc-time" type="number" step="1" min="1" value="10" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-mono">
+          </div>
+          <div>
+            <label id="lbl-na0" for="calc-na0" class="block text-xs font-semibold text-slate-700 mb-1">起始 n(N₂) (mol)</label>
+            <input id="calc-na0" type="number" step="0.1" min="0.1" value="2.0" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-mono">
+          </div>
+          <div>
+            <label id="lbl-nb0" for="calc-nb0" class="block text-xs font-semibold text-slate-700 mb-1">起始 n(H₂) (mol)</label>
+            <input id="calc-nb0" type="number" step="0.1" min="0" value="6.0" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-mono">
+          </div>
+          <div>
+            <label id="lbl-dna" for="calc-dna" class="block text-xs font-semibold text-amber-800 mb-1">轉化量 &Delta;n(N₂) (mol)</label>
+            <input id="calc-dna" type="number" step="0.1" min="0.05" value="0.8" class="w-full px-3 py-1.5 rounded-lg border border-amber-400 bg-amber-50/40 text-sm font-mono">
+          </div>
+        </div>
+
+        <!-- Generated ICE Table & Metrics -->
+        <div id="calc-output-area" class="space-y-4"></div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: 大測實戰試卷 (100分) ==================== -->
+    <section id="tab-exam" class="tab-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4 mb-5">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-blue-950">第三部分：化學大測實戰練習卷（滿分 100 分）</h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-0.5">甲部選擇題 36 分 + 乙部綜合計算題 64 分｜完成後點擊「批改整份試卷」或逐題查看三段式詳解</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button id="btn-grade-all" type="button" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-900 hover:bg-blue-800 text-white shadow-sm transition">
+              批改整份試卷並計分
+            </button>
+            <button id="btn-toggle-all-solutions" type="button" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-amber-100 hover:bg-amber-200 text-amber-900 transition">
+              展開/收合全部詳解
+            </button>
+            <button id="btn-reset-exam" type="button" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+              清空重做
+            </button>
+          </div>
+        </div>
+
+        <!-- Score Summary Banner (Hidden until graded) -->
+        <div id="exam-score-banner" class="hidden mb-6 p-4 rounded-xl bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <div class="text-xs text-slate-400 uppercase font-semibold">大測批改結果</div>
+            <div id="exam-score-detail" class="text-base sm:text-lg font-bold mt-0.5"></div>
+          </div>
+          <div id="exam-score-badge" class="text-2xl font-extrabold text-amber-400"></div>
+        </div>
+
+        <!-- Part A: Multiple Choice Questions -->
+        <h3 class="text-base font-bold text-amber-800 mb-3">甲部：易錯觀念與速算選擇題（共 6 題，每題 6 分，共 36 分）</h3>
+        <div id="mcq-container" class="space-y-4 mb-8"></div>
+
+        <!-- Part B: Structured Calculation Questions -->
+        <h3 class="text-base font-bold text-amber-800 mb-3">乙部：結構化綜合計算題（共 4 大題，共 64 分，填入計算結果即可自動批改）</h3>
+        <div id="calc-q-container" class="space-y-6"></div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: 匯出與 GitHub Pages 部署指南 ==================== -->
+    <section id="tab-deploy" class="tab-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+        <h2 class="text-lg sm:text-xl font-bold text-blue-950 mb-2">一鍵匯出 HTML 與 GitHub Pages 免費網站部署指南</h2>
+        <p class="text-sm text-slate-700 leading-relaxed mb-4">
+          本網頁已封裝為<strong>單一自包含檔案（<code>index.html</code>）</strong>，無需任何後端伺服器或額外資料夾，直接上傳至 GitHub 即可透過 GitHub Pages 生成永久免費的溫習網址（方便在手機、iPad 或電腦隨時刷題）。
+        </p>
+
+        <div class="flex flex-wrap gap-3 mb-6">
+          <button id="btn-copy-html" type="button" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-blue-900 hover:bg-blue-800 text-white shadow-sm transition">
+            複製完整 index.html 原始碼
+          </button>
+          <button id="btn-print-page" type="button" class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 transition">
+            列印 / 另存為 PDF
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <div class="text-xs font-bold uppercase text-blue-900 mb-1">步驟 1：建立 GitHub 儲存庫</div>
+            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+              登入 GitHub，點擊右上角 <strong>+ &rarr; New repository</strong>，輸入儲存庫名稱（例如 <code>chem-quiz</code>），選擇 <strong>Public（公開）</strong>，並勾選 <strong>Add a README file</strong> 後點擊 Create repository。
+            </p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <div class="text-xs font-bold uppercase text-blue-900 mb-1">步驟 2：上傳或貼上 index.html</div>
+            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+              在儲存庫頁面點擊 <strong>Add file &rarr; Upload files</strong>（直接將本檔案 <code>index.html</code> 拖曳上傳），或點擊 <strong>Create new file</strong>，命名為 <code>index.html</code> 並貼上上方複製的原始碼，點擊 <strong>Commit changes</strong>。
+            </p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <div class="text-xs font-bold uppercase text-blue-900 mb-1">步驟 3：啟用 GitHub Pages</div>
+            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+              點擊儲存庫頂部的 <strong>Settings &rarr; 左側 Pages</strong>，在 <strong>Build and deployment &rarr; Branch</strong> 下拉選單選擇 <code>main</code>（資料夾選 <code>/ (root)</code>），點擊 <strong>Save</strong>。約 1 分鐘後即可透過 <code>https://&lt;你的帳號&gt;.github.io/chem-quiz/</code> 訪問！
+            </p>
           </div>
         </div>
       </div>
     </section>
-    <section id="tab-exam" class="tab-content">
-      <div class="exam-header">
-        <h2>高中物理光學單元大測卷</h2>
-        <div style="font-size: 0.95rem; color: #475569; font-weight: 600;">
-          範圍：光的反射折射、全反射、光的干涉、衍射與偏振
-        </div>
-        <div class="exam-meta">
-          <span>⏱️ 限時：60 分鐘</span>
-          <span>💯 滿分：100 分</span>
-          <span>題型：判斷 / 填充 / 選擇 / 實驗 / 生活應用 / 計算</span>
-        </div>
-        <div class="exam-student-bar">
-          <div>班級：<span class="fill-line" contenteditable="true"></span></div>
-          <div>姓名：<span class="fill-line" contenteditable="true"></span></div>
-          <div>學號：<span class="fill-line" contenteditable="true"></span></div>
-          <div>得分：<span class="fill-line" style="font-weight: bold; color: #2563eb;" id="score-display-box">__/100</span></div>
-        </div>
-      </div>
-      <div class="section-title-box">
-        <span>一、判斷題（共 6 小題，每題 2 分，共 12 分）</span>
-        <span class="badge badge-purple">判斷題 12%</span>
-      </div>
-      <div class="q-card" id="tfc-1">
-        <div class="q-header"><span class="q-num">1.</span><span class="q-pts">(2分)</span></div>
-        <div class="q-content">光從空氣斜射入水中時，光波的傳播速度變慢，波長變短，但光的頻率保持不變。</div>
-        <div class="tf-box">
-          <button class="tf-btn" onclick="checkTF(1, true, true)">✔ 正確 (True)</button>
-          <button class="tf-btn" onclick="checkTF(1, false, true)">✖ 錯誤 (False)</button>
-        </div>
-        <div class="sol-card" id="sol-tf-1">
-          <div class="sol-title">✅ 標準答案：正確 (True)</div>
-          <div><strong>解析</strong>：光的頻率由光源決定，跨介質傳播時頻率不變；水折射率大於空氣，光速 v = c/n 減小，波長 λ = λ₀/n 變短。</div>
-        </div>
-      </div>
-      <div class="q-card" id="tfc-2">
-        <div class="q-header"><span class="q-num">2.</span><span class="q-pts">(2分)</span></div>
-        <div class="q-content">只要光線射向介質界面的入射角大於臨界角，就一定會發生全反射現象。</div>
-        <div class="tf-box">
-          <button class="tf-btn" onclick="checkTF(2, true, false)">✔ 正確 (True)</button>
-          <button class="tf-btn" onclick="checkTF(2, false, false)">✖ 錯誤 (False)</button>
-        </div>
-        <div class="sol-card" id="sol-tf-2">
-          <div class="sol-title">✅ 標準答案：錯誤 (False)</div>
-          <div><strong>解析</strong>：全反射必須滿足兩個條件：① 光必須由光密介質射向光疏介質；② 入射角大於或等於臨界角。光疏入光密不會發生全反射。</div>
-        </div>
-      </div>
-      <div class="q-card" id="tfc-3">
-        <div class="q-header"><span class="q-num">3.</span><span class="q-pts">(2分)</span></div>
-        <div class="q-content">在楊氏雙縫干涉實驗中，若保持其他條件不變，僅增大雙縫間距 d，光屏上相鄰明條紋間距 <span class="math-sym">Δx</span> 將隨之增大。</div>
-        <div class="tf-box">
-          <button class="tf-btn" onclick="checkTF(3, true, false)">✔ 正確 (True)</button>
-          <button class="tf-btn" onclick="checkTF(3, false, false)">✖ 錯誤 (False)</button>
-        </div>
-        <div class="sol-card" id="sol-tf-3">
-          <div class="sol-title">✅ 標準答案：錯誤 (False)</div>
-          <div><strong>解析</strong>：由雙縫干涉公式 Δx = lλ/d 可知，條紋間距與雙縫間距 d 成反比。增大 d 會使條紋間距 Δx 減小。</div>
-        </div>
-      </div>
-      <div class="q-card" id="tfc-4">
-        <div class="q-header"><span class="q-num">4.</span><span class="q-pts">(2分)</span></div>
-        <div class="q-content">在單縫衍射圖樣中，中央明條紋最寬且最亮，兩側各級明條紋寬度明顯變窄且亮度急劇減弱。</div>
-        <div class="tf-box">
-          <button class="tf-btn" onclick="checkTF(4, true, true)">✔ 正確 (True)</button>
-          <button class="tf-btn" onclick="checkTF(4, false, true)">✖ 錯誤 (False)</button>
-        </div>
-        <div class="sol-card" id="sol-tf-4">
-          <div class="sol-title">✅ 標準答案：正確 (True)</div>
-          <div><strong>解析</strong>：單縫衍射條紋是不均勻的，中央明紋寬度約為兩側一級明紋的 2 倍，且集中了絕大部分光能，兩側條紋亮度和寬度迅速衰減。</div>
-        </div>
-      </div>
-      <div class="q-card" id="tfc-5">
-        <div class="q-header"><span class="q-num">5.</span><span class="q-pts">(2分)</span></div>
-        <div class="q-content">聲波和光波都是波動，因此在適當條件下，聲波在空氣中傳播時也能觀察到明顯的偏振現象。</div>
-        <div class="tf-box">
-          <button class="tf-btn" onclick="checkTF(5, true, false)">✔ 正確 (True)</button>
-          <button class="tf-btn" onclick="checkTF(5, false, false)">✖ 錯誤 (False)</button>
-        </div>
-        <div class="sol-card" id="sol-tf-5">
-          <div class="sol-title">✅ 標準答案：錯誤 (False)</div>
-          <div><strong>解析</strong>：偏振是橫波特有的性質。聲波在空氣中是縱波（振動方向與傳播方向平行），絕無偏振現象。偏振唯一證明了光是橫波。</div>
-        </div>
-      </div>
-      <div class="q-card" id="tfc-6">
-        <div class="q-header"><span class="q-num">6.</span><span class="q-pts">(2分)</span></div>
-        <div class="q-content">光纖通信中，纖芯的折射率必須大於外層包層的折射率，光信號才能在兩者界面持續全反射傳輸。</div>
-        <div class="tf-box">
-          <button class="tf-btn" onclick="checkTF(6, true, true)">✔ 正確 (True)</button>
-          <button class="tf-btn" onclick="checkTF(6, false, true)">✖ 錯誤 (False)</button>
-        </div>
-        <div class="sol-card" id="sol-tf-6">
-          <div class="sol-title">✅ 標準答案：正確 (True)</div>
-          <div><strong>解析</strong>：全反射要求光從光密介質射向光疏介質，故纖芯折射率必須大於包層（n_core &gt; n_cladding）。</div>
-        </div>
-      </div>
-      <div class="section-title-box">
-        <span>二、概念填充題（共 6 小題，每題 2 分，共 12 分）</span>
-        <span class="badge badge-teal">填充題 12%</span>
-      </div>
-      <div class="q-card">
-        <div class="q-header"><span class="q-num">7.</span><span class="q-pts">(2分)</span></div>
-        <div class="q-content">一束光以 60° 入射角射向平面鏡，則反射角為 ______°；若保持入射光方向不變，將平面鏡旋轉 10°，反射光線的方向將偏轉 ______°。</div>
-        <div style="margin: 0.5rem 0;"><input type="text" class="textarea-ans" style="min-height: 38px; width: 280px;" placeholder="請在此輸入答案..."></div>
-        <button class="btn" onclick="toggleSol('sol-7')">🔍 顯示參考答案</button>
-        <div class="sol-card" id="sol-7">
-          <div class="sol-title">✅ 參考答案：60；20</div>
-          <div><strong>解析</strong>：由反射定律知反射角等於入射角為 60°。鏡面旋轉 10°，法線旋轉 10°，入射角與反射角均改變 10°，故反射光線偏轉 2 × 10° = 20°。</div>
-        </div>
-      </div>
-      <div class="q-card">
-        <div class="q-header"><span class="q-num">8.</span><span class="q-pts">(2分)</span></div>
-        <div class="q-content">某透明介質折射率 <span class="math-sym">n = √2 ≈ 1.414</span>，光在該介質中速度約為 ______ m/s；該介質對空氣的臨界角為 ______°。</div>
-        <div style="margin: 0.5rem 0;"><input type="text" class="textarea-ans" style="min-height: 38px; width: 280px;" placeholder="請在此輸入答案..."></div>
-        <button class="btn" onclick="toggleSol('sol-8')">🔍 顯示參考答案</button>
-        <div class="sol-card" id="sol-8">
-          <div class="sol-title">✅ 參考答案：2.12 × 10⁸；45</div>
-          <div><strong>解析</strong>：v = c/n = (3.00 × 10⁸)/√2 ≈ 2.12 × 10⁸ m/s；臨界角 sin C = 1/n = 1/√2 ⇒ C = 45°。</div>
-        </div>
-      </div>
-      <div class="q-card">
-        <div class="q-header"><span class="q-num">9.</span><span class="q-pts">(2分)</span></div>
-        <div class="q-content">波長為 500 nm 的綠光照射雙縫。若接收屏上 P 點到兩縫的光程差為 1500 nm，則 P 點處出現第 ______ 級______條紋（填「明」或「暗」）。</div>
-        <div style="margin: 0.5rem 0;"><input type="text" class="textarea-ans" style="min-height: 38px; width: 280px;" placeholder="請在此輸入答案..."></div>
-        <button class="btn" onclick="toggleSol('sol-9')">🔍 顯示參考答案</button>
-        <div class="sol-card" id="sol-9">
-          <div class="sol-title">✅ 參考答案：3；明</div>
-          <div><strong>解析</strong>：光程差 Δr = 1500 nm = 3 × 500 nm = 3λ，為波長整數倍（m = 3），對應第 3 級相長干涉明條紋。</div>
-        </div>
-      </div>
-      <div class="q-card">
-        <div class="q-header"><span class="q-num">10.</span><span class="q-pts">(2分)</span></div>
-        <div class="q-content">光繞過障礙物偏離直線傳播的現象稱為光的衍射。發生顯著衍射的必備條件是障礙物或狹縫尺寸與光波波長______。</div>
-        <div style="margin: 0.5rem 0;"><input type="text" class="textarea-ans" style="min-height: 38px; width: 280px;" placeholder="請在此輸入答案..."></div>
-        <button class="btn" onclick="toggleSol('sol-10')">🔍 顯示參考答案</button>
-        <div class="sol-card" id="sol-10">
-          <div class="sol-title">✅ 參考答案：相近或小於波長（或相當）</div>
-          <div><strong>解析</strong>：障礙物尺寸遠大於光波長時光沿直線傳播；只有尺寸與波長相當（a ≤ λ）時，衍射現象才顯著。</div>
-        </div>
-      </div>
-      <div class="q-card">
-        <div class="q-header"><span class="q-num">11.</span><span class="q-pts">(2分)</span></div>
-        <div class="q-content">波動分為橫波與縱波。實驗中光的______現象無可置疑地證明了光是一種橫波。</div>
-        <div style="margin: 0.5rem 0;"><input type="text" class="textarea-ans" style="min-height: 38px; width: 280px;" placeholder="請在此輸入答案..."></div>
-        <button class="btn" onclick="toggleSol('sol-11')">🔍 顯示參考答案</button>
-        <div class="sol-card" id="sol-11">
-          <div class="sol-title">✅ 參考答案：偏振 (Polarization)</div>
-          <div><strong>解析</strong>：干涉和衍射僅證明波動性，而偏振特性唯獨橫波具備，故偏振現象唯一證明光是橫波。</div>
-        </div>
-      </div>
-      <div class="q-card">
-        <div class="q-header"><span class="q-num">12.</span><span class="q-pts">(2分)</span></div>
-        <div class="q-content">光強為 <span class="math-sym">I₀</span> 的自然光穿過理想偏振片後成為線偏振光，光強為 ______；若該線偏振光再穿過透振方向與其夾角為 60° 的檢偏片，出射光強為 ______。</div>
-        <div style="margin: 0.5rem 0;"><input type="text" class="textarea-ans" style="min-height: 38px; width: 280px;" placeholder="請在此輸入答案..."></div>
-        <button class="btn" onclick="toggleSol('sol-12')">🔍 顯示參考答案</button>
-        <div class="sol-card" id="sol-12">
-          <div class="sol-title">✅ 參考答案：0.5 I₀；0.125 I₀（或 ⅛ I₀）</div>
-          <div><strong>解析</strong>：自然光穿過起偏片光強減半為 0.5 I₀；再過檢偏片依馬呂斯定律 I = (0.5 I₀) cos²60° = 0.5 I₀ × (0.5)² = 0.125 I₀。</div>
-        </div>
-      </div>
-      <div class="section-title-box">
-        <span>三、單項選擇題（共 8 小題，每題 3 分，共 24 分）</span>
-        <span class="badge badge-blue">選擇題 24%</span>
-      </div>
-      <div class="q-card" id="mc-13">
-        <div class="q-header"><span class="q-num">13.</span><span class="q-pts">(3分)</span></div>
-        <div class="q-content">一束單色光從真空中以 45° 入射角射入某介質，折射角為 30°。則該介質折射率及光在介質中的速度為：</div>
-        <div class="opt-list">
-          <div class="opt-item" onclick="chooseMC(13, 'A', 'A')">
-            <span class="opt-circle">A</span> n = √2 ≈ 1.414，v ≈ 2.12 × 10⁸ m/s
-          </div>
-          <div class="opt-item" onclick="chooseMC(13, 'B', 'A')">
-            <span class="opt-circle">B</span> n = 0.707，v ≈ 4.24 × 10⁸ m/s
-          </div>
-          <div class="opt-item" onclick="chooseMC(13, 'C', 'A')">
-            <span class="opt-circle">C</span> n = √3 ≈ 1.732，v ≈ 1.73 × 10⁸ m/s
-          </div>
-          <div class="opt-item" onclick="chooseMC(13, 'D', 'A')">
-            <span class="opt-circle">D</span> n = 1.500，v ≈ 2.00 × 10⁸ m/s
-          </div>
-        </div>
-        <div class="sol-card" id="sol-mc-13">
-          <div class="sol-title">✅ 正確答案：A</div>
-          <div><strong>解析</strong>：由斯涅爾定律 n = sin 45° / sin 30° = (√2/2) / (1/2) = √2 ≈ 1.414；v = c/n = 3.00 × 10⁸ / √2 ≈ 2.12 × 10⁸ m/s。選 A。</div>
-        </div>
-      </div>
-      <div class="q-card" id="mc-14">
-        <div class="q-header"><span class="q-num">14.</span><span class="q-pts">(3分)</span></div>
-        <div class="q-content">清澈水池的實際深度為 2.4 m，水的折射率為 1.33。人垂直俯視池底時，看起來的視深約為：</div>
-        <div class="opt-list">
-          <div class="opt-item" onclick="chooseMC(14, 'A', 'C')">
-            <span class="opt-circle">A</span> 3.19 m
-          </div>
-          <div class="opt-item" onclick="chooseMC(14, 'B', 'C')">
-            <span class="opt-circle">B</span> 2.40 m
-          </div>
-          <div class="opt-item" onclick="chooseMC(14, 'C', 'C')">
-            <span class="opt-circle">C</span> 1.80 m
-          </div>
-          <div class="opt-item" onclick="chooseMC(14, 'D', 'C')">
-            <span class="opt-circle">D</span> 1.20 m
-          </div>
-        </div>
-        <div class="sol-card" id="sol-mc-14">
-          <div class="sol-title">✅ 正確答案：C</div>
-          <div><strong>解析</strong>：由垂直視深公式 d' = d / n = 2.4 / 1.33 ≈ 1.80 m。水底看起來比實際更淺。選 C。</div>
-        </div>
-      </div>
-      <div class="q-card" id="mc-15">
-        <div class="q-header"><span class="q-num">15.</span><span class="q-pts">(3分)</span></div>
-        <div class="q-content">光從介質 1 射向介質 2，若想在界面發生全反射，必須滿足的條件是：</div>
-        <div class="opt-list">
-          <div class="opt-item" onclick="chooseMC(15, 'A', 'B')">
-            <span class="opt-circle">A</span> 介質 1 折射率小於介質 2，且入射角大於臨界角
-          </div>
-          <div class="opt-item" onclick="chooseMC(15, 'B', 'B')">
-            <span class="opt-circle">B</span> 介質 1 折射率大於介質 2，且入射角大於或等於臨界角
-          </div>
-          <div class="opt-item" onclick="chooseMC(15, 'C', 'B')">
-            <span class="opt-circle">C</span> 介質 1 折射率大於介質 2，且入射角小於臨界角
-          </div>
-          <div class="opt-item" onclick="chooseMC(15, 'D', 'B')">
-            <span class="opt-circle">D</span> 任意折射率，只要入射角大於 45°
-          </div>
-        </div>
-        <div class="sol-card" id="sol-mc-15">
-          <div class="sol-title">✅ 正確答案：B</div>
-          <div><strong>解析</strong>：全反射發生條件：光由光密介質入光疏介質（n₁ &gt; n₂），且入射角大於或等於臨界角。選 B。</div>
-        </div>
-      </div>
-      <div class="q-card" id="mc-16">
-        <div class="q-header"><span class="q-num">16.</span><span class="q-pts">(3分)</span></div>
-        <div class="q-content">在楊氏雙縫干涉實驗中，欲使光屏上相鄰明條紋間距 <span class="math-sym">Δx</span> 增大，下列措施有效的是：</div>
-        <div class="opt-list">
-          <div class="opt-item" onclick="chooseMC(16, 'A', 'C')">
-            <span class="opt-circle">A</span> 減小雙縫到光屏的距離 l
-          </div>
-          <div class="opt-item" onclick="chooseMC(16, 'B', 'C')">
-            <span class="opt-circle">B</span> 增大雙縫間的間距 d
-          </div>
-          <div class="opt-item" onclick="chooseMC(16, 'C', 'C')">
-            <span class="opt-circle">C</span> 將入射光由藍光改為紅光
-          </div>
-          <div class="opt-item" onclick="chooseMC(16, 'D', 'C')">
-            <span class="opt-circle">D</span> 將整個實驗裝置浸入水中進行
-          </div>
-        </div>
-        <div class="sol-card" id="sol-mc-16">
-          <div class="sol-title">✅ 正確答案：C</div>
-          <div><strong>解析</strong>：由 Δx = lλ/d 可知，紅光波長 λ 大於藍光，分子增大故條紋間距增大。減小 l、增大 d 或浸入水中（波長縮短）均使條紋變窄。選 C。</div>
-        </div>
-      </div>
-      <div class="q-card" id="mc-17">
-        <div class="q-header"><span class="q-num">17.</span><span class="q-pts">(3分)</span></div>
-        <div class="q-content">若用白光照射雙縫，則光屏上呈現的干涉條紋特徵為：</div>
-        <div class="opt-list">
-          <div class="opt-item" onclick="chooseMC(17, 'A', 'B')">
-            <span class="opt-circle">A</span> 中央為暗條紋，兩側為黑白條紋
-          </div>
-          <div class="opt-item" onclick="chooseMC(17, 'B', 'B')">
-            <span class="opt-circle">B</span> 中央為純白色明條紋，兩側彩色條紋內側偏紫、外側偏紅
-          </div>
-          <div class="opt-item" onclick="chooseMC(17, 'C', 'B')">
-            <span class="opt-circle">C</span> 中央為純白色明條紋，兩側彩色條紋內側偏紅、外側偏紫
-          </div>
-          <div class="opt-item" onclick="chooseMC(17, 'D', 'B')">
-            <span class="opt-circle">D</span> 全屏為均勻單色紅光條紋
-          </div>
-        </div>
-        <div class="sol-card" id="sol-mc-17">
-          <div class="sol-title">✅ 正確答案：B</div>
-          <div><strong>解析</strong>：中央零級處各色光光程差均為 0，疊加為純白條紋。兩側一級明紋 x₁ = lλ/d，紫光波長短靠近中央，紅光波長長遠離中央，呈「內紫外紅」。選 B。</div>
-        </div>
-      </div>
-      <div class="q-card" id="mc-18">
-        <div class="q-header"><span class="q-num">18.</span><span class="q-pts">(3分)</span></div>
-        <div class="q-content">關於單縫衍射與雙縫干涉條紋特徵的比較，下列說法正確的是：</div>
-        <div class="opt-list">
-          <div class="opt-item" onclick="chooseMC(18, 'A', 'C')">
-            <span class="opt-circle">A</span> 兩者條紋寬度都是完全相等均勻分佈的
-          </div>
-          <div class="opt-item" onclick="chooseMC(18, 'B', 'C')">
-            <span class="opt-circle">B</span> 雙縫干涉中央明紋寬度是兩側明紋寬度的兩倍
-          </div>
-          <div class="opt-item" onclick="chooseMC(18, 'C', 'C')">
-            <span class="opt-circle">C</span> 單縫衍射中央明條紋特別寬、特別亮，兩側條紋迅速變窄變暗
-          </div>
-          <div class="opt-item" onclick="chooseMC(18, 'D', 'C')">
-            <span class="opt-circle">D</span> 單縫衍射條紋亮度在整個屏幕上均勻一致
-          </div>
-        </div>
-        <div class="sol-card" id="sol-mc-18">
-          <div class="sol-title">✅ 正確答案：C</div>
-          <div><strong>解析</strong>：雙縫干涉條紋等寬等間距；單縫衍射不均勻，中央明條紋寬度約為兩側一級明紋的 2 倍且最亮，向兩側迅速減弱。選 C。</div>
-        </div>
-      </div>
-      <div class="q-card" id="mc-19">
-        <div class="q-header"><span class="q-num">19.</span><span class="q-pts">(3分)</span></div>
-        <div class="q-content">一束光強為 <span class="math-sym">I₀</span> 的線偏振光射向偏振片，當透振方向與光偏振方向夾角為 45° 時，透射光強為：</div>
-        <div class="opt-list">
-          <div class="opt-item" onclick="chooseMC(19, 'A', 'B')">
-            <span class="opt-circle">A</span> I₀
-          </div>
-          <div class="opt-item" onclick="chooseMC(19, 'B', 'B')">
-            <span class="opt-circle">B</span> 0.5 I₀
-          </div>
-          <div class="opt-item" onclick="chooseMC(19, 'C', 'B')">
-            <span class="opt-circle">C</span> 0.707 I₀
-          </div>
-          <div class="opt-item" onclick="chooseMC(19, 'D', 'B')">
-            <span class="opt-circle">D</span> 0.25 I₀
-          </div>
-        </div>
-        <div class="sol-card" id="sol-mc-19">
-          <div class="sol-title">✅ 正確答案：B</div>
-          <div><strong>解析</strong>：由馬呂斯定律 I = I₀ cos²45° = I₀ × (√2/2)² = 0.5 I₀。選 B。</div>
-        </div>
-      </div>
-      <div class="q-card" id="mc-20">
-        <div class="q-header"><span class="q-num">20.</span><span class="q-pts">(3分)</span></div>
-        <div class="q-content">當自然光以布儒斯特角 <span class="math-sym">θ<sub>B</sub></span> 入射到玻璃界面時，下列說法正確的是：</div>
-        <div class="opt-list">
-          <div class="opt-item" onclick="chooseMC(20, 'A', 'A')">
-            <span class="opt-circle">A</span> 反射光線與折射光線互相垂直，且反射光為完全線偏振光
-          </div>
-          <div class="opt-item" onclick="chooseMC(20, 'B', 'A')">
-            <span class="opt-circle">B</span> 反射光與折射光夾角為 45°
-          </div>
-          <div class="opt-item" onclick="chooseMC(20, 'C', 'A')">
-            <span class="opt-circle">C</span> 完全沒有折射光，全部發生全反射
-          </div>
-          <div class="opt-item" onclick="chooseMC(20, 'D', 'A')">
-            <span class="opt-circle">D</span> 折射光是完全線偏振光，反射光仍為自然光
-          </div>
-        </div>
-        <div class="sol-card" id="sol-mc-20">
-          <div class="sol-title">✅ 正確答案：A</div>
-          <div><strong>解析</strong>：布儒斯特條件下，反射角與折射角互餘（反射光與折射光垂直），反射光為完全偏振光，振動垂直於入射面。選 A。</div>
-        </div>
-      </div>
-      <div style="margin: 1rem 0 2rem;">
-        <button class="btn btn-primary" onclick="gradeAllMC()">📊 批改選擇題 (三部)</button>
-        <span id="mc-grade-feedback" style="margin-left: 1rem; font-weight: bold; font-size: 1.05rem;"></span>
-      </div>
-      <div class="section-title-box">
-        <span>四、實驗題（共 2 大題，每題 8 分，共 16 分）</span>
-        <span class="badge badge-amber">實驗題 16%</span>
-      </div>
-      <div class="q-card">
-        <div class="q-header"><span class="q-num">21.</span><span class="q-pts">(8分)</span>【實驗：用插針法測定玻璃磚的折射率】</div>
-        <div class="q-content">
-          某實驗小組在「測定長方形平行玻璃磚折射率」實驗中，利用四枚大頭針 P₁、P₂、P₃、P₄ 進行光路追蹤：<br>
-          (1) 在插針確定光路時，透過玻璃磚觀察，插上 P₃ 時應擋住 ______ 的像；插上 P₄ 時應同時擋住 ______ 的像。（2分）<br>
-          (2) 某同學在紙上畫出兩表面邊界 aa' 和 bb'，但在放置玻璃磚時不慎將玻璃磚向下平移了一小段距離（即玻璃磚實際邊界在 aa' 下方），若其餘操作規範，則測得的折射率值將 ______（填「偏大」、「偏小」或「不變」），試說明原因。（3分）<br>
-          (3) 為了提高測量精確度，請寫出兩項關鍵的操作注意事項。（3分）
-        </div>
-        <textarea class="textarea-ans" placeholder="請在此輸入實驗分析與解答..."></textarea>
-        <button class="btn" onclick="toggleSol('sol-21')">🔍 展開標準答案與評分細則</button>
-        <div class="sol-card" id="sol-21">
-          <div class="sol-title">參考答案與評分標準：</div>
-          <div class="rubric">
-            (1) <strong>P₁、P₂</strong> 的像；<strong>P₃ 以及 P₁、P₂</strong> 的像。(2分)<br>
-            (2) <strong>偏小</strong>。(1分) 原因：玻璃磚向下平移導致測得的折射角 r 比真實折射角偏大，由 <span class="math-sym">n = <span class="frac"><span class="num">sin i</span><span class="den">sin r</span></span></span> 知，分母偏大使得測得的折射率 n 偏小。(2分)<br>
-            (3) <strong>操作要領</strong>：① 大頭針 P₁與P₂、P₃與P₄ 之間的間距應適當大一些（宜大於 4~5 cm），以減小確定光線方向時的視角誤差；② 入射角應適中（宜在 30°~60° 之間），過小折射角測量相對誤差大，過大反射光太強出射光暗弱；③ 實驗過程中嚴禁移動玻璃磚。(寫出任意兩點得 3分)
-          </div>
-        </div>
-      </div>
-      <div class="q-card">
-        <div class="q-header"><span class="q-num">22.</span><span class="q-pts">(8分)</span>【實驗：用雙縫干涉測量單色光的波長】</div>
-        <div class="q-content">
-          在「用雙縫干涉測光的波長」實驗中：<br>
-          (1) 光具座上各光學元件在遮光筒前沿光軸放置的正確順序為：光源 → ______ → ______ → 雙縫 → 遮光筒 → 測量頭。（填「單縫」或「濾光片」）（2分）<br>
-          (2) 已知雙縫間距 <span class="math-sym">d = 0.20 mm</span>，雙縫到測量頭分劃板的距離 <span class="math-sym">l = 800 mm = 0.800 m</span>。旋動測量頭手輪，分劃板中心刻線對齊第 1 條亮條紋時讀數為 <span class="math-sym">x₁ = 1.200 mm</span>，對齊第 6 條亮條紋時讀數為 <span class="math-sym">x₆ = 14.000 mm</span>。<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;① 求相鄰亮條紋間距 <span class="math-sym">Δx</span>；（2分）<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;② 計算該單色光的波長 <span class="math-sym">λ</span>（以 nm 為單位）；（2分）<br>
-          (3) 若實驗中觀察到干涉條紋過於密集、條紋難以分辨，請提出兩種增大條紋間距的具體調節方法。（2分）
-        </div>
-        <textarea class="textarea-ans" placeholder="請在此輸入分步計算與調節方法..."></textarea>
-        <button class="btn" onclick="toggleSol('sol-22')">🔍 展開標準答案與評分細則</button>
-        <div class="sol-card" id="sol-22">
-          <div class="sol-title">參考答案與評分標準：</div>
-          <div class="rubric">
-            (1) <strong>濾光片 → 單縫</strong> (2分，順序顛倒不給分)<br>
-            (2) ① 條紋間距：<span class="math-sym">Δx = <span class="frac"><span class="num">x₆ - x₁</span><span class="den">6 - 1</span></span> = <span class="frac"><span class="num">14.000 - 1.200</span><span class="den">5</span></span> = <span class="frac"><span class="num">12.800</span><span class="den">5</span></span> = 2.560 mm</span> (2分)<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;② 波長計算：由 <span class="math-sym">Δx = <span class="frac"><span class="num">l</span><span class="den">d</span></span>λ ⇒ λ = Δx · <span class="frac"><span class="num">d</span><span class="den">l</span></span></span><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;<span class="math-sym">λ = <span class="frac"><span class="num">2.560 × 10⁻³ m × 0.20 × 10⁻³ m</span><span class="den">0.800 m</span></span> = 6.40 × 10⁻⁷ m = 640 nm</span> (2分)<br>
-            (3) <strong>增大條紋間距方法</strong>：由 <span class="math-sym">Δx = <span class="frac"><span class="num">lλ</span><span class="den">d</span></span></span> 可知，可：① 換用間距 d 更小的雙縫片；② 增大雙縫到光屏的距離 l（使用更長的遮光筒）；③ 換用波長更長的濾光片（如改用紅光濾光片）。(答出任意兩點得 2分)
-          </div>
-        </div>
-      </div>
-      <div class="section-title-box">
-        <span>五、生活情境與科技應用題（共 2 大題，每題 8 分，共 16 分）</span>
-        <span class="badge badge-teal">生活應用 16%</span>
-      </div>
-      <div class="q-card">
-        <div class="q-header"><span class="q-num">23.</span><span class="q-pts">(8分)</span>【光導纖維通信與全反射技術應用】</div>
-        <div class="q-content">
-          光導纖維（光纖）是現代高速寬帶互聯網與跨大洋海底通信的物理基石：<br>
-          (1) 光纖由內部的「纖芯」與外層的「包層」構成。纖芯折射率 <span class="math-sym">n₁</span> 與包層折射率 <span class="math-sym">n₂</span> 必須滿足什麼關係？請從全反射條件說明其原理。（3分）<br>
-          (2) 某光纖纖芯折射率 <span class="math-sym">n₁ = 1.60</span>，包層折射率 <span class="math-sym">n₂ = 1.28</span>。<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;① 求光信號在纖芯與包層界面的全反射臨界角 <span class="math-sym">C</span>；（3分）<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;② 簡述光纖相比傳統金屬銅線電纜在信息傳輸方面的兩項突出優勢。（2分）
-        </div>
-        <textarea class="textarea-ans" placeholder="請在此輸入原理與優勢..."></textarea>
-        <button class="btn" onclick="toggleSol('sol-23')">🔍 展開標準答案與評分細則</button>
-        <div class="sol-card" id="sol-23">
-          <div class="sol-title">參考答案與評分標準：</div>
-          <div class="rubric">
-            (1) 必須滿足 <strong><span class="math-sym">n₁ &gt; n₂</span></strong>（纖芯折射率大於包層折射率）。(1分)<br>
-            <strong>原理</strong>：全反射要求光由光密介質射向光疏介質。只有纖芯折射率高於包層，光在纖芯內部以大於臨界角的角度傳播時，才能在界面持續全反射前進而不漏入包層。(2分)<br>
-            (2) ① 臨界角計算：<span class="math-sym">sin C = <span class="frac"><span class="num">n₂</span><span class="den">n₁</span></span> = <span class="frac"><span class="num">1.28</span><span class="den">1.60</span></span> = 0.80 ⇒ C = arcsin(0.80) ≈ 53.1°</span>。(3分)<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;② <strong>突出優勢</strong>：① 傳輸頻帶極寬、容量巨大；② 信號衰減極小、傳輸距離遠；③ 抗電磁干擾能力強、保密性好；④ 重量輕、耐腐蝕。(答出任意兩點得 2分)
-          </div>
-        </div>
-      </div>
-      <div class="q-card">
-        <div class="q-header"><span class="q-num">24.</span><span class="q-pts">(8分)</span>【偏光太陽鏡與 3D 立體眼鏡的偏振光學原理】</div>
-        <div class="q-content">
-          光的偏振特性在生活防護與現代消費電子中有著廣泛應用：<br>
-          (1) 夏季在柏油路面駕駛或在水面垂釣時，常會受到刺眼的反射眩光困擾。水面或路面的反射光中，主要包含哪個振動方向的偏振光？優質「偏光太陽眼鏡」的鏡片透振方向應設計為水平還是豎直？為什麼？（4分）<br>
-          (2) 在電影院觀看 3D 立體電影時觀眾需佩戴偏振眼鏡。左右兩眼鏡片的透振方向有何關係？請簡述其成像原理。（4分）
-        </div>
-        <textarea class="textarea-ans" placeholder="請在此輸入偏振應用原理解析..."></textarea>
-        <button class="btn" onclick="toggleSol('sol-24')">🔍 展開標準答案與評分細則</button>
-        <div class="sol-card" id="sol-24">
-          <div class="sol-title">參考答案與評分標準：</div>
-          <div class="rubric">
-            (1) <strong>反射眩光特性</strong>：水平界面（水面、路面）反射的光主要是<strong>水平方向振動</strong>的偏振光。(2分)<br>
-            <strong>偏光鏡設計</strong>：鏡片透振方向應設計為<strong>豎直方向</strong>。(1分) 原因：豎直透振方向與水平振動的反射眩光正交垂直（夾角 90°），依馬呂斯定律反射眩光被鏡片完全吸收，而正常景物光線仍可透過，從而消除眩光。(1分)<br><br>
-            (2) <strong>3D 眼鏡透振方向</strong>：左右兩眼鏡片的透振方向<strong>相互正交垂直</strong>（夾角 90°）。(2分)<br>
-            <strong>原理</strong>：銀幕上同時放映兩部透振方向互垂的偏振光畫面（分別代表左眼與右眼視角）。戴上眼鏡後，左眼只接收左眼畫面，右眼只接收右眼畫面，兩眼獲得存在視差的獨立圖像，大腦融合後重現逼真的三維立體感。(2分)
-          </div>
-        </div>
-      </div>
-      <div class="section-title-box">
-        <span>六、計算與綜合推導題（共 2 大題，每題 10 分，共 20 分）</span>
-        <span class="badge badge-red">計算綜合 20%</span>
-      </div>
-      <div class="q-card">
-        <div class="q-header"><span class="q-num">25.</span><span class="q-pts">(10分)</span>【全反射與稜鏡偏折綜合計算】</div>
-        <div class="q-content">
-          如圖所示，一等腰直角玻璃三稜鏡 ABC，∠B = 90°，∠A = ∠C = 45°。玻璃折射率為 <span class="math-sym">n = 1.50</span>。一束細平行單色光垂直於直角邊 AB 入射：<br>
-          (1) 求該玻璃對空氣的全反射臨界角 <span class="math-sym">C</span>（精確至 0.1°）；（3分）<br>
-          (2) 判斷光線射到 AC 斜面時能否發生全反射，並寫出詳細依據；（3分）<br>
-          (3) 畫出光線在稜鏡內的光路，指出光線最終從哪個邊射出，並求出光線相對於初始傳播方向的總偏折角。（4分）
-        </div>
-        <div class="svg-container">
-          <svg width="260" height="160" viewBox="0 0 260 160">
-            <polygon points="40,130 180,130 40,20" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
-            <text x="25" y="25" font-size="12" font-weight="bold" fill="#166534">A</text>
-            <text x="25" y="145" font-size="12" font-weight="bold" fill="#166534">B</text>
-            <text x="185" y="145" font-size="12" font-weight="bold" fill="#166534">C</text>
-            <text x="50" y="120" font-size="10" fill="#64748b">90°</text>
-            <text x="140" y="125" font-size="10" fill="#64748b">45°</text>
-            <line x1="5" y1="75" x2="40" y2="75" stroke="#dc2626" stroke-width="2"/>
-            <polygon points="25,75 18,71 18,79" fill="#dc2626"/>
-            <text x="5" y="65" font-size="10" fill="#dc2626" font-weight="bold">入射光</text>
-          </svg>
-        </div>
-        <textarea class="textarea-ans" style="min-height: 100px;" placeholder="請在此輸入分步計算步驟..."></textarea>
-        <button class="btn" onclick="toggleSol('sol-25')">🔍 展開標準答案與評分細則</button>
-        <div class="sol-card" id="sol-25">
-          <div class="sol-title">參考答案與詳細評分標準：</div>
-          <div class="rubric">
-            <strong>(1) 臨界角計算 (3分)</strong><br>
-            由臨界角公式：<span class="math-sym">sin C = <span class="frac"><span class="num">1</span><span class="den">n</span></span> = <span class="frac"><span class="num">1</span><span class="den">1.50</span></span> = <span class="frac"><span class="num">2</span><span class="den">3</span></span> ≈ 0.6667</span> (2分)<br>
-            解得：<strong><span class="math-sym">C = arcsin(0.6667) ≈ 41.8°</span></strong> (1分)<br><br>
-            <strong>(2) 全反射判斷 (3分)</strong><br>
-            光線垂直於 AB 邊入射，方向不變射至 AC 斜面。(1分)<br>
-            由幾何關係，光在 AC 面上的入射角為 <span class="math-sym">i = 45°</span>。(1分)<br>
-            因 <span class="math-sym">i = 45° &gt; C = 41.8°</span>，且光由玻璃（光密）射向空氣（光疏），<strong>滿足全反射條件，故在 AC 面發生全反射</strong>。(1分)<br><br>
-            <strong>(3) 出射邊與總偏折角 (4分)</strong><br>
-            全反射後光線垂直向下射向 BC 邊。(1分)<br>
-            光線在 BC 界面處垂直入射（入射角為 0°），故直線穿出進入空氣。(1分)<br>
-            <strong>出射邊</strong>：BC 邊。(1分)<br>
-            <strong>總偏折角</strong>：初始光線水平向右，最終出射光線豎直向下，故方向<strong>總共偏折了 90°</strong>。(1分)
-          </div>
-        </div>
-      </div>
-      <div class="q-card">
-        <div class="q-header"><span class="q-num">26.</span><span class="q-pts">(10分)</span>【雙縫干涉與偏振光強衰減綜合計算】</div>
-        <div class="q-content">
-          某精密光學實驗：<br>
-          (1) 單色激光（真空中波長 <span class="math-sym">λ = 600 nm = 6.0 × 10⁻⁷ m</span>）垂直照射雙縫間距 <span class="math-sym">d = 0.30 mm = 3.0 × 10⁻⁴ m</span> 的雙縫，光屏到雙縫的距離 <span class="math-sym">l = 1.20 m</span>。<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;① 求光屏上相鄰明條紋的間距 <span class="math-sym">Δx</span>；（2分）<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;② 求中央零級亮紋中心到第 3 級暗條紋中心的距離 <span class="math-sym">x<sub>3dark</sub></span>；（2分）<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;③ 若將整個裝置浸入折射率為 <span class="math-sym">n = 1.25</span> 的液體中，求此時相鄰亮紋間距 <span class="math-sym">Δx'</span>。（2分）<br>
-          (2) 該激光為線偏振光，初始光強為 <span class="math-sym">I₀ = 100 W/m²</span>。光線依次通過偏振片 A 與偏振片 B：偏振片 A 的透振方向與光偏振方向成 30° 夾角；偏振片 B 的透振方向與偏振片 A 成 60° 夾角。求最終透過偏振片 B 的光強 <span class="math-sym">I<sub>final</sub></span>。（4分）
-        </div>
-        <textarea class="textarea-ans" style="min-height: 100px;" placeholder="請在此輸入分步計算步驟..."></textarea>
-        <button class="btn" onclick="toggleSol('sol-26')">🔍 展開標準答案與評分細則</button>
-        <div class="sol-card" id="sol-26">
-          <div class="sol-title">參考答案與詳細評分標準：</div>
-          <div class="rubric">
-            <strong>(1) ① 相鄰條紋間距 Δx (2分)</strong><br>
-            <span class="math-sym">Δx = <span class="frac"><span class="num">lλ</span><span class="den">d</span></span> = <span class="frac"><span class="num">6.0 × 10⁻⁷ m × 1.20 m</span><span class="den">3.0 × 10⁻⁴ m</span></span> = 2.4 × 10⁻³ m = 2.40 mm</span> (2分)<br><br>
-            <strong>(1) ② 第 3 級暗紋中心距離 (2分)</strong><br>
-            暗紋位置公式：<span class="math-sym">x<sub>kdark</sub> = (k - ½)Δx</span>。<br>
-            對於第 3 級暗條紋（<span class="math-sym">k = 3</span>）：<br>
-            <span class="math-sym">x<sub>3dark</sub> = (3 - 0.5) × 2.40 mm = 2.5 × 2.40 mm = 6.00 mm</span> (2分)<br><br>
-            <strong>(1) ③ 浸入液體後的條紋間距 (2分)</strong><br>
-            液體中波長 <span class="math-sym">λ' = λ / n</span>，故：<br>
-            <span class="math-sym">Δx' = <span class="frac"><span class="num">Δx</span><span class="den">n</span></span> = <span class="frac"><span class="num">2.40 mm</span><span class="den">1.25</span></span> = 1.92 mm</span> (2分)<br><br>
-            <strong>(2) 偏振片連續透射光強 (4分)</strong><br>
-            • 透過偏振片 A：<span class="math-sym">I<sub>A</sub> = I₀ cos²30° = 100 × (<span class="frac"><span class="num">√3</span><span class="den">2</span></span>)² = 100 × <span class="frac"><span class="num">3</span><span class="den">4</span></span> = 75 W/m²</span> (2分)<br>
-            • 透過偏振片 B（與 A 夾角 60°）：<br>
-            <span class="math-sym">I<sub>final</sub> = I<sub>A</sub> cos²60° = 75 × (½)² = 75 × ¼ = 18.75 W/m²</span> (2分)
-          </div>
-        </div>
-      </div>
-      <div class="bottom-score-bar">
-        <div>
-          <strong>客觀題得分（判斷 12分 + 選擇 24分）：<span id="live-obj-score-num" style="color: #38bdf8; font-size: 1.3rem;">0</span> / 36 分</strong>
-          <div style="font-size: 0.8rem; color: #94a3b8;">（主觀題請對照「答案與評分細則」手動記分）</div>
-        </div>
-        <button class="btn btn-primary" onclick="resetAll()">🔄 重置答題</button>
-      </div>
-    </section>
-    <section id="tab-answers" class="tab-content">
-      <div class="card">
-        <div class="section-bar-title" style="margin-top: 0;">大測卷全卷參考答案總覽與評分細則 (100分)</div>
-        <h4 style="color: #1e3a8a; margin: 1.2rem 0 0.5rem;">一、判斷題答案 (12分)</h4>
-        <table>
-          <thead><tr><th>題號</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead>
-          <tbody>
-            <tr style="font-weight: bold; color: #2563eb;"><td>答案</td><td>✔ 正確</td><td>✖ 錯誤</td><td>✖ 錯誤</td><td>✔ 正確</td><td>✖ 錯誤</td><td>✔ 正確</td></tr>
-            <tr><td>分值</td><td>2分</td><td>2分</td><td>2分</td><td>2分</td><td>2分</td><td>2分</td></tr>
-          </tbody>
-        </table>
-        <h4 style="color: #1e3a8a; margin: 1.5rem 0 0.5rem;">二、填充題答案 (12分)</h4>
-        <table>
-          <thead><tr><th>題號</th><th>標準答案</th><th>分值</th><th>核心考點</th></tr></thead>
-          <tbody>
-            <tr><td>7</td><td>60；20</td><td>2分</td><td>反射定律、平面鏡旋轉2倍角</td></tr>
-            <tr><td>8</td><td>2.12 × 10⁸；45</td><td>2分</td><td>介質光速計算與臨界角公式</td></tr>
-            <tr><td>9</td><td>3；明</td><td>2分</td><td>雙縫干涉光程差與整數倍波長條件</td></tr>
-            <tr><td>10</td><td>相近或小於波長</td><td>2分</td><td>顯著衍射條件 (a ≤ λ)</td></tr>
-            <tr><td>11</td><td>偏振</td><td>2分</td><td>光為橫波之唯一證明</td></tr>
-            <tr><td>12</td><td>0.5 I₀；0.125 I₀（或 ⅛ I₀）</td><td>2分</td><td>自然光起偏與馬呂斯定律</td></tr>
-          </tbody>
-        </table>
-        <h4 style="color: #1e3a8a; margin: 1.5rem 0 0.5rem;">三、單項選擇題答案 (24分)</h4>
-        <table>
-          <thead><tr><th>題號</th><th>13</th><th>14</th><th>15</th><th>16</th><th>17</th><th>18</th><th>19</th><th>20</th></tr></thead>
-          <tbody>
-            <tr style="font-weight: bold; color: #2563eb;"><td>答案</td><td>A</td><td>C</td><td>B</td><td>C</td><td>B</td><td>C</td><td>B</td><td>A</td></tr>
-            <tr><td>分值</td><td>3分</td><td>3分</td><td>3分</td><td>3分</td><td>3分</td><td>3分</td><td>3分</td><td>3分</td></tr>
-          </tbody>
-        </table>
-        <h4 style="color: #1e3a8a; margin: 1.5rem 0 0.5rem;">四、實驗題詳細評分要點 (16分)</h4>
-        <div class="rubric" style="margin-bottom: 0.8rem;">
-          <strong>第 21 題：插針法測折射率 (8分)</strong><br>
-          (1) P₁、P₂ 的像；P₃ 以及 P₁、P₂ 的像。(2分)<br>
-          (2) 偏小。(1分) 因測得折射角 r 偏大，由 n = sin i / sin r 知 n 偏小。(2分)<br>
-          (3) 針距儘量大（減小角度誤差）；入射角在 30°~60° 間；實驗中不晃動玻璃磚。(任兩點得 3分)
-        </div>
-        <div class="rubric" style="margin-bottom: 0.8rem;">
-          <strong>第 22 題：雙縫干涉測波長 (8分)</strong><br>
-          (1) 濾光片 → 單縫。(2分)<br>
-          (2) ① Δx = (14.000 - 1.200) / 5 = 2.560 mm。(2分)<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;② λ = Δx · d / l = (2.560 × 10⁻³ × 0.20 × 10⁻³) / 0.800 = 640 nm。(2分)<br>
-          (3) 換用間距 d 更小的雙縫；增大屏距 l；換用紅光濾光片。(任兩點得 2分)
-        </div>
-        <h4 style="color: #1e3a8a; margin: 1.5rem 0 0.5rem;">五、生活應用題評分要點 (16分)</h4>
-        <div class="rubric" style="margin-bottom: 0.8rem;">
-          <strong>第 23 題：光纖通信 (8分)</strong><br>
-          (1) 滿足 n₁ &gt; n₂。(1分) 全反射要求光密入光疏，才能在纖芯界面無損全反射前進。(2分)<br>
-          (2) ① sin C = 1.28 / 1.60 = 0.80 ⇒ C ≈ 53.1°。(3分)<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;② 頻帶寬容量大、衰減小、抗電磁干擾、質量輕。(任兩點得 2分)
-        </div>
-        <div class="rubric" style="margin-bottom: 0.8rem;">
-          <strong>第 24 題：偏光鏡與 3D 眼鏡 (8分)</strong><br>
-          (1) 反射眩光主要為水平振動偏振光。(2分) 偏光鏡設計為豎直透振方向，正交吸收水平反射光以濾除眩光。(2分)<br>
-          (2) 左右鏡片透振方向相互正交垂直。(2分) 分別過濾左右眼視差圖像，大腦重構立體畫面。(2分)
-        </div>
-        <h4 style="color: #1e3a8a; margin: 1.5rem 0 0.5rem;">六、計算題詳細步驟與評分點 (20分)</h4>
-        <div class="rubric" style="margin-bottom: 0.8rem;">
-          <strong>第 25 題：等腰直角稜鏡偏折 (10分)</strong><br>
-          (1) sin C = 1/1.50 = ⅔ ≈ 0.6667 ⇒ C ≈ 41.8°。(3分)<br>
-          (2) 垂直 AB 射入，在 AC 斜面上入射角為 45° &gt; 41.8°，由光密入光疏，發生全反射。(3分)<br>
-          (3) 全反射光向下垂直於 BC 面射出；總偏折角為 90°。(4分)
-        </div>
-        <div class="rubric" style="margin-bottom: 0.8rem;">
-          <strong>第 26 題：干涉與偏振光強衰減 (10分)</strong><br>
-          (1) ① Δx = lλ / d = (6.0 × 10⁻⁷ × 1.20) / (3.0 × 10⁻⁴) = 2.40 mm。(2分)<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;② x_3dark = 2.5 × 2.40 mm = 6.00 mm。(2分)<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;③ 液體中 Δx' = 2.40 / 1.25 = 1.92 mm。(2分)<br>
-          (2) I_A = 100 cos²30° = 75 W/m²。(2分)<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;I_final = 75 cos²60° = 75 × 0.25 = 18.75 W/m²。(2分)
-        </div>
-      </div>
-    </section>
-    <section id="tab-formula" class="tab-content">
-      <div class="card">
-        <div class="section-bar-title" style="margin-top: 0;">物理光學核心公式速查與物理常數表</div>
-        <div class="overview-grid">
-          <div class="overview-card">
-            <div class="overview-card-title">折射與全反射</div>
-            <div class="formula-banner">折射率定義：<span class="math-sym">n = <span class="frac"><span class="num">c</span><span class="den">v</span></span> = <span class="frac"><span class="num">λ₀</span><span class="den">λ</span></span></span></div>
-            <div class="formula-banner">斯涅爾定律：<span class="math-sym">n₁ sin θ₁ = n₂ sin θ₂</span></div>
-            <div class="formula-banner">臨界角公式：<span class="math-sym">sin C = <span class="frac"><span class="num">n₂</span><span class="den">n₁</span></span></span>（空氣中 <span class="math-sym">sin C = <span class="frac"><span class="num">1</span><span class="den">n</span></span></span>）</div>
-            <div class="formula-banner">垂直視深：<span class="math-sym">d' = <span class="frac"><span class="num">d</span><span class="den">n</span></span></span></div>
-          </div>
-          <div class="overview-card">
-            <div class="overview-card-title">干涉與衍射</div>
-            <div class="formula-banner">雙縫干涉間距：<span class="math-sym">Δx = <span class="frac"><span class="num">lλ</span><span class="den">d</span></span></span></div>
-            <div class="formula-banner">明紋位置：<span class="math-sym">x<sub>m</sub> = m<span class="frac"><span class="num">lλ</span><span class="den">d</span></span></span>；暗紋：<span class="math-sym">x<sub>m</sub>' = (m + ½)<span class="frac"><span class="num">lλ</span><span class="den">d</span></span></span></div>
-            <div class="formula-banner">單縫衍射暗紋：<span class="math-sym">a sin θ = mλ</span>（<span class="math-sym">m = ±1, ±2...</span>）</div>
-            <div class="formula-banner">光柵方程式：<span class="math-sym">d sin θ = mλ</span></div>
-          </div>
-          <div class="overview-card">
-            <div class="overview-card-title">偏振定律</div>
-            <div class="formula-banner">馬呂斯定律：<span class="math-sym">I = I₀ cos²θ</span></div>
-            <div class="formula-banner">自然光過起偏器：<span class="math-sym">I = ½I₀</span></div>
-            <div class="formula-banner">布儒斯特角：<span class="math-sym">tan θ<sub>B</sub> = <span class="frac"><span class="num">n₂</span><span class="den">n₁</span></span> = n</span></div>
-          </div>
-          <div class="overview-card">
-            <div class="overview-card-title">常數與典型數值</div>
-            <div class="formula-banner">真空中光速：<span class="math-sym">c = 3.00 × 10⁸ m/s</span></div>
-            <div class="formula-banner">水的折射率：<span class="math-sym">n ≈ 1.33</span>（臨界角 <span class="math-sym">C ≈ 48.8°</span>）</div>
-            <div class="formula-banner">玻璃折射率：<span class="math-sym">n ≈ 1.50</span>（臨界角 <span class="math-sym">C ≈ 41.8°</span>）</div>
-            <div class="formula-banner">鑽石折射率：<span class="math-sym">n ≈ 2.42</span>（臨界角 <span class="math-sym">C ≈ 24.4°</span>）</div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <section id="tab-lab" class="tab-content">
-      <div class="card">
-        <div class="section-bar-title" style="margin-top: 0;">交互式虛擬光學實驗室</div>
-        <div class="lab-box">
-          <h3 style="color: #1e3a8a; margin-bottom: 0.8rem;">模擬器 1：折射與全反射動態模擬器</h3>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;">
-            <div>
-              <div class="slider-row"><span class="slider-title">介質 1 折射率 n₁:</span><input type="range" class="slider-ctrl" id="s1-n1" min="1.0" max="2.5" step="0.05" value="1.50" oninput="sim1()"><span class="slider-val" id="s1-n1-v">1.50</span></div>
-              <div class="slider-row"><span class="slider-title">介質 2 折射率 n₂:</span><input type="range" class="slider-ctrl" id="s1-n2" min="1.0" max="2.5" step="0.05" value="1.00" oninput="sim1()"><span class="slider-val" id="s1-n2-v">1.00</span></div>
-              <div class="slider-row"><span class="slider-title">入射角 θ₁:</span><input type="range" class="slider-ctrl" id="s1-th" min="0" max="85" step="1" value="30" oninput="sim1()"><span class="slider-val" id="s1-th-v">30°</span></div>
-              <div class="callout callout-info" style="margin-top: 0.8rem;">
-                <div>臨界角：<strong id="s1-crit">41.8°</strong><br>折射角：<strong id="s1-ref">48.6°</strong><br>狀態：<strong id="s1-state" style="color: #2563eb;">正常折射</strong></div>
-              </div>
-            </div>
-            <div class="svg-container">
-              <svg width="280" height="200" viewBox="0 0 280 200">
-                <rect x="10" y="10" width="260" height="90" fill="#f8fafc"/>
-                <rect x="10" y="100" width="260" height="90" fill="#eff6ff"/>
-                <line x1="10" y1="100" x2="270" y2="100" stroke="#0f172a" stroke-width="2"/>
-                <line x1="140" y1="15" x2="140" y2="185" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3"/>
-                <line id="s1-ray-in" x1="75" y1="170" x2="140" y2="100" stroke="#dc2626" stroke-width="2.5"/>
-                <line id="s1-ray-ref" x1="140" y1="100" x2="205" y2="170" stroke="#ea580c" stroke-width="2"/>
-                <line id="s1-ray-tr" x1="140" y1="100" x2="220" y2="30" stroke="#2563eb" stroke-width="2.5"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-        <div class="lab-box">
-          <h3 style="color: #1e3a8a; margin-bottom: 0.8rem;">模擬器 2：楊氏雙縫干涉條紋間距模擬器</h3>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;">
-            <div>
-              <div class="slider-row"><span class="slider-title">光波波長 λ (nm):</span><input type="range" class="slider-ctrl" id="s2-lam" min="400" max="750" step="10" value="640" oninput="sim2()"><span class="slider-val" id="s2-lam-v">640 nm</span></div>
-              <div class="slider-row"><span class="slider-title">雙縫間距 d (mm):</span><input type="range" class="slider-ctrl" id="s2-d" min="0.10" max="0.50" step="0.02" value="0.20" oninput="sim2()"><span class="slider-val" id="s2-d-v">0.20 mm</span></div>
-              <div class="slider-row"><span class="slider-title">屏距 l (m):</span><input type="range" class="slider-ctrl" id="s2-l" min="0.5" max="2.0" step="0.1" value="1.0" oninput="sim2()"><span class="slider-val" id="s2-l-v">1.0 m</span></div>
-              <div class="callout callout-success" style="margin-top: 0.8rem;">
-                <div>條紋間距公式：<span class="math-sym">Δx = <span class="frac"><span class="num">lλ</span><span class="den">d</span></span></span><br>計算結果：<strong id="s2-res" style="color: #16a34a; font-size: 1.15rem;">3.20 mm</strong><br>色光類型：<strong id="s2-cname" style="color: #ef4444;">紅光</strong></div>
-              </div>
-            </div>
-            <div>
-              <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem;">光屏干涉條紋預覽：</div>
-              <div id="s2-screen" style="width: 100%; height: 75px; border-radius: 6px; border: 2px solid #334155; background: #000;"></div>
-            </div>
-          </div>
-        </div>
-        <div class="lab-box">
-          <h3 style="color: #1e3a8a; margin-bottom: 0.8rem;">模擬器 3：馬呂斯定律偏振光強模擬器</h3>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; align-items: center;">
-            <div>
-              <div class="slider-row"><span class="slider-title">檢偏器角度 θ:</span><input type="range" class="slider-ctrl" id="s3-ang" min="0" max="90" step="1" value="45" oninput="sim3()"><span class="slider-val" id="s3-ang-v">45°</span></div>
-              <div class="callout callout-info" style="margin-top: 0.8rem;">
-                <div><strong>透射光強率：<span id="s3-pct" style="color: #2563eb; font-size: 1.2rem;">50.0%</span></strong> (即 0.500 I₀)<br>狀態說明：<span id="s3-state">部分光透過</span></div>
-              </div>
-            </div>
-            <div style="display: flex; justify-content: center; align-items: center; gap: 1.5rem;">
-              <div id="s3-bulb" style="width: 70px; height: 70px; border-radius: 50%; background: #3b82f6; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; box-shadow: 0 0 25px rgba(59, 130, 246, 0.6);">50%</div>
-              <div style="font-size: 0.85rem; color: var(--text-muted);">θ = 0°: 100% (最亮)<br>θ = 45°: 50%<br>θ = 90°: 0% (正交消光)</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+
   </main>
-  <div class="modal-overlay" id="code-modal">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 style="color: #1e3a8a;">📋 完整網頁 HTML 源代碼</h3>
-        <button class="btn" onclick="closeCodeModal()">✕ 關閉</button>
-      </div>
-      <div style="margin-bottom: 0.6rem; font-size: 0.88rem; color: #64748b;">
-        您可以點擊下方「一鍵複製」按鈕，或手動複製全部代碼，在電腦本機新建一個 .html 文件（例如 optics.html）並粘貼保存，雙擊即可在任意瀏覽器中直接離線打開使用！
-      </div>
-      <textarea class="modal-textarea" id="code-textarea" readonly></textarea>
-      <div style="margin-top: 0.8rem; display: flex; justify-content: flex-end; gap: 0.6rem;">
-        <button class="btn btn-primary" onclick="copyModalCode()">📋 一鍵全選複製代碼</button>
-        <button class="btn btn-download" onclick="downloadCurrentHTML()">📥 直接下載 HTML 檔案</button>
-      </div>
+
+  <footer class="no-print bg-white border-t border-slate-200 py-4 mt-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+      <span>化學大測專項溫習系統｜化學反應速率與化學平衡</span>
+      <span>支援桌面、平板與手機自適應排版 &bull; GitHub Pages 單檔部署</span>
     </div>
-  </div>
+  </footer>
+
   <script>
-
-    // 標籤頁切換
-    function switchTab(id, btnElement) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      if (btnElement) {
-        btnElement.classList.add('active');
-      } else {
-        const btn = document.querySelector(`.tab-btn[data-tab="${id}"]`);
-        if (btn) btn.classList.add('active');
-      }
-      const targetContent = document.getElementById('tab-' + id);
-      if (targetContent) targetContent.classList.add('active');
-      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) {}
+    // =========================================================================
+    // 1. Toast Notification Helper
+    // =========================================================================
+    let toastTimer = null;
+    function showToast(msg) {
+      const box = document.getElementById('toast-box');
+      if (!box) return;
+      box.textContent = msg;
+      box.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        box.classList.add('hidden');
+      }, 3200);
     }
 
-    // 展開/收起全卷答案
-    let allSolsVisible = false;
-    function toggleAllSolutions() {
-      allSolsVisible = !allSolsVisible;
-      document.querySelectorAll('.sol-card').forEach(c => {
-        if (allSolsVisible) c.classList.add('show');
-        else c.classList.remove('show');
-      });
-      const btn = document.getElementById('toggle-sol-btn');
-      if (btn) btn.textContent = allSolsVisible ? '🙈 隱藏全卷答案解析' : '👁️ 顯示全卷答案解析';
-    }
+    // =========================================================================
+    // 2. Navigation Tabs
+    // =========================================================================
+    const tabButtons = document.querySelectorAll('.nav-tab-btn');
+    const tabPanels = {
+      notes: document.getElementById('tab-notes'),
+      pitfalls: document.getElementById('tab-pitfalls'),
+      calculator: document.getElementById('tab-calculator'),
+      exam: document.getElementById('tab-exam'),
+      deploy: document.getElementById('tab-deploy')
+    };
 
-    function toggleSol(id) {
-      const el = document.getElementById(id);
-      if (el) el.classList.toggle('show');
-    }
-
-    // 免403 本地 Blob 下載
-    function downloadCurrentHTML() {
-      try {
-        const content = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-        const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = '高中物理光學溫習與測驗平台.html';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 300);
-      } catch(err) {
-        alert('瀏覽器下載受限，請點擊「查看/複製源代碼」手動保存。');
-      }
-    }
-
-    // 複製源代碼 Modal
-    function openCodeModal() {
-      const modal = document.getElementById('code-modal');
-      const textarea = document.getElementById('code-textarea');
-      textarea.value = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-      modal.classList.add('active');
-    }
-    function closeCodeModal() {
-      document.getElementById('code-modal').classList.remove('active');
-    }
-    function copyModalCode() {
-      const textarea = document.getElementById('code-textarea');
-      textarea.select();
-      try {
-        navigator.clipboard.writeText(textarea.value).then(() => {
-          alert('已成功複製全部源代碼到剪貼簿！');
-        }).catch(() => {
-          document.execCommand('copy');
-          alert('已成功複製全部源代碼到剪貼簿！');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-tab');
+        tabButtons.forEach(b => {
+          b.classList.remove('tab-btn-active');
+          b.classList.add('tab-btn-inactive');
         });
-      } catch(e) {
-        document.execCommand('copy');
-        alert('已成功複製全部源代碼！');
-      }
-    }
+        btn.classList.remove('tab-btn-inactive');
+        btn.classList.add('tab-btn-active');
 
-    // 判斷題批改
-    const tfAnswers = { 1: true, 2: false, 3: false, 4: true, 5: false, 6: true };
-    const userTF = {};
-    function checkTF(qnum, choice, correct) {
-      userTF[qnum] = (choice === correct);
-      const parent = document.getElementById('tfc-' + qnum);
-      if (!parent) return;
-      const btns = parent.querySelectorAll('.tf-btn');
-      btns.forEach(b => b.classList.remove('correct-highlight', 'wrong-highlight'));
-      const isRight = (choice === correct);
-      if (choice === true) {
-        btns[0].classList.add(isRight ? 'correct-highlight' : 'wrong-highlight');
-      } else {
-        btns[1].classList.add(isRight ? 'correct-highlight' : 'wrong-highlight');
-      }
-      const sol = document.getElementById('sol-tf-' + qnum);
-      if (sol) sol.classList.add('show');
-      updateLiveScore();
-    }
-
-    // 選擇題批改
-    const mcAnswers = { 13: 'A', 14: 'C', 15: 'B', 16: 'C', 17: 'B', 18: 'C', 19: 'B', 20: 'A' };
-    const userMC = {};
-    function chooseMC(qnum, opt, correct) {
-      userMC[qnum] = opt;
-      const parent = document.getElementById('mc-' + qnum);
-      if (!parent) return;
-      parent.querySelectorAll('.opt-item').forEach(item => {
-        item.classList.remove('selected');
-        if (item.querySelector('.opt-circle').textContent.trim() === opt) {
-          item.classList.add('selected');
-        }
-      });
-      updateLiveScore();
-    }
-
-    function gradeAllMC() {
-      let score = 0;
-      for (let i = 13; i <= 20; i++) {
-        const parent = document.getElementById('mc-' + i);
-        if (!parent) continue;
-        const correct = mcAnswers[i];
-        const userChoice = userMC[i];
-        parent.querySelectorAll('.opt-item').forEach(item => {
-          item.classList.remove('correct-highlight', 'wrong-highlight');
-          const code = item.querySelector('.opt-circle').textContent.trim();
-          if (code === correct) item.classList.add('correct-highlight');
-          else if (userChoice && code === userChoice) item.classList.add('wrong-highlight');
+        Object.keys(tabPanels).forEach(k => {
+          if (k === target) {
+            tabPanels[k].classList.remove('hidden');
+          } else {
+            tabPanels[k].classList.add('hidden');
+          }
         });
-        if (userChoice === correct) score += 3;
-        const sol = document.getElementById('sol-mc-' + i);
-        if (sol) sol.classList.add('show');
-      }
-      const fb = document.getElementById('mc-grade-feedback');
-      if (fb) {
-        fb.textContent = `選擇題得分：${score} / 24 分 (答對 ${score/3}/8 題)`;
-        fb.style.color = score >= 18 ? '#16a34a' : '#2563eb';
-      }
-      updateLiveScore();
-    }
-
-    function updateLiveScore() {
-      let tfScore = 0;
-      for (let i = 1; i <= 6; i++) {
-        if (userTF[i] === true) tfScore += 2;
-      }
-      let mcScore = 0;
-      for (let i = 13; i <= 20; i++) {
-        if (userMC[i] === mcAnswers[i]) mcScore += 3;
-      }
-      const total = tfScore + mcScore;
-      const liveBox = document.getElementById('live-obj-score-num');
-      if (liveBox) liveBox.textContent = total;
-      const scoreBox = document.getElementById('score-display-box');
-      if (scoreBox) scoreBox.textContent = `${total}+__/100`;
-    }
-
-    function resetAll() {
-      for (let i = 1; i <= 6; i++) {
-        delete userTF[i];
-        const p = document.getElementById('tfc-' + i);
-        if (p) p.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('correct-highlight', 'wrong-highlight'));
-        const s = document.getElementById('sol-tf-' + i);
-        if (s) s.classList.remove('show');
-      }
-      for (let i = 13; i <= 20; i++) {
-        delete userMC[i];
-        const p = document.getElementById('mc-' + i);
-        if (p) p.querySelectorAll('.opt-item').forEach(b => b.classList.remove('selected', 'correct-highlight', 'wrong-highlight'));
-        const s = document.getElementById('sol-mc-' + i);
-        if (s) s.classList.remove('show');
-      }
-      for (let i = 7; i <= 12; i++) {
-        const s = document.getElementById('sol-' + i);
-        if (s) s.classList.remove('show');
-      }
-      for (let i = 21; i <= 26; i++) {
-        const s = document.getElementById('sol-' + i);
-        if (s) s.classList.remove('show');
-      }
-      document.querySelectorAll('.textarea-ans').forEach(t => t.value = '');
-      document.querySelectorAll('.fill-line').forEach(l => {
-        if (l.id !== 'score-display-box') l.textContent = '';
       });
-      const fb = document.getElementById('mc-grade-feedback');
-      if (fb) fb.textContent = '';
-      updateLiveScore();
-      alert('已重置所有題目作答狀態。');
-    }
-
-    // 模擬器 1: 折射與全反射
-    function sim1() {
-      const n1 = parseFloat(document.getElementById('s1-n1').value);
-      const n2 = parseFloat(document.getElementById('s1-n2').value);
-      const th1 = parseFloat(document.getElementById('s1-th').value);
-      document.getElementById('s1-n1-v').textContent = n1.toFixed(2);
-      document.getElementById('s1-n2-v').textContent = n2.toFixed(2);
-      document.getElementById('s1-th-v').textContent = th1 + '°';
-
-      const th1Rad = (th1 * Math.PI) / 180;
-      let isTIR = false;
-      const critEl = document.getElementById('s1-crit');
-      const refEl = document.getElementById('s1-ref');
-      const stateEl = document.getElementById('s1-state');
-      const rayTr = document.getElementById('s1-ray-tr');
-
-      if (n1 > n2) {
-        const cDeg = (Math.asin(n2 / n1) * 180) / Math.PI;
-        critEl.textContent = cDeg.toFixed(1) + '°';
-        if (th1 >= cDeg) isTIR = true;
-      } else {
-        critEl.textContent = '無 (光疏入光密)';
-      }
-
-      const ox = 140, oy = 100, len = 80;
-      document.getElementById('s1-ray-in').setAttribute('x1', ox - len * Math.sin(th1Rad));
-      document.getElementById('s1-ray-in').setAttribute('y1', oy + len * Math.cos(th1Rad));
-      document.getElementById('s1-ray-ref').setAttribute('x2', ox + len * Math.sin(th1Rad));
-      document.getElementById('s1-ray-ref').setAttribute('y2', oy + len * Math.cos(th1Rad));
-
-      if (isTIR) {
-        refEl.textContent = '無 (全反射)';
-        stateEl.textContent = '⚡ 發生全反射 (TIR)';
-        stateEl.style.color = '#dc2626';
-        rayTr.style.display = 'none';
-      } else {
-        rayTr.style.display = 'block';
-        const sinTh2 = (n1 * Math.sin(th1Rad)) / n2;
-        const th2Deg = (Math.asin(Math.min(1, sinTh2)) * 180) / Math.PI;
-        refEl.textContent = th2Deg.toFixed(1) + '°';
-        stateEl.textContent = '正常折射';
-        stateEl.style.color = '#2563eb';
-        const th2Rad = (th2Deg * Math.PI) / 180;
-        rayTr.setAttribute('x2', ox + len * Math.sin(th2Rad));
-        rayTr.setAttribute('y2', oy - len * Math.cos(th2Rad));
-      }
-    }
-
-    // 模擬器 2: 雙縫干涉 (使用 Δx)
-    function sim2() {
-      const lam = parseFloat(document.getElementById('s2-lam').value);
-      const d = parseFloat(document.getElementById('s2-d').value);
-      const l = parseFloat(document.getElementById('s2-l').value);
-      document.getElementById('s2-lam-v').textContent = lam + ' nm';
-      document.getElementById('s2-d-v').textContent = d.toFixed(2) + ' mm';
-      document.getElementById('s2-l-v').textContent = l.toFixed(1) + ' m';
-
-      const dx = ((lam * 1e-9 * l) / (d * 1e-3)) * 1e3;
-      document.getElementById('s2-res').textContent = dx.toFixed(2) + ' mm';
-
-      let cname = '紅光', color = '#ef4444';
-      if (lam < 450) { cname = '紫光'; color = '#8b5cf6'; }
-      else if (lam < 495) { cname = '藍光'; color = '#3b82f6'; }
-      else if (lam < 570) { cname = '綠光'; color = '#22c55e'; }
-      else if (lam < 590) { cname = '黃光'; color = '#eab308'; }
-      else if (lam < 620) { cname = '橙光'; color = '#f97316'; }
-
-      document.getElementById('s2-cname').textContent = cname;
-      document.getElementById('s2-cname').style.color = color;
-
-      const screen = document.getElementById('s2-screen');
-      const stripePx = Math.max(5, Math.min(40, dx * 6));
-      screen.style.background = `repeating-linear-gradient(90deg, #000 0px, ${color} ${stripePx/2}px, #000 ${stripePx}px)`;
-    }
-
-    // 模擬器 3: 偏振光強
-    function sim3() {
-      const deg = parseFloat(document.getElementById('s3-ang').value);
-      document.getElementById('s3-ang-v').textContent = deg + '°';
-      const rad = (deg * Math.PI) / 180;
-      const pct = Math.cos(rad) * Math.cos(rad);
-      const pctStr = (pct * 100).toFixed(1) + '%';
-      document.getElementById('s3-pct').textContent = pctStr;
-
-      const bulb = document.getElementById('s3-bulb');
-      bulb.textContent = Math.round(pct * 100) + '%';
-      bulb.style.opacity = Math.max(0.1, pct);
-      bulb.style.boxShadow = `0 0 ${Math.round(pct * 30)}px rgba(59, 130, 246, ${pct})`;
-
-      const exp = document.getElementById('s3-state');
-      if (deg === 0) { exp.textContent = '透振方向平行，無損透過 (I = I₀)'; exp.style.color = '#16a34a'; }
-      else if (deg === 90) { exp.textContent = '透振方向正交，完全消光 (I = 0)'; exp.style.color = '#dc2626'; }
-      else { exp.textContent = '部分光透過 (I = I₀ cos²θ)'; exp.style.color = '#2563eb'; }
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      sim1();
-      sim2();
-      sim3();
     });
 
+    // =========================================================================
+    // 3. Countdown Exam Timer
+    // =========================================================================
+    let remainingSeconds = 60 * 60;
+    let timerInterval = null;
+    let timerRunning = false;
+
+    function renderTimer() {
+      const mins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+      const secs = String(remainingSeconds % 60).padStart(2, '0');
+      const disp = document.getElementById('timer-display');
+      if (disp) disp.textContent = `${mins}:${secs}`;
+    }
+
+    document.getElementById('btn-timer-toggle').addEventListener('click', function() {
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        this.textContent = '繼續';
+      } else {
+        clearInterval(timerInterval);
+        timerRunning = true;
+        this.textContent = '暫停';
+        timerInterval = setInterval(() => {
+          if (remainingSeconds > 0) {
+            remainingSeconds--;
+            renderTimer();
+          } else {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            document.getElementById('btn-timer-toggle').textContent = '開始';
+            showToast('60 分鐘作答時間到！請點擊「批改整份試卷」查看得分。');
+          }
+        }, 1000);
+      }
+    });
+
+    document.getElementById('btn-timer-reset').addEventListener('click', () => {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      remainingSeconds = 60 * 60;
+      renderTimer();
+      document.getElementById('btn-timer-toggle').textContent = '開始';
+      showToast('計時器已重設為 60:00');
+    });
+
+    // =========================================================================
+    // 4. Interactive Charts (Chart.js)
+    // =========================================================================
+    let eaChart = null;
+    let eqChart = null;
+    let showCatalystCurve = true;
+    let eqFastMode = false;
+
+    function initCharts() {
+      if (typeof Chart === 'undefined') return;
+
+      // Chart A: Activation Energy Curve
+      const ctxEa = document.getElementById('chart-ea');
+      const xLabels = [];
+      const yUncat = [];
+      const yCat = [];
+      for (let i = 0; i <= 50; i++) {
+        const x = i * 0.2;
+        xLabels.push(x.toFixed(1));
+        const base = 40 - 25 / (1 + Math.exp(-1.5 * (x - 5)));
+        const bump1 = 64 * Math.exp(-0.45 * Math.pow(x - 4.7, 2));
+        const bump2 = 38 * Math.exp(-0.45 * Math.pow(x - 4.7, 2));
+        yUncat.push(Number((base + bump1).toFixed(2)));
+        yCat.push(Number((base + bump2).toFixed(2)));
+      }
+
+      eaChart = new Chart(ctxEa, {
+        type: 'line',
+        data: {
+          labels: xLabels,
+          datasets: [
+            {
+              label: '無催化劑路徑 (Ea = 52 kJ/mol)',
+              data: yUncat,
+              borderColor: '#1e3a8a',
+              backgroundColor: 'rgba(30, 58, 138, 0.08)',
+              borderWidth: 2.5,
+              pointRadius: 0,
+              tension: 0.35
+            },
+            {
+              label: '有催化劑路徑 (Ea\' = 26 kJ/mol)',
+              data: yCat,
+              borderColor: '#d97706',
+              borderDash: [6, 4],
+              borderWidth: 2.5,
+              pointRadius: 0,
+              tension: 0.35,
+              hidden: !showCatalystCurve
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 18, font: { size: 11 } } }
+          },
+          scales: {
+            x: { display: false },
+            y: {
+              min: 0,
+              max: 105,
+              title: { display: true, text: '相對位能 (kJ·mol⁻¹)', font: { size: 11 } }
+            }
+          }
+        }
+      });
+
+      // Chart B: Equilibrium Concentration vs Time
+      renderEquilibriumChart();
+    }
+
+    function renderEquilibriumChart() {
+      if (typeof Chart === 'undefined') return;
+      const ctxEq = document.getElementById('chart-eq');
+      if (eqChart) eqChart.destroy();
+
+      const tEq = eqFastMode ? 5 : 10;
+      const tau = eqFastMode ? 1.3 : 2.6;
+      const labels = [];
+      const dataH2 = [];
+      const dataN2 = [];
+      const dataNH3 = [];
+
+      for (let t = 0; t <= 15; t += 0.5) {
+        labels.push(t.toFixed(1));
+        const factor = t <= tEq
+          ? (1 - Math.exp(-t / tau)) / (1 - Math.exp(-tEq / tau))
+          : 1.0;
+        dataN2.push(Number((1.0 - 0.4 * factor).toFixed(3)));
+        dataH2.push(Number((3.0 - 1.2 * factor).toFixed(3)));
+        dataNH3.push(Number((0.0 + 0.8 * factor).toFixed(3)));
+      }
+
+      eqChart = new Chart(ctxEq, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '[H₂] (起始 3.0 → 平衡 1.8 mol·L⁻¹)',
+              data: dataH2,
+              borderColor: '#1e3a8a',
+              borderWidth: 2.5,
+              pointRadius: 0,
+              tension: 0.3
+            },
+            {
+              label: '[N₂] (起始 1.0 → 平衡 0.6 mol·L⁻¹)',
+              data: dataN2,
+              borderColor: '#0f766e',
+              borderWidth: 2.5,
+              pointRadius: 0,
+              tension: 0.3
+            },
+            {
+              label: '[NH₃] (起始 0.0 → 平衡 0.8 mol·L⁻¹)',
+              data: dataNH3,
+              borderColor: '#d97706',
+              borderWidth: 2.5,
+              pointRadius: 0,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 16, font: { size: 11 } } }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: '反應時間 t (min)', font: { size: 11 } }
+            },
+            y: {
+              min: 0,
+              max: 3.2,
+              title: { display: true, text: '濃度 c (mol·L⁻¹)', font: { size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    document.getElementById('btn-toggle-catalyst').addEventListener('click', () => {
+      if (!eaChart) return;
+      showCatalystCurve = !showCatalystCurve;
+      eaChart.data.datasets[1].hidden = !showCatalystCurve;
+      eaChart.update();
+      showToast(showCatalystCurve ? '已顯示有催化劑的低活化能路徑' : '已隱藏有催化劑路徑');
+    });
+
+    document.getElementById('btn-toggle-eq-speed').addEventListener('click', () => {
+      eqFastMode = !eqFastMode;
+      renderEquilibriumChart();
+      const cap = document.getElementById('eq-caption');
+      if (eqFastMode) {
+        cap.innerHTML = '<strong>已加入正催化劑狀態</strong>：正、逆反應速率同等倍數加快，達致平衡時間由 10 min 縮短至 <strong>5 min</strong>，但平衡濃度（[N₂]=0.6、[H₂]=1.8、[NH₃]=0.8 mol·L⁻¹）與轉化率（40%）<strong>完全不變</strong>！';
+        showToast('已切換為加入催化劑狀態：達平衡時間縮短至 5 min，平衡濃度不變');
+      } else {
+        cap.innerHTML = '目前狀態：無額外催化劑（於 t = 10 min 達致平衡）。三種物質的濃度變化量 |&Delta;c(N<sub>2</sub>)| : |&Delta;c(H<sub>2</sub>)| : |&Delta;c(NH<sub>3</sub>)| = 0.4 : 1.2 : 0.8 = 1 : 3 : 2。';
+        showToast('已恢復為原始條件（t = 10 min 達致平衡）');
+      }
+    });
+
+    // =========================================================================
+    // 5. 8 Common Exam Pitfalls Data & Filter
+    // =========================================================================
+    const pitfallsData = [
+      {
+        id: 1,
+        cat: 'calc',
+        title: '陷阱 1：把固體 (s) 或純液體 (l) 誤代入公式',
+        wrong: '計算反應速率時對固體求 Δc/Δt，或將 C(s)、Fe(s)、H₂O(l) 寫入平衡常數 Kc 的分母。',
+        right: '純固體與純液體濃度視為常數，既不可用 Δc/Δt 表示反應速率，也絕不寫入 Kc、Qc 表達式（注意：水蒸氣 H₂O(g) 為氣體，必須寫入）。'
+      },
+      {
+        id: 2,
+        cat: 'calc',
+        title: '陷阱 2：漏除容器體積 V，直接用 mol 代入 Kc',
+        wrong: '題目給出 V = 2.0 L 或 5.0 L，卻直接把物質的量 n (mol) 代入 Kc 或速率方程。',
+        right: '審題第一步先圈出「容器體積 V」！代入 Kc 前務必將所有物質的量除以 V 轉換為平衡濃度 [X] = n(X) / V。'
+      },
+      {
+        id: 3,
+        cat: 'rate',
+        title: '陷阱 3：不同物質速率比較漏看 min 與 s 單位',
+        wrong: '直接用 v(X)/係數 比大小，卻忽略選項中混用了 mol·L⁻¹·min⁻¹ 與 mol·L⁻¹·s⁻¹。',
+        right: '牢記 1 mol·L⁻¹·s⁻¹ = 60 mol·L⁻¹·min⁻¹。比較快慢前，先把所有速率統一換算為每秒 (s⁻¹)，再除以各自的化學計量數。'
+      },
+      {
+        id: 4,
+        cat: 'eq',
+        title: '陷阱 4：充入惰性氣體（稀有氣體）迷思',
+        wrong: '看到「充入 Ar 氣使容器總壓增大」，就以為氣體反應速率一定加快、平衡向氣體分子數少的方向移動。',
+        right: '嚴格區分：① 恆溫恆容充入惰性氣體 → 各反應氣體分壓與濃度不變 → 速率不變、平衡不移動；② 恆溫恆壓充入惰性氣體 → 體積擴大、分壓減小 → 速率減慢、平衡向氣體分子數增多方向移動。'
+      },
+      {
+        id: 5,
+        cat: 'eq',
+        title: '陷阱 5：誤以為「平衡正向移動 = 反應物轉化率必升」',
+        wrong: '向 N₂ + 3H₂ ⇌ 2NH₃ 中單獨再充入 N₂，認為平衡正向移動，所以 N₂ 與 H₂ 的轉化率都升高。',
+        right: '單獨增加反應物 A 的用量，平衡雖正向移動，另一反應物 B 的轉化率確實升高，但 A 自身的轉化率反而降低！若按起始配比成比例投料（恆溫恆容），才相當於加壓。'
+      },
+      {
+        id: 6,
+        cat: 'eq',
+        title: '陷阱 6：將「恆成立的不變量」誤判為已達平衡標誌',
+        wrong: '在 H₂(g) + I₂(g) ⇌ 2HI(g)（恆溫恆容）中，看到「總壓強不變」或「混合氣體密度不變」就選為平衡標誌。',
+        right: '口訣：「變量不變，才算平衡」。若 Δn氣 = 0，恆溫恆容下總壓始終不變；若反應物與生成物全為氣體，恆容下氣體總質量 m 與體積 V 始終不變（密度 ρ = m/V 恆定），皆不能作為平衡判據。'
+      },
+      {
+        id: 7,
+        cat: 'rate',
+        title: '陷阱 7：正、逆反應速率方向判讀錯誤',
+        wrong: '看到「單位時間內消耗 1 mol N₂ 同時生成 2 mol NH₃」就以為 v正 = v逆。',
+        right: '消耗反應物 N₂ 與生成產物 NH₃ 都是描述「正反應方向」，在反應開始後的任何時刻都成立！必須是「一正一逆」（如消耗 1 mol N₂ 同時消耗 2 mol NH₃）且比例等於計量數之比，才代表達致平衡。'
+      },
+      {
+        id: 8,
+        cat: 'calc',
+        title: '陷阱 8：化學方程式翻倍或逆寫時 Kc 算錯',
+        wrong: '將方程式係數乘 2 時把 Kc 乘 2；將方程式逆寫時把 Kc 加上負號。',
+        right: '平衡常數屬於指數冪次關係：方程式係數乘 n 則 Kc\' = (Kc)ⁿ；方程式逆寫則 Kc\' = 1 / Kc；兩個反應相加則 K總 = K₁ × K₂。'
+      }
+    ];
+
+    function renderPitfalls(filterCat) {
+      const container = document.getElementById('pitfalls-grid');
+      const list = filterCat === 'all' ? pitfallsData : pitfallsData.filter(p => p.cat === filterCat);
+      container.innerHTML = list.map(item => `
+        <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-sm font-bold text-blue-950">${item.title}</span>
+              <span class="px-2 py-0.5 text-[11px] font-semibold rounded bg-amber-100 text-amber-900 shrink-0">高頻易錯</span>
+            </div>
+            <div class="text-xs text-rose-800 bg-rose-50 border border-rose-200 rounded-lg p-2.5 mb-2">
+              <strong>常見錯誤：</strong>${item.wrong}
+            </div>
+            <div class="text-xs text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5">
+              <strong>避坑守則：</strong>${item.right}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.querySelectorAll('.pitfall-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.pitfall-filter-btn').forEach(b => {
+          b.className = 'pitfall-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200';
+        });
+        btn.className = 'pitfall-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-900 text-white';
+        renderPitfalls(btn.getAttribute('data-pitfall-filter'));
+      });
+    });
+
+    // =========================================================================
+    // 6. Interactive ICE Table Calculator
+    // =========================================================================
+    let currentCalcModel = 'nh3';
+
+    function updateCalculatorLabels() {
+      const lblNa0 = document.getElementById('lbl-na0');
+      const lblNb0 = document.getElementById('lbl-nb0');
+      const lblDna = document.getElementById('lbl-dna');
+      const inpNb0 = document.getElementById('calc-nb0');
+      if (currentCalcModel === 'nh3') {
+        lblNa0.textContent = '起始 n(N₂) (mol)';
+        lblNb0.textContent = '起始 n(H₂) (mol)';
+        lblDna.textContent = '轉化量 Δn(N₂) (mol)';
+        inpNb0.disabled = false;
+      } else if (currentCalcModel === 'co') {
+        lblNa0.textContent = '起始 n(CO₂) (mol)';
+        lblNb0.textContent = '足量固體 C(s) (不計入濃度)';
+        lblDna.textContent = '轉化量 Δn(CO₂) (mol)';
+        inpNb0.disabled = true;
+      } else {
+        lblNa0.textContent = '起始 n(H₂) (mol)';
+        lblNb0.textContent = '起始 n(I₂) (mol)';
+        lblDna.textContent = '轉化量 Δn(H₂) (mol)';
+        inpNb0.disabled = false;
+      }
+    }
+
+    function runIceCalculator() {
+      const V = Math.max(0.1, parseFloat(document.getElementById('calc-vol').value) || 2.0);
+      const dt = Math.max(0.1, parseFloat(document.getElementById('calc-time').value) || 10);
+      const na0 = Math.max(0.05, parseFloat(document.getElementById('calc-na0').value) || 2.0);
+      const nb0 = Math.max(0.05, parseFloat(document.getElementById('calc-nb0').value) || 6.0);
+      let dna = Math.max(0.01, parseFloat(document.getElementById('calc-dna').value) || 0.8);
+
+      const out = document.getElementById('calc-output-area');
+
+      if (currentCalcModel === 'nh3') {
+        const maxDna = Math.min(na0 - 0.01, (nb0 / 3) - 0.01);
+        if (dna > maxDna) dna = Math.max(0.01, Number(maxDna.toFixed(2)));
+        const ca0 = na0 / V, cb0 = nb0 / V;
+        const dca = dna / V, dcb = 3 * dca, dcc = 2 * dca;
+        const caEq = ca0 - dca, cbEq = cb0 - dcb, ccEq = dcc;
+        const alphaA = (dca / ca0) * 100;
+        const alphaB = (dcb / cb0) * 100;
+        const vH2 = dcb / dt;
+        const Kc = (ccEq * ccEq) / (caEq * Math.pow(cbEq, 3));
+        const pRatio = (caEq + cbEq + ccEq) / (ca0 + cb0);
+
+        out.innerHTML = `
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="border-b-2 border-blue-900 bg-slate-50 text-blue-950">
+                  <th class="py-2 px-3">ICE 三段式（濃度 mol·L⁻¹）</th>
+                  <th class="py-2 px-3">N₂(g)</th>
+                  <th class="py-2 px-3">+ 3H₂(g)</th>
+                  <th class="py-2 px-3">⇌ 2NH₃(g)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 font-mono">
+                <tr>
+                  <td class="py-2 px-3 font-sans font-semibold">起始濃度 c(始) = n(始)/V</td>
+                  <td class="py-2 px-3">${ca0.toFixed(3)}</td>
+                  <td class="py-2 px-3">${cb0.toFixed(3)}</td>
+                  <td class="py-2 px-3">0.000</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-sans font-semibold text-amber-800">變化濃度 Δc (按 1 : 3 : 2)</td>
+                  <td class="py-2 px-3 text-amber-800">-${dca.toFixed(3)}</td>
+                  <td class="py-2 px-3 text-amber-800">-${dcb.toFixed(3)}</td>
+                  <td class="py-2 px-3 text-amber-800">+${dcc.toFixed(3)}</td>
+                </tr>
+                <tr class="bg-blue-50/50 font-bold">
+                  <td class="py-2 px-3 font-sans text-blue-950">平衡濃度 c(平)</td>
+                  <td class="py-2 px-3 text-blue-950">${caEq.toFixed(3)}</td>
+                  <td class="py-2 px-3 text-blue-950">${cbEq.toFixed(3)}</td>
+                  <td class="py-2 px-3 text-blue-950">${ccEq.toFixed(3)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500">平均反應速率 v(H₂)</div>
+              <div class="text-base font-bold text-blue-950 mt-0.5">${vH2.toFixed(3)} mol·L⁻¹·min⁻¹</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500">平衡轉化率 α(N₂) / α(H₂)</div>
+              <div class="text-base font-bold text-blue-950 mt-0.5">${alphaA.toFixed(1)}% / ${alphaB.toFixed(1)}%</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500">濃度平衡常數 Kc</div>
+              <div class="text-base font-bold text-amber-700 mt-0.5">${Kc.toFixed(4)} L²·mol⁻²</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500">平始壓強比 p(平) / p(始)</div>
+              <div class="text-base font-bold text-teal-800 mt-0.5">${pRatio.toFixed(3)}</div>
+            </div>
+          </div>
+        `;
+      } else if (currentCalcModel === 'co') {
+        if (dna >= na0) dna = Math.max(0.01, Number((na0 - 0.05).toFixed(2)));
+        const ca0 = na0 / V;
+        const dca = dna / V, dcc = 2 * dca;
+        const caEq = ca0 - dca, ccEq = dcc;
+        const alpha = (dca / ca0) * 100;
+        const vCO = dcc / dt;
+        const Kc = (ccEq * ccEq) / caEq;
+        const pRatio = (caEq + ccEq) / ca0;
+
+        out.innerHTML = `
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="border-b-2 border-blue-900 bg-slate-50 text-blue-950">
+                  <th class="py-2 px-3">ICE 三段式（濃度 mol·L⁻¹）</th>
+                  <th class="py-2 px-3">C(s) [純固體]</th>
+                  <th class="py-2 px-3">+ CO₂(g)</th>
+                  <th class="py-2 px-3">⇌ 2CO(g)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 font-mono">
+                <tr>
+                  <td class="py-2 px-3 font-sans font-semibold">起始濃度 c(始)</td>
+                  <td class="py-2 px-3 font-sans text-slate-400">常數（不列入 Kc）</td>
+                  <td class="py-2 px-3">${ca0.toFixed(3)}</td>
+                  <td class="py-2 px-3">0.000</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-sans font-semibold text-amber-800">變化濃度 Δc (按 1 : 2)</td>
+                  <td class="py-2 px-3 font-sans text-slate-400">消耗 ${dna.toFixed(2)} mol</td>
+                  <td class="py-2 px-3 text-amber-800">-${dca.toFixed(3)}</td>
+                  <td class="py-2 px-3 text-amber-800">+${dcc.toFixed(3)}</td>
+                </tr>
+                <tr class="bg-blue-50/50 font-bold">
+                  <td class="py-2 px-3 font-sans text-blue-950">平衡濃度 c(平)</td>
+                  <td class="py-2 px-3 font-sans text-slate-400">足量固體</td>
+                  <td class="py-2 px-3 text-blue-950">${caEq.toFixed(3)}</td>
+                  <td class="py-2 px-3 text-blue-950">${ccEq.toFixed(3)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500">平均生成速率 v(CO)</div>
+              <div class="text-base font-bold text-blue-950 mt-0.5">${vCO.toFixed(3)} mol·L⁻¹·min⁻¹</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500">CO₂ 平衡轉化率 α</div>
+              <div class="text-base font-bold text-blue-950 mt-0.5">${alpha.toFixed(1)}%</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500">平衡常數 Kc = [CO]²/[CO₂]</div>
+              <div class="text-base font-bold text-amber-700 mt-0.5">${Kc.toFixed(3)} mol·L⁻¹</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500">平始壓強比 p(平) / p(始)</div>
+              <div class="text-base font-bold text-teal-800 mt-0.5">${pRatio.toFixed(3)}</div>
+            </div>
+          </div>
+        `;
+      } else {
+        const maxDna = Math.min(na0 - 0.01, nb0 - 0.01);
+        if (dna > maxDna) dna = Math.max(0.01, Number(maxDna.toFixed(2)));
+        const ca0 = na0 / V, cb0 = nb0 / V;
+        const dca = dna / V, dcc = 2 * dca;
+        const caEq = ca0 - dca, cbEq = cb0 - dca, ccEq = dcc;
+        const alphaA = (dca / ca0) * 100;
+        const vHI = dcc / dt;
+        const Kc = (ccEq * ccEq) / (caEq * cbEq);
+
+        out.innerHTML = `
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="border-b-2 border-blue-900 bg-slate-50 text-blue-950">
+                  <th class="py-2 px-3">ICE 三段式（濃度 mol·L⁻¹）</th>
+                  <th class="py-2 px-3">H₂(g)</th>
+                  <th class="py-2 px-3">+ I₂(g)</th>
+                  <th class="py-2 px-3">⇌ 2HI(g)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 font-mono">
+                <tr>
+                  <td class="py-2 px-3 font-sans font-semibold">起始濃度 c(始)</td>
+                  <td class="py-2 px-3">${ca0.toFixed(3)}</td>
+                  <td class="py-2 px-3">${cb0.toFixed(3)}</td>
+                  <td class="py-2 px-3">0.000</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-sans font-semibold text-amber-800">變化濃度 Δc (按 1 : 1 : 2)</td>
+                  <td class="py-2 px-3 text-amber-800">-${dca.toFixed(3)}</td>
+                  <td class="py-2 px-3 text-amber-800">-${dca.toFixed(3)}</td>
+                  <td class="py-2 px-3 text-amber-800">+${dcc.toFixed(3)}</td>
+                </tr>
+                <tr class="bg-blue-50/50 font-bold">
+                  <td class="py-2 px-3 font-sans text-blue-950">平衡濃度 c(平)</td>
+                  <td class="py-2 px-3 text-blue-950">${caEq.toFixed(3)}</td>
+                  <td class="py-2 px-3 text-blue-950">${cbEq.toFixed(3)}</td>
+                  <td class="py-2 px-3 text-blue-950">${ccEq.toFixed(3)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500">平均生成速率 v(HI)</div>
+              <div class="text-base font-bold text-blue-950 mt-0.5">${vHI.toFixed(3)} mol·L⁻¹·min⁻¹</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500">H₂ 平衡轉化率 α</div>
+              <div class="text-base font-bold text-blue-950 mt-0.5">${alphaA.toFixed(1)}%</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500">濃度平衡常數 Kc (無量綱)</div>
+              <div class="text-base font-bold text-amber-700 mt-0.5">${Kc.toFixed(2)}</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500">平始壓強比 p(平) / p(始)</div>
+              <div class="text-base font-bold text-teal-800 mt-0.5">1.000 (Δn氣 = 0 恆定)</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    document.querySelectorAll('.calc-preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.calc-preset-btn').forEach(b => {
+          b.className = 'calc-preset-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200';
+        });
+        btn.className = 'calc-preset-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-900 text-white';
+        currentCalcModel = btn.getAttribute('data-preset');
+        if (currentCalcModel === 'nh3') {
+          document.getElementById('calc-vol').value = '2.0';
+          document.getElementById('calc-time').value = '10';
+          document.getElementById('calc-na0').value = '2.0';
+          document.getElementById('calc-nb0').value = '6.0';
+          document.getElementById('calc-dna').value = '0.8';
+        } else if (currentCalcModel === 'co') {
+          document.getElementById('calc-vol').value = '2.0';
+          document.getElementById('calc-time').value = '10';
+          document.getElementById('calc-na0').value = '2.0';
+          document.getElementById('calc-dna').value = '1.0';
+        } else {
+          document.getElementById('calc-vol').value = '2.0';
+          document.getElementById('calc-time').value = '10';
+          document.getElementById('calc-na0').value = '1.0';
+          document.getElementById('calc-nb0').value = '1.0';
+          document.getElementById('calc-dna').value = '0.8';
+        }
+        updateCalculatorLabels();
+        runIceCalculator();
+      });
+    });
+
+    ['calc-vol', 'calc-time', 'calc-na0', 'calc-nb0', 'calc-dna'].forEach(id => {
+      document.getElementById(id).addEventListener('input', runIceCalculator);
+    });
+
+    // =========================================================================
+    // 7. 100-Point Exam Questions & Auto-Grading Logic
+    // =========================================================================
+    const mcqQuestions = [
+      {
+        id: 'q1',
+        num: 1,
+        tag: '速率比較與單位換算陷阱',
+        points: 6,
+        stem: '在一定條件下，可逆反應 A(s) + 3B(g) ⇌ 2C(g) + 4D(g) 在四個不同密閉容器中進行，測得以下反應速率數據。請問哪一個容器中的反應進行得最快？',
+        options: [
+          { key: 'A', text: 'v(A) = 0.50 mol·L⁻¹·s⁻¹' },
+          { key: 'B', text: 'v(B) = 0.60 mol·L⁻¹·s⁻¹' },
+          { key: 'C', text: 'v(C) = 0.50 mol·L⁻¹·s⁻¹' },
+          { key: 'D', text: 'v(D) = 48.0 mol·L⁻¹·min⁻¹' }
+        ],
+        answer: 'C',
+        explanation: '首先排除 A，因為 A(s) 為純固體，不可用濃度變化表示速率（陷阱 1）。再將各氣體統一換成 s⁻¹ 並除以係數：B 為 0.60/3 = 0.20；C 為 0.50/2 = 0.25；D 為 (48.0/60)/4 = 0.80/4 = 0.20。故 C (0.25) 最快。'
+      },
+      {
+        id: 'q2',
+        num: 2,
+        tag: '初始速率法與速率方程',
+        points: 6,
+        stem: '某溫度下，反應 2NO(g) + Cl₂(g) → 2NOCl(g) 的實驗初始速率數據如下：當 [NO]=0.10, [Cl₂]=0.10 mol·L⁻¹ 時，v₀ = 1.2×10⁻³ mol·L⁻¹·s⁻¹；保持 [Cl₂] 不變，將 [NO] 增至 0.20 mol·L⁻¹ 時，v₀ = 4.8×10⁻³ mol·L⁻¹·s⁻¹；保持 [NO]=0.20 mol·L⁻¹，將 [Cl₂] 增至 0.30 mol·L⁻¹ 時，v₀ = 1.44×10⁻² mol·L⁻¹·s⁻¹。下列敘述何者正確？',
+        options: [
+          { key: 'A', text: '該反應的速率方程為 v = k[NO][Cl₂]²，總級數為 3' },
+          { key: 'B', text: '該溫度下速率常數 k = 1.2 L²·mol⁻²·s⁻¹' },
+          { key: 'C', text: '將容器體積縮小一半，速率常數 k 增大為原來的 8 倍' },
+          { key: 'D', text: '加入正催化劑後，活化能 Ea 與反應熱 ΔH 均顯著減小' }
+        ],
+        answer: 'B',
+        explanation: '[NO] 變 2 倍時 v₀ 變 4 倍 (2²)，故對 NO 為 2 級；[Cl₂] 變 3 倍時 v₀ 變 3 倍 (3¹)，故對 Cl₂ 為 1 級，速率方程 v = k[NO]²[Cl₂]。代入第 1 組數據得 k = 1.2×10⁻³ / (0.10² × 0.10) = 1.2 L²·mol⁻²·s⁻¹。'
+      },
+      {
+        id: 'q3',
+        num: 3,
+        tag: '化學平衡狀態判據陷阱',
+        points: 6,
+        stem: '在恆溫恆容的密閉容器中發生反應：Fe₂O₃(s) + 3CO(g) ⇌ 2Fe(s) + 3CO₂(g) ΔH < 0。下列哪些現象能說明該反應已經達到化學平衡狀態？ ① 容器內混合氣體的總壓強不再變化 ② 容器內混合氣體的密度 ρ 不再變化 ③ 單位時間內消耗 3 mol CO 同時生成 3 mol CO₂ ④ 混合氣體的平均摩爾質量 M̄ 不再變化 ⑤ c(CO) : c(CO₂) = 1 : 1',
+        options: [
+          { key: 'A', text: '①②④' },
+          { key: 'B', text: '②④' },
+          { key: 'C', text: '②③⑤' },
+          { key: 'D', text: '①④⑤' }
+        ],
+        answer: 'B',
+        explanation: '氣體係數差 Δn氣 = 3 - 3 = 0，恆溫恆容下氣體總物質的量與總壓始終不變（①錯）；隨反應進行，CO(g) 奪取固體氧變成 CO₂(g)，氣體總質量 m氣 是變量，故密度 ρ = m氣/V 與平均摩爾質量 M̄ = m氣/n氣 均為變量，「變量不變」說明已達平衡（②④正確）。'
+      },
+      {
+        id: 'q4',
+        num: 4,
+        tag: '惰性氣體與轉化率綜合辨析',
+        points: 6,
+        stem: '在密閉容器中進行合成甲醇反應：CO(g) + 2H₂(g) ⇌ CH₃OH(g) ΔH = -90.8 kJ·mol⁻¹，達到平衡後，下列操作及其對應結果何者正確？',
+        options: [
+          { key: 'A', text: '恆溫恆容下充入氦氣 (He)，容器總壓增大，平衡向正反應方向移動' },
+          { key: 'B', text: '恆溫恆容下再充入 1 mol CO，平衡正向移動，CO 與 H₂ 的平衡轉化率均升高' },
+          { key: 'C', text: '升高溫度，正反應速率減小、逆反應速率增大，平衡常數 Kc 減小' },
+          { key: 'D', text: '恆溫恆壓下充入氦氣 (He)，容器體積增大，正逆反應速率均減小，平衡向逆反應方向移動' }
+        ],
+        answer: 'D',
+        explanation: 'A 恆溫恆容充入 He，各反應氣體濃度不變，平衡不移動；B 單獨增加 CO，H₂ 轉化率升高但 CO 自身轉化率降低；C 升溫時正、逆速率均增大；D 恆溫恆壓充入 He 相當於擴容減壓，正逆速率均減小，平衡向氣體分子數增多（逆反應）方向移動。'
+      },
+      {
+        id: 'q5',
+        num: 5,
+        tag: '平衡常數變形與多重平衡',
+        points: 6,
+        stem: '已知在 800 K 時，反應 ① SO₂(g) + 1/2 O₂(g) ⇌ SO₃(g) 的平衡常數 K₁ = 5.0。則在相同溫度下，反應 ② 2SO₃(g) ⇌ 2SO₂(g) + O₂(g) 的平衡常數 K₂ 為多少？',
+        options: [
+          { key: 'A', text: '-10.0' },
+          { key: 'B', text: '0.20' },
+          { key: 'C', text: '0.04' },
+          { key: 'D', text: '25.0' }
+        ],
+        answer: 'C',
+        explanation: '反應 ② 是將反應 ① 逆寫並將係數乘以 2。根據冪次法則：K₂ = (1 / K₁)² = (1 / 5.0)² = 0.04。'
+      },
+      {
+        id: 'q6',
+        num: 6,
+        tag: '反應商 Qc 與平衡移動方向計算',
+        points: 6,
+        stem: '某溫度下，可逆反應 H₂(g) + I₂(g) ⇌ 2HI(g) 的平衡常數 Kc = 64。現向體積為 2.0 L 的密閉容器中同時充入 0.40 mol H₂、0.40 mol I₂ 及 4.0 mol HI，則在該時刻：',
+        options: [
+          { key: 'A', text: 'Qc = 100 > Kc，反應向逆反應方向進行，v逆 > v正' },
+          { key: 'B', text: 'Qc = 25 < Kc，反應向正反應方向進行，v正 > v逆' },
+          { key: 'C', text: 'Qc = 64 = Kc，反應已處於化學平衡狀態' },
+          { key: 'D', text: 'Qc = 10 < Kc，反應向正反應方向進行' }
+        ],
+        answer: 'A',
+        explanation: '先除以 V = 2.0 L 求濃度：[H₂]=0.20、[I₂]=0.20、[HI]=2.0 mol·L⁻¹。Qc = 2.0² / (0.20 × 0.20) = 4.0 / 0.04 = 100 > Kc (64)，故反應向逆反應方向進行，v逆 > v正。'
+      }
+    ];
+
+    const calcQuestions = [
+      {
+        id: 'q7',
+        num: 7,
+        title: '第 7 題【實驗初始速率法求級數與速率常數】（14 分）',
+        stemHtml: `
+          <p class="text-sm text-slate-700 mb-2">
+            在 298 K 下，測定溶液中反應 <span class="math-font font-semibold">S₂O₈²⁻(aq) + 3I⁻(aq) → 2SO₄²⁻(aq) + I₃⁻(aq)</span> 的初始反應速率 v₀（以 I₃⁻ 的生成速率表示），得到以下四組數據：
+          </p>
+          <div class="overflow-x-auto mb-3">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="border-b border-slate-300 bg-slate-100">
+                  <th class="py-1.5 px-3">實驗編號</th>
+                  <th class="py-1.5 px-3">c(S₂O₈²⁻) / mol·L⁻¹</th>
+                  <th class="py-1.5 px-3">c(I⁻) / mol·L⁻¹</th>
+                  <th class="py-1.5 px-3">I₃⁻ 初始生成速率 v₀ / (mol·L⁻¹·s⁻¹)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 font-mono">
+                <tr><td class="py-1 px-3 font-sans">實驗 1</td><td class="py-1 px-3">0.040</td><td class="py-1 px-3">0.040</td><td class="py-1 px-3">6.4 × 10⁻⁶</td></tr>
+                <tr><td class="py-1 px-3 font-sans">實驗 2</td><td class="py-1 px-3">0.080</td><td class="py-1 px-3">0.040</td><td class="py-1 px-3">1.28 × 10⁻⁵</td></tr>
+                <tr><td class="py-1 px-3 font-sans">實驗 3</td><td class="py-1 px-3">0.080</td><td class="py-1 px-3">0.120</td><td class="py-1 px-3">3.84 × 10⁻⁵</td></tr>
+                <tr><td class="py-1 px-3 font-sans">實驗 4</td><td class="py-1 px-3">0.100</td><td class="py-1 px-3">x</td><td class="py-1 px-3">2.00 × 10⁻⁵</td></tr>
+              </tbody>
+            </table>
+          </div>
+        `,
+        subparts: [
+          { subId: 'q7_1', label: '(1) 該反應的總反應級數 (m + n) 為：', unit: '級', ans: 2, tol: 0.01, pts: 5 },
+          { subId: 'q7_2', label: '(2) 速率常數 k = 4.0×10⁻³ L·mol⁻¹·s⁻¹，則實驗 4 中未知濃度 x 為：', unit: 'mol·L⁻¹', ans: 0.05, tol: 0.002, pts: 5 },
+          { subId: 'q7_3', label: '(3) 實驗 3 初始時刻，以 I⁻ 消耗速率表示的 v(I⁻) 是幾乘以 10⁻⁴ mol·L⁻¹·s⁻¹？(填係數，如 1.152)：', unit: '× 10⁻⁴ mol·L⁻¹·s⁻¹', ans: 1.152, tol: 0.02, pts: 4 }
+        ],
+        solutionHtml: `
+          <strong>第 7 題標準詳解：</strong><br>
+          1. 對比實驗 1、2：[I⁻] 不變，[S₂O₈²⁻] 變 2 倍時 v₀ 變 2 倍 &rArr; m = 1；對比實驗 2、3：[S₂O₈²⁻] 不變，[I⁻] 變 3 倍時 v₀ 變 3 倍 &rArr; n = 1。速率方程為 <code>v = k[S₂O₈²⁻][I⁻]</code>，總級數 m + n = <strong>2</strong>。<br>
+          2. 代入實驗 1：<code>k = 6.4×10⁻⁶ / (0.040 × 0.040) = 4.0×10⁻³ L·mol⁻¹·s⁻¹</code>。代入實驗 4：<code>2.00×10⁻⁵ = 4.0×10⁻³ × 0.100 × x &rArr; x = 0.050 mol·L⁻¹</code>。<br>
+          3. 按化學計量數之比 <code>v(I⁻) = 3 × v₀(I₃⁻) = 3 × 3.84×10⁻⁵ = 1.152×10⁻⁴ mol·L⁻¹·s⁻¹</code>。
+        `
+      },
+      {
+        id: 'q8',
+        num: 8,
+        title: '第 8 題【合成氨反應標準三段式、轉化率與平衡常數計算】（16 分）',
+        stemHtml: `
+          <p class="text-sm text-slate-700 mb-3">
+            在一定溫度下，將 <strong>2.0 mol N₂</strong> 和 <strong>6.0 mol H₂</strong> 充入容積固定為 <strong>V = 2.0 L</strong> 的密閉容器中發生反應：<span class="math-font font-semibold">N₂(g) + 3H₂(g) ⇌ 2NH₃(g)</span>。反應進行到 <strong>10 min</strong> 時達到平衡，測得容器內含有 <strong>1.6 mol NH₃</strong>。
+          </p>
+        `,
+        subparts: [
+          { subId: 'q8_1', label: '(1) 0 ~ 10 min 內，以 H₂ 表示的平均反應速率 v(H₂) 為：', unit: 'mol·L⁻¹·min⁻¹', ans: 0.12, tol: 0.005, pts: 4 },
+          { subId: 'q8_2', label: '(2) 平衡時 N₂ 與 H₂ 的平衡轉化率 α 均為多少 %？(只填數字)：', unit: '%', ans: 40, tol: 0.5, pts: 4 },
+          { subId: 'q8_3', label: '(3) 該溫度下的濃度平衡常數 Kc 為 (四捨五入至小數點後三位)：', unit: 'L²·mol⁻²', ans: 0.183, tol: 0.005, pts: 4 },
+          { subId: 'q8_4', label: '(4) 平衡時總壓強與起始總壓強之比 p(平衡)/p(起始) 為 (填小數)：', unit: '', ans: 0.80, tol: 0.01, pts: 4 }
+        ],
+        solutionHtml: `
+          <strong>第 8 題標準三段式詳解：</strong><br>
+          先除以 V = 2.0 L 換成濃度：起始 [N₂]=1.0、[H₂]=3.0、[NH₃]=0 mol·L⁻¹；平衡 [NH₃] = 1.6/2.0 = 0.80 mol·L⁻¹。<br>
+          &bull; 變化濃度 Δc(N₂) : Δc(H₂) : Δc(NH₃) = 0.40 : 1.20 : 0.80；平衡濃度 [N₂]=0.60、[H₂]=1.80、[NH₃]=0.80 mol·L⁻¹。<br>
+          1. <code>v(H₂) = Δc(H₂)/Δt = 1.20 / 10 = 0.12 mol·L⁻¹·min⁻¹</code>。<br>
+          2. <code>α(N₂) = (0.40/1.0)×100% = 40%</code>；因起始投料比 2:6 = 1:3 恰等於係數比，故兩者轉化率均為 <strong>40%</strong>。<br>
+          3. <code>Kc = 0.80² / (0.60 × 1.80³) = 0.64 / 3.4992 ≈ 0.183 L²·mol⁻²</code>。<br>
+          4. <code>p(平)/p(始) = c(總,平)/c(總,始) = (0.60+1.80+0.80)/(1.0+3.0) = 3.20/4.00 = 0.80 (即 4:5)</code>。
+        `
+      },
+      {
+        id: 'q9',
+        num: 9,
+        title: '第 9 題【含固體可逆反應之 Kc 反推與 Qc 平衡移動判斷】（16 分）',
+        stemHtml: `
+          <p class="text-sm text-slate-700 mb-3">
+            在 1100 K 時，向容積固定為 <strong>V = 2.0 L</strong> 的密閉容器中加入 <strong>2.0 mol C(s)</strong> 並充入 <strong>2.0 mol CO₂(g)</strong>，發生反應：<span class="math-font font-semibold">C(s) + CO₂(g) ⇌ 2CO(g)</span>。已知該溫度下平衡常數 <strong>Kc = 2.0 mol·L⁻¹</strong>。
+          </p>
+        `,
+        subparts: [
+          { subId: 'q9_1', label: '(1) 平衡時容器內 CO(g) 的平衡濃度 [CO] 為：', unit: 'mol·L⁻¹', ans: 1.0, tol: 0.02, pts: 5 },
+          { subId: 'q9_2', label: '(2) CO₂ 的平衡轉化率 α(CO₂) 為多少 %？(只填數字)：', unit: '%', ans: 50, tol: 0.5, pts: 3 },
+          { subId: 'q9_3', label: '(3) 平衡時容器內剩餘固體炭粉 C(s) 的物質的量為：', unit: 'mol', ans: 1.0, tol: 0.02, pts: 3 },
+          { subId: 'q9_4', label: '(4) 若再同時充入 0.50 mol CO₂(g) 和 2.0 mol CO(g)，此時的濃度商 Qc 為 (保留兩位小數)：', unit: 'mol·L⁻¹', ans: 5.33, tol: 0.05, pts: 5 }
+        ],
+        solutionHtml: `
+          <strong>第 9 題標準詳解：</strong><br>
+          1. C(s) 不寫入 Kc，故 <code>Kc = [CO]² / [CO₂] = 2.0</code>。起始 [CO₂] = 2.0/2.0 = 1.0 mol·L⁻¹，設轉化濃度為 x，則平衡時 [CO₂] = 1.0 - x，[CO] = 2x。代入得 <code>(2x)² / (1.0 - x) = 2.0 &rArr; 2x² + x - 1 = 0 &rArr; x = 0.50 mol·L⁻¹</code>。故平衡時 <strong>[CO] = 2x = 1.0 mol·L⁻¹</strong>，[CO₂] = 0.50 mol·L⁻¹。<br>
+          2. 轉化率 <code>α(CO₂) = (0.50 / 1.0) × 100% = 50%</code>。<br>
+          3. 消耗 CO₂ 物質的量 = 0.50 × 2.0 = 1.0 mol，按 1:1 消耗 C(s) 1.0 mol，剩餘 C(s) = 2.0 - 1.0 = <strong>1.0 mol</strong>。<br>
+          4. 再充入後：[CO₂]' = 0.50 + 0.50/2.0 = 0.75 mol·L⁻¹；[CO]' = 1.0 + 2.0/2.0 = 2.0 mol·L⁻¹。<code>Qc = 2.0² / 0.75 ≈ 5.33 > Kc (2.0)</code>，平衡向<strong>逆反應方向</strong>移動。
+        `
+      },
+      {
+        id: 'q10',
+        num: 10,
+        title: '第 10 題【氣體解離度、摩爾分數與分壓平衡常數 Kp 進階計算】（18 分）',
+        stemHtml: `
+          <p class="text-sm text-slate-700 mb-3">
+            在 333 K 下，將 <strong>1.0 mol N₂O₄(g)</strong> 充入裝有活塞的密閉容器中，維持總壓強恆定為 <strong>p總 = 100 kPa</strong>，發生解離反應：<span class="math-font font-semibold">N₂O₄(g) ⇌ 2NO₂(g)</span>。達到平衡時，測得 N₂O₄ 的平衡解離度為 <strong>α = 60%</strong>（相對原子質量：N = 14.0, O = 16.0）。
+          </p>
+        `,
+        subparts: [
+          { subId: 'q10_1', label: '(1) 平衡時混合氣體的總物質的量 n總 為：', unit: 'mol', ans: 1.60, tol: 0.02, pts: 6 },
+          { subId: 'q10_2', label: '(2) 該溫度下的壓強平衡常數 Kp 為：', unit: 'kPa', ans: 225, tol: 1.0, pts: 6 },
+          { subId: 'q10_3', label: '(3) 平衡時混合氣體的平均摩爾質量 M̄ 為：', unit: 'g·mol⁻¹', ans: 57.5, tol: 0.2, pts: 6 }
+        ],
+        solutionHtml: `
+          <strong>第 10 題標準詳解：</strong><br>
+          1. 起始 n(N₂O₄) = 1.0 mol，轉化 0.60 mol，生成 NO₂ = 1.20 mol。平衡時 n(N₂O₄) = 0.40 mol，n(NO₂) = 1.20 mol，總物質的量 <strong>n總 = 1.60 mol</strong>。摩爾分數 x(N₂O₄) = 0.25，x(NO₂) = 0.75。<br>
+          2. 分壓 p(N₂O₄) = 100 × 0.25 = 25.0 kPa，p(NO₂) = 100 × 0.75 = 75.0 kPa。<code>Kp = 75.0² / 25.0 = 225 kPa</code>。<br>
+          3. 根據質量守恆 m總 = 1.0 × 92.0 = 92.0 g，平均摩爾質量 <code>M̄ = 92.0 / 1.60 = 57.5 g·mol⁻¹</code>。若加壓至 200 kPa，體積縮小，勒沙特列移動只能減弱而不能抵消濃度增大，故最終氣體顏色比壓縮前<strong>更深</strong>，而溫度不變故 Kp <strong>保持 225 kPa 不變</strong>。
+        `
+      }
+    ];
+
+    const userMcqAnswers = {};
+
+    function renderExam() {
+      // Render MCQs
+      const mcqBox = document.getElementById('mcq-container');
+      mcqBox.innerHTML = mcqQuestions.map(q => `
+        <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4" id="card-${q.id}">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-sm font-bold text-blue-950">第 ${q.num} 題【${q.tag}】（${q.points} 分）</span>
+            <span id="status-${q.id}" class="text-xs font-semibold text-slate-400">尚未作答</span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-800 leading-relaxed mb-3">${q.stem}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+            ${q.options.map(opt => `
+              <button type="button" data-qid="${q.id}" data-opt="${opt.key}"
+                class="mcq-opt-btn text-left px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs sm:text-sm transition">
+                <strong class="mr-1.5">${opt.key}.</strong>${opt.text}
+              </button>
+            `).join('')}
+          </div>
+          <button type="button" data-sol-toggle="sol-${q.id}" class="sol-toggle-btn text-xs font-semibold text-blue-800 hover:underline">
+            查看本題詳解
+          </button>
+          <div id="sol-${q.id}" class="exam-sol-box hidden mt-2.5 p-3 rounded-lg bg-blue-50/80 border border-blue-200 text-xs text-slate-800 leading-relaxed">
+            <strong>正確答案：${q.answer}</strong><br>${q.explanation}
+          </div>
+        </div>
+      `).join('');
+
+      // Render Structured Calculation Questions
+      const calcBox = document.getElementById('calc-q-container');
+      calcBox.innerHTML = calcQuestions.map(q => `
+        <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <h4 class="text-sm sm:text-base font-bold text-blue-950">${q.title}</h4>
+            <span id="status-${q.id}" class="text-xs font-semibold text-slate-400">待批改</span>
+          </div>
+          ${q.stemHtml}
+          <div class="space-y-2.5 mb-3">
+            ${q.subparts.map(sp => `
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white p-3 rounded-lg border border-slate-200">
+                <label for="inp-${sp.subId}" class="text-xs sm:text-sm font-medium text-slate-800">${sp.label} <span class="text-slate-400">(${sp.pts}分)</span></label>
+                <div class="flex items-center gap-2 shrink-0">
+                  <input id="inp-${sp.subId}" type="number" step="any" placeholder="輸入數值"
+                    class="w-28 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm font-mono">
+                  <span class="text-xs text-slate-600 font-mono">${sp.unit}</span>
+                  <span id="badge-${sp.subId}" class="text-xs font-bold"></span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <button type="button" data-sol-toggle="sol-${q.id}" class="sol-toggle-btn text-xs font-semibold text-blue-800 hover:underline">
+            查看本題三段式與詳解
+          </button>
+          <div id="sol-${q.id}" class="exam-sol-box hidden mt-2.5 p-3.5 rounded-lg bg-amber-50/80 border border-amber-200 text-xs text-slate-800 leading-relaxed">
+            ${q.solutionHtml}
+          </div>
+        </div>
+      `).join('');
+
+      // Attach listeners for MCQ buttons
+      document.querySelectorAll('.mcq-opt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const qid = btn.getAttribute('data-qid');
+          const opt = btn.getAttribute('data-opt');
+          userMcqAnswers[qid] = opt;
+          document.querySelectorAll(`.mcq-opt-btn[data-qid="${qid}"]`).forEach(b => {
+            b.className = 'mcq-opt-btn text-left px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs sm:text-sm transition';
+          });
+          btn.className = 'mcq-opt-btn text-left px-3 py-2 rounded-lg border-2 border-blue-900 bg-blue-50 text-blue-950 font-semibold text-xs sm:text-sm transition';
+          const st = document.getElementById(`status-${qid}`);
+          if (st) {
+            st.textContent = `已選 ${opt}`;
+            st.className = 'text-xs font-semibold text-blue-800';
+          }
+        });
+      });
+
+      // Attach listeners for solution toggles
+      document.querySelectorAll('.sol-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-sol-toggle');
+          const box = document.getElementById(targetId);
+          if (box) box.classList.toggle('hidden');
+        });
+      });
+    }
+
+    // Grade Entire Exam
+    document.getElementById('btn-grade-all').addEventListener('click', () => {
+      let mcqScore = 0;
+      let calcScore = 0;
+
+      mcqQuestions.forEach(q => {
+        const chosen = userMcqAnswers[q.id];
+        const st = document.getElementById(`status-${q.id}`);
+        const sol = document.getElementById(`sol-${q.id}`);
+        if (sol) sol.classList.remove('hidden');
+
+        if (chosen === q.answer) {
+          mcqScore += q.points;
+          if (st) {
+            st.textContent = `✓ 正確 (+${q.points}分)`;
+            st.className = 'text-xs font-bold text-emerald-700';
+          }
+        } else {
+          if (st) {
+            st.textContent = `✗ 錯誤 (正確為 ${q.answer})`;
+            st.className = 'text-xs font-bold text-rose-700';
+          }
+        }
+      });
+
+      calcQuestions.forEach(q => {
+        let qEarned = 0;
+        let qTotal = 0;
+        const sol = document.getElementById(`sol-${q.id}`);
+        if (sol) sol.classList.remove('hidden');
+
+        q.subparts.forEach(sp => {
+          qTotal += sp.pts;
+          const inp = document.getElementById(`inp-${sp.subId}`);
+          const badge = document.getElementById(`badge-${sp.subId}`);
+          const val = inp ? parseFloat(inp.value) : NaN;
+          if (!isNaN(val) && Math.abs(val - sp.ans) <= sp.tol) {
+            qEarned += sp.pts;
+            calcScore += sp.pts;
+            if (badge) {
+              badge.textContent = `✓ +${sp.pts}分`;
+              badge.className = 'text-xs font-bold text-emerald-700';
+            }
+          } else {
+            if (badge) {
+              badge.textContent = `✗ 答案: ${sp.ans}`;
+              badge.className = 'text-xs font-bold text-rose-700';
+            }
+          }
+        });
+
+        const st = document.getElementById(`status-${q.id}`);
+        if (st) {
+          st.textContent = `得分：${qEarned} / ${qTotal} 分`;
+          st.className = qEarned === qTotal ? 'text-xs font-bold text-emerald-700' : 'text-xs font-bold text-amber-800';
+        }
+      });
+
+      const totalScore = mcqScore + calcScore;
+      document.getElementById('header-score').textContent = `${totalScore} / 100`;
+      const banner = document.getElementById('exam-score-banner');
+      const detail = document.getElementById('exam-score-detail');
+      const badge = document.getElementById('exam-score-badge');
+      banner.classList.remove('hidden');
+      detail.textContent = `甲部選擇題：${mcqScore} / 36 分 ｜ 乙部綜合計算題：${calcScore} / 64 分`;
+      badge.textContent = `總分：${totalScore} / 100`;
+      showToast(`批改完成！你的總分為 ${totalScore} / 100 分，全部詳解已自動展開。`);
+    });
+
+    let allSolutionsOpen = false;
+    document.getElementById('btn-toggle-all-solutions').addEventListener('click', () => {
+      allSolutionsOpen = !allSolutionsOpen;
+      document.querySelectorAll('.exam-sol-box').forEach(box => {
+        if (allSolutionsOpen) {
+          box.classList.remove('hidden');
+        } else {
+          box.classList.add('hidden');
+        }
+      });
+      showToast(allSolutionsOpen ? '已展開全部試題詳解' : '已收合全部試題詳解');
+    });
+
+    document.getElementById('btn-reset-exam').addEventListener('click', () => {
+      Object.keys(userMcqAnswers).forEach(k => delete userMcqAnswers[k]);
+      document.getElementById('header-score').textContent = '0 / 100';
+      document.getElementById('exam-score-banner').classList.add('hidden');
+      renderExam();
+      showToast('試卷已清空，可以重新作答！');
+    });
+
+    // =========================================================================
+    // 8. Export / Copy HTML & Print Controls
+    // =========================================================================
+    document.getElementById('btn-copy-html').addEventListener('click', () => {
+      const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(fullHtml).then(() => {
+          showToast('已複製完整 index.html 原始碼！可直接貼上至 GitHub。');
+        }).catch(() => {
+          fallbackCopy(fullHtml);
+        });
+      } else {
+        fallbackCopy(fullHtml);
+      }
+    });
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('已複製完整 index.html 原始碼！可直接貼上至 GitHub。');
+      } catch (e) {
+        showToast('複製失敗，請直接下載檔案上傳。');
+      }
+      document.body.removeChild(ta);
+    }
+
+    document.getElementById('btn-print-page').addEventListener('click', () => {
+      window.print();
+    });
+
+    // =========================================================================
+    // Initialize App on Load
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      renderTimer();
+      renderPitfalls('all');
+      updateCalculatorLabels();
+      runIceCalculator();
+      renderExam();
+      initCharts();
+    });
   </script>
 </body>
 </html>
