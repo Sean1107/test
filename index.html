@@ -1,1513 +1,733 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>化學大測溫習系統：化學反應速率與化學平衡</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="高三中文第一段選擇題練習。課文、文學常識、名句、語文基礎和閱讀理解，附答案解析和錯題簿。">
+  <meta name="theme-color" content="#18443b">
+  <title>高三中文練習站</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap');
-    body {
-      font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #f8fafc;
-      color: #0f172a;
-    }
-    .math-font {
-      font-family: 'Cambria Math', 'Latin Modern Math', 'Inter', 'Noto Sans TC', serif;
-    }
-    .overline-m {
-      text-decoration: overline;
-    }
-    .tab-btn-active {
-      background-color: #1e3a8a;
-      color: #ffffff;
-      box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25);
-    }
-    .tab-btn-inactive {
-      background-color: #ffffff;
-      color: #334155;
-      border: 1px solid #cbd5e1;
-    }
-    .tab-btn-inactive:hover {
-      background-color: #f1f5f9;
-    }
-    @media print {
-      .no-print { display: none !important; }
-      .tab-panel { display: block !important; page-break-after: always; }
-    }
-  </style>
+:root {
+  color-scheme: light;
+  --ink: #192e29;
+  --muted: #566760;
+  --green: #1d594b;
+  --green-dark: #19463c;
+  --green-soft: #e5f0e9;
+  --paper: #f6f6ef;
+  --white: #fffefa;
+  --line: #dde3da;
+  --red: #934531;
+  --red-soft: #fbede5;
+  --serif: 'Noto Serif TC', 'Songti TC', PMingLiU, serif;
+  --sans: system-ui, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  font: 100%/1.55 var(--sans);
+  color: var(--ink);
+  background: var(--paper);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; min-width: 300px; }
+button, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+button, a, select { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid #ad682f; outline-offset: 4px; }
+[hidden] { display: none !important; }
+h1, h2, p, ul { margin: 0; }
+.wrap { width: min(1184px, calc(100% - 64px)); margin-inline: auto; }
+.skip-link { position: fixed; z-index: 5; left: 16px; top: -100px; background: var(--white); color: var(--ink); padding: 10px 15px; }
+.skip-link:focus { top: 12px; }
+.site-header { background: var(--white); border-bottom: 1px solid var(--line); }
+.header-inner { display: flex; align-items: center; justify-content: space-between; min-height: 69px; gap: 14px; }
+.brand { display: inline-flex; align-items: center; gap: 11px; background: none; padding: 0; border: 0; color: var(--ink); white-space: nowrap; font-size: 1rem; letter-spacing: .06em; font-weight: 750; }
+.seal { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; color: #fff9ef; background: var(--red); font: 700 1.2rem var(--serif); }
+.top-nav { display: flex; align-items: center; gap: 8px; }
+.top-nav button { color: var(--muted); background: transparent; padding: 7px 13px; border: 1px solid transparent; border-radius: 7px; white-space: nowrap; font-size: .92rem; }
+.top-nav button:hover, .top-nav button[aria-current] { color: var(--green-dark); background: var(--green-soft); }
+.top-nav button[aria-current] { font-weight: 700; }
+.counter { margin-left: 6px; display: inline-block; min-width: 18px; padding-inline: 4px; border-radius: 8px; background: var(--green-dark); color: white; font-size: .72rem; font-variant-numeric: tabular-nums; }
+
+.hero { position: relative; isolation: isolate; display: flex; align-items: end; justify-content: space-between; gap: 24px; overflow: hidden; margin: 28px 0 25px; padding: 32px 40px 34px; min-height: 208px; border-radius: 16px; background: linear-gradient(110deg, #153d34 0%, #1c5144 72%, #23604e 100%); color: #fffcf0; }
+.hero-copy { position: relative; }
+.eyebrow { display: flex; align-items: center; gap: 8px; color: #efe2bc; font-size: .87rem; font-weight: 660; letter-spacing: .13em; }
+.eyebrow span { width: 17px; height: 1px; background: #e8c483; }
+h1 { font: 700 clamp(2.25rem, 5vw, 3.45rem)/1.18 var(--serif); letter-spacing: .09em; padding-top: 8px; }
+.hero-copy > p:last-child { margin-top: 12px; color: #e0ede5; font-size: .98rem; }
+.bank-size { position: relative; display: grid; justify-items: center; flex: none; align-self: end; min-width: 114px; padding: 9px 14px 10px; border: 1px solid #c8dfcf49; border-radius: 10px; background: #163d3366; color: #e9eddd; font-size: .83rem; }
+.bank-size strong { color: #faefda; font: 700 1.8rem/1.25 var(--serif); font-variant-numeric: tabular-nums; }
+.hero-art { position: absolute; inset: 0 100px 0 auto; z-index: -1; width: min(49%, 520px); opacity: .6; pointer-events: none; }
+.hero-art i { position: absolute; top: -96px; right: calc(var(--offset, 0) * 27px); width: calc(245px + var(--offset, 0) * 71px); height: calc(245px + var(--offset, 0) * 71px); border: 1px solid #c9df9f32; border-radius: 45% 55% 54% 46%; transform: rotate(-20deg); }
+.hero-art i:nth-child(2) { --offset: 1; }
+.hero-art i:nth-child(3) { --offset: 2; }
+.hero-art i:nth-child(4) { --offset: 3; }
+.hero-art i:nth-child(5) { --offset: 4; }
+
+.layout { display: grid; grid-template-columns: minmax(240px, 284px) minmax(0, 1fr); gap: 22px; align-items: start; }
+.sidebar { display: grid; gap: 17px; }
+.panel { background: var(--white); border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 2px 2px #233c2a04; }
+.topic-panel, .stats-panel { padding: 18px; }
+.sidebar h2 { font-size: .96rem; font-weight: 780; margin: 0 0 12px; }
+.topic-list { display: grid; gap: 4px; }
+.topic { display: flex; align-items: center; gap: 9px; justify-content: space-between; min-height: 42px; width: 100%; text-align: left; border: 1px solid transparent; border-radius: 8px; padding: 7px 10px; color: var(--muted); background: none; font-size: .9rem; }
+.topic:hover { background: #f0f4ed; }
+.topic[aria-pressed="true"] { background: var(--green-soft); color: #154637; border-color: #d3e6d9; font-weight: 750; }
+.topic-count { color: #52675a; font-size: .78rem; font-variant-numeric: tabular-nums; }
+.filter-label { display: block; margin: 13px 0 5px; font-size: .82rem; color: var(--muted); }
+.filter { width: 100%; min-height: 39px; padding: 6px 32px 6px 9px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: var(--white); font-size: .88rem; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; text-align: center; margin-bottom: 10px; }
+.stats-grid > div { background: #f3f5ef; border-radius: 7px; padding: 6px 2px 8px; }
+.stat-number { display: block; color: var(--green-dark); font-size: 1.19rem; line-height: 1.35; font-weight: 780; font-variant-numeric: tabular-nums; }
+.stat-label { color: var(--muted); font-size: .74rem; white-space: nowrap; }
+.text-button { border: 0; background: transparent; padding: 3px 0; color: var(--green); font-size: .86rem; text-decoration: underline; text-underline-offset: 3px; }
+.text-button:hover { color: var(--red); }
+
+.practice { min-width: 0; }
+.quiz-panel, .result-panel, .review-panel { padding: 24px 29px; }
+.quiz-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.quiz-head h2, .result-panel h2, .review-panel h2 { font-size: 1.2rem; font-weight: 780; }
+.quiz-progress { color: var(--muted); font-size: .86rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.progress-bar { display: block; width: 100%; margin: 11px 0 16px; height: 5px; border: 0; border-radius: 6px; overflow: hidden; background: #e9eee7; accent-color: var(--green); }
+.progress-bar::-webkit-progress-bar { background: #e9eee7; }
+.progress-bar::-webkit-progress-value { border-radius: 6px; background: #38836d; }
+.progress-bar::-moz-progress-bar { border-radius: 6px; background: #38836d; }
+.question-line { margin: 0 0 15px; }
+.question-topic { display: inline-block; max-width: 100%; color: var(--green-dark); border: 1px solid #e1eae0; background: #edf3eb; border-radius: 5px; padding: 2px 7px; font-size: .81rem; font-weight: 700; margin-bottom: 8px; }
+.question-title { font-size: clamp(1.12rem, 2.15vw, 1.37rem); font-weight: 760; line-height: 1.65; overflow-wrap: anywhere; }
+.passage { margin-bottom: 15px; padding: 12px 15px; border-left: 3px solid #a78b58; border-radius: 0 7px 7px 0; background: #f5f0e5; }
+.passage > summary { cursor: pointer; font-weight: 680; color: #624b2a; }
+.passage > p { margin-top: 6px; line-height: 1.75; }
+.choices { display: grid; gap: 7px; }
+.choice { position: relative; display: flex; align-items: center; gap: 11px; min-height: 46px; padding: 7px 12px; background: #fffefa; border: 1px solid #dce4d9; border-radius: 8px; cursor: pointer; }
+.choice:hover, .choice:has(input:focus-visible) { border-color: #6c9788; }
+.choice:has(input:focus-visible) { outline: 2px solid #ad682f; outline-offset: 2px; }
+.choice:has(input:checked) { background: #e9f3ee; border-color: #498370; }
+.choice:has(input:disabled) { cursor: default; }
+.choice.is-right { background: var(--green-soft); border-color: #76a492; }
+.choice.is-wrong { background: var(--red-soft); border-color: #ca8c79; }
+.choice input { position: absolute; width: 1px; height: 1px; opacity: 0; margin: 0; }
+.choice-letter { display: grid; place-items: center; flex: 0 0 29px; height: 29px; border: 1px solid #d6e2d6; border-radius: 6px; color: #35574d; background: #f2f5ef; font-size: .78rem; font-weight: 750; }
+.choice:has(input:checked) .choice-letter, .choice.is-right .choice-letter { color: #fff; background: var(--green); border-color: var(--green); }
+.choice.is-wrong .choice-letter { color: #fff; background: var(--red); border-color: var(--red); }
+.choice-text { flex: 1; line-height: 1.5; overflow-wrap: anywhere; }
+.choice-status { color: var(--green-dark); font-weight: 730; font-size: .76rem; flex: none; }
+.is-wrong .choice-status { color: var(--red); }
+.feedback { background: #eff5ec; outline-offset: 3px; border-left: 3px solid #568c6a; border-radius: 0 8px 8px 0; margin-top: 14px; padding: 10px 12px; color: #183f31; }
+.feedback.wrong { background: var(--red-soft); border-color: #b96a4e; color: #622a1c; }
+.feedback p { margin-top: 3px; }
+.quiz-actions { margin-top: 16px; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.primary, .secondary { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 8px 14px; border-radius: 8px; font-size: .9rem; font-weight: 700; }
+.primary { background: var(--green-dark); border: 1px solid var(--green-dark); color: white; }
+.primary:hover { background: #266352; }
+.primary:disabled { background: #e2e9e0; color: #606d62; border-color: #e2e9e0; }
+.secondary { background: var(--white); border: 1px solid #d2dfd2; color: var(--green-dark); }
+.secondary:hover { background: #ecf3eb; }
+.secondary:disabled { border-color: #e4e9e2; color: #6a776e; background: #f8f8f3; }
+.question-index { margin-top: 15px; padding-top: 13px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 6px; }
+.question-index button { display: grid; place-items: center; min-width: 32px; height: 32px; border: 1px solid #dce5da; border-radius: 6px; background: #f4f6ef; color: var(--muted); font-size: .79rem; }
+.question-index button[aria-current] { border: 2px solid var(--green); color: var(--green-dark); font-weight: 750; }
+.question-index button[data-outcome="right"] { background: #e5efe5; color: var(--green-dark); }
+.question-index button[data-outcome="wrong"] { background: var(--red-soft); color: var(--red); }
+.question-index button:disabled { background: transparent; color: #69766d; }
+
+.result-intro, .review-intro, .empty-review { margin: 8px 0 16px; color: var(--muted); }
+.score-banner { display: flex; align-items: center; gap: 16px; background: #eaf2e8; padding: 13px 16px; border-radius: 9px; margin: 15px 0; }
+.score-banner strong { color: var(--green-dark); font: 700 2.25rem/1.1 var(--serif); }
+.result-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+.answer-list { list-style: none; padding: 0; }
+.answer-list li { border-top: 1px solid var(--line); padding: 11px 0; }
+.answer-list summary { cursor: pointer; font-weight: 670; }
+.answer-list p { margin: 7px 0 0; color: var(--muted); }
+.list-marker { color: var(--green); margin-right: 5px; font-size: .84rem; }
+.list-marker.wrong { color: var(--red); }
+footer { display: flex; justify-content: space-between; gap: 12px; padding: 22px 0 26px; color: var(--muted); font-size: .8rem; }
+.no-js { text-align: center; padding: 16px; }
+
+@media (max-width: 800px) {
+  .wrap { width: calc(100% - 38px); }
+  .layout { grid-template-columns: 212px minmax(0, 1fr); gap: 14px; }
+  .quiz-panel, .result-panel, .review-panel { padding: 19px; }
+  .hero { padding-inline: 28px; }
+  .topic-panel, .stats-panel { padding: 13px; }
+}
+
+@media (max-width: 620px) {
+  .wrap { width: calc(100% - 24px); }
+  .header-inner { min-height: 56px; }
+  .seal { width: 30px; height: 30px; }
+  .brand { gap: 7px; font-size: .88rem; }
+  .top-nav { gap: 3px; }
+  .top-nav button { padding-inline: 8px; font-size: .86rem; }
+  .hero { margin: 14px 0 12px; min-height: auto; padding: 18px 15px; gap: 8px; border-radius: 11px; }
+  .hero h1 { font-size: clamp(1.72rem, 7vw, 2.35rem); letter-spacing: .04em; }
+  .hero-copy > p:last-child { margin-top: 6px; font-size: .8rem; }
+  .eyebrow { font-size: .73rem; }
+  .bank-size { padding: 5px 7px; min-width: 64px; font-size: .66rem; }
+  .bank-size strong { font-size: 1.28rem; }
+  .hero-art { inset-inline-end: 60px; }
+  .layout, .sidebar { display: contents; }
+  .topic-panel { margin-bottom: 11px; padding: 10px; }
+  .topic-panel h2 { font-size: .83rem; margin-bottom: 6px; }
+  .topic-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+  .topic { justify-content: center; text-align: center; min-height: 36px; padding: 5px 2px; font-size: .8rem; }
+  .topic-count, .stats-panel { display: none; }
+  .filter-label { margin-top: 8px; }
+  .quiz-panel, .result-panel, .review-panel { padding: 14px; }
+  .question-title { font-size: 1.08rem; }
+  .choice { padding: 7px 8px; gap: 7px; }
+  .choice-text { font-size: .95rem; }
+  .choice-letter { flex-basis: 26px; height: 26px; }
+  .choice-status { font-size: .7rem; }
+  footer { font-size: .72rem; padding: 15px 0 20px; }
+}
+</style>
 </head>
-<body class="min-h-screen flex flex-col">
-
-  <!-- Top Header Banner -->
-  <header class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white shadow-md">
-    <div class="max-w-6xl mx-auto px-4 py-5 sm:px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div>
-        <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30 mb-2">
-          <span>理科溫習系統</span>
-          <span>&bull;</span>
-          <span>互動網頁版 (GitHub Pages Ready)</span>
-        </div>
-        <h1 class="text-xl sm:text-2xl font-bold tracking-tight">化學大測專項溫習與計算練習：化學反應速率與化學平衡</h1>
-        <p class="text-xs sm:text-sm text-slate-300 mt-1">涵蓋速率方程、活化能曲線、勒沙特列原理、K<sub>c</sub> / K<sub>p</sub> 與 ICE 三段式計算</p>
-      </div>
-
-      <!-- Exam Timer & Score Widget -->
-      <div class="no-print flex items-center gap-3 bg-slate-800/90 border border-slate-700 rounded-xl px-4 py-2.5 self-start md:self-auto">
-        <div>
-          <div class="text-[11px] uppercase tracking-wider text-slate-400">大測計時器</div>
-          <div id="timer-display" class="text-lg font-mono font-bold text-amber-400">60:00</div>
-        </div>
-        <div class="flex gap-1.5">
-          <button id="btn-timer-toggle" type="button" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition">開始</button>
-          <button id="btn-timer-reset" type="button" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 transition">重設</button>
-        </div>
-        <div class="border-l border-slate-700 pl-3 ml-1">
-          <div class="text-[11px] uppercase tracking-wider text-slate-400">目前得分</div>
-          <div id="header-score" class="text-lg font-bold text-emerald-400">0 / 100</div>
-        </div>
-      </div>
+<body>
+  <a href="#practice" class="skip-link">跳至練習內容</a>
+  <header class="site-header">
+    <div class="header-inner wrap">
+      <button type="button" class="brand" data-view="practice" aria-label="返回中文練習">
+        <span class="seal" aria-hidden="true">文</span><span>中文練習簿</span>
+      </button>
+      <nav class="top-nav" aria-label="網站導覽">
+        <button type="button" data-view="practice" id="nav-practice" aria-current="page">練習</button>
+        <button type="button" data-view="review" id="nav-review">錯題簿<span id="nav-count" class="counter" hidden></span></button>
+      </nav>
     </div>
   </header>
-
-  <!-- Navigation Tabs -->
-  <nav class="no-print sticky top-0 z-20 bg-slate-100/95 backdrop-blur border-b border-slate-200">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap gap-2">
-      <button type="button" data-tab="notes" class="nav-tab-btn tab-btn-active px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition">
-        1. 核心重點筆記與圖表
-      </button>
-      <button type="button" data-tab="pitfalls" class="nav-tab-btn tab-btn-inactive px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition">
-        2. 8 大易錯陷阱剖析
-      </button>
-      <button type="button" data-tab="calculator" class="nav-tab-btn tab-btn-inactive px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition">
-        3. ICE 三段式互動計算機
-      </button>
-      <button type="button" data-tab="exam" class="nav-tab-btn tab-btn-inactive px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition">
-        4. 大測實戰試卷 (100分)
-      </button>
-      <button type="button" data-tab="deploy" class="nav-tab-btn tab-btn-inactive px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition">
-        5. 匯出與 GitHub Pages 部署
-      </button>
+  <div class="wrap">
+    <section class="hero" aria-labelledby="site-title">
+      <div class="hero-art" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="hero-copy">
+        <p class="eyebrow"><span aria-hidden="true"></span>高三・第一段</p>
+        <h1 id="site-title">中文練習站</h1>
+        <p>選一個專題，答題後即時查看解析。</p>
+      </div>
+      <div class="bank-size"><strong id="bank-size">—</strong><span>題選擇題</span></div>
+    </section>
+    <div class="layout">
+      <aside class="sidebar" aria-label="練習專題與紀錄">
+        <section class="panel topic-panel" id="topic-panel" aria-labelledby="topic-title">
+          <h2 id="topic-title">練習專題</h2>
+          <div id="topic-list" class="topic-list"></div>
+          <div id="topic-filter"></div>
+        </section>
+        <section class="panel stats-panel" aria-labelledby="record-title">
+          <h2 id="record-title">作答紀錄</h2>
+          <div class="stats-grid" id="stats"></div>
+          <button type="button" class="text-button" data-view="review">查看錯題簿</button>
+        </section>
+      </aside>
+      <main id="practice" class="practice" tabindex="-1"></main>
     </div>
-  </nav>
-
-  <!-- Toast Notification -->
-  <div id="toast-box" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg border border-slate-700 text-sm font-medium"></div>
-
-  <!-- Main Content Container -->
-  <main class="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 flex-1">
-
-    <!-- ==================== TAB 1: 核心重點筆記與互動圖表 ==================== -->
-    <section id="tab-notes" class="tab-panel space-y-6">
-      <!-- 1.1 化學反應速率定義與計量關係 -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
-        <h2 class="text-lg sm:text-xl font-bold text-blue-950 flex items-center gap-2 mb-3">
-          <span class="w-7 h-7 rounded-lg bg-blue-900 text-white text-xs flex items-center justify-center font-bold">01</span>
-          化學反應速率的定義、化學計量數換算與速率方程
-        </h2>
-        <p class="text-sm text-slate-700 leading-relaxed mb-3">
-          化學反應速率用來衡量反應進行的快慢，通常以單位時間內反應物濃度的減少量或生成物濃度的增加量表示（取正值）：
-        </p>
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-sm sm:text-base font-semibold text-blue-950 math-font">
-          v = &Delta;c / &Delta;t = &Delta;n / (V &middot; &Delta;t) &emsp;（常用單位：mol&middot;L<sup>&minus;1</sup>&middot;s<sup>&minus;1</sup> 或 mol&middot;L<sup>&minus;1</sup>&middot;min<sup>&minus;1</sup>）
-        </div>
-        <p class="text-sm text-slate-700 leading-relaxed mb-3">
-          對於通式反應 <span class="math-font font-semibold">aA(g) + bB(g) &rightleftharpoons; cC(g) + dD(g)</span>，同一時間段內各物質表示的平均速率之比等於<strong>化學計量數（係數）之比</strong>：
-        </p>
-        <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-4 mb-4 text-sm sm:text-base font-semibold text-amber-900 math-font">
-          v(A) : v(B) : v(C) : v(D) = a : b : c : d &emsp;&rArr;&emsp; v<sub>歸一化</sub> = v(A)/a = v(B)/b = v(C)/c = v(D)/d
-        </div>
-        <ul class="space-y-2 text-sm text-slate-700 list-disc pl-5">
-          <li><strong>比較不同條件下的反應快慢</strong>：必須遵循「<strong>一統單位</strong>（全部換成 <span class="math-font">mol&middot;L<sup>&minus;1</sup>&middot;s<sup>&minus;1</sup></span>，注意 <span class="math-font">1 mol&middot;L<sup>&minus;1</sup>&middot;s<sup>&minus;1</sup> = 60 mol&middot;L<sup>&minus;1</sup>&middot;min<sup>&minus;1</sup></span>）、<strong>二除係數</strong>（計算 <span class="math-font">v(X)/係數</span>）」，歸一化數值愈大代表反應愈快。</li>
-          <li><strong>速率定律（Rate Law）與反應級數</strong>：在一定溫度下，瞬時速率 <span class="math-font">v = k[A]<sup>m</sup>[B]<sup>n</sup></span>。指數 <span class="math-font">m, n</span> 為<strong>反應級數</strong>，必須由實驗數據（初始速率法）測定，<strong>不一定等於化學計量數 <span class="math-font">a, b</span></strong>。</li>
-          <li><strong>速率常數 <span class="math-font">k</span> 的性質與單位</strong>：<span class="math-font">k</span> 只受<strong>溫度</strong>與<strong>催化劑</strong>影響，與反應物濃度無關。總級數為 <span class="math-font">N = m + n</span> 的反應，<span class="math-font">k</span> 的單位為 <span class="math-font">mol<sup>1&minus;N</sup>&middot;L<sup>N&minus;1</sup>&middot;s<sup>&minus;1</sup></span>（例如二級反應為 <span class="math-font">L&middot;mol<sup>&minus;1</sup>&middot;s<sup>&minus;1</sup></span>）。</li>
-        </ul>
-      </div>
-
-      <!-- 1.2 互動圖表模擬器：活化能曲線 & 化學平衡濃度曲線 -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <h2 class="text-lg sm:text-xl font-bold text-blue-950 flex items-center gap-2">
-            <span class="w-7 h-7 rounded-lg bg-blue-900 text-white text-xs flex items-center justify-center font-bold">02</span>
-            互動式活化能與化學平衡動態曲線模擬
-          </h2>
-          <div class="flex flex-wrap gap-2">
-            <button id="btn-toggle-catalyst" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-500 text-white transition">
-              切換：顯示/隱藏催化劑路徑
-            </button>
-            <button id="btn-toggle-eq-speed" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-teal-700 hover:bg-teal-600 text-white transition">
-              模擬在合成氨中加入催化劑 (縮短達平衡時間)
-            </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-            <h3 class="text-sm font-bold text-slate-800 mb-2">(a) 催化劑對活化能 E<sub>a</sub> 與反應焓變 &Delta;H 的影響</h3>
-            <div class="relative h-64">
-              <canvas id="chart-ea"></canvas>
-            </div>
-            <p id="ea-caption" class="text-xs text-slate-600 mt-2">
-              正催化劑提供低能障反應路徑，使活化能由 E<sub>a</sub> (52 kJ&middot;mol<sup>&minus;1</sup>) 降至 E<sub>a</sub>' (26 kJ&middot;mol<sup>&minus;1</sup>)，正逆速率同倍數加快，但反應熱 &Delta;H (&minus;25 kJ&middot;mol<sup>&minus;1</sup>) 完全不變。
-            </p>
-          </div>
-
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-            <h3 class="text-sm font-bold text-slate-800 mb-2">(b) 合成氨 N<sub>2</sub> + 3H<sub>2</sub> &rightleftharpoons; 2NH<sub>3</sub> 濃度隨時間變化曲線</h3>
-            <div class="relative h-64">
-              <canvas id="chart-eq"></canvas>
-            </div>
-            <p id="eq-caption" class="text-xs text-slate-600 mt-2">
-              目前狀態：無額外催化劑（於 t = 10 min 達致平衡）。三種物質的濃度變化量 |&Delta;c(N<sub>2</sub>)| : |&Delta;c(H<sub>2</sub>)| : |&Delta;c(NH<sub>3</sub>)| = 0.4 : 1.2 : 0.8 = 1 : 3 : 2。
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 1.3 碰撞理論與五大影響因素對比表 -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
-        <h2 class="text-lg sm:text-xl font-bold text-blue-950 flex items-center gap-2 mb-3">
-          <span class="w-7 h-7 rounded-lg bg-blue-900 text-white text-xs flex items-center justify-center font-bold">03</span>
-          碰撞理論與影響反應速率的五大因素對比表
-        </h2>
-        <p class="text-sm text-slate-700 mb-3">
-          有效碰撞必須同時滿足：(1) 粒子能量 &ge; 活化能 <span class="math-font">E<sub>a</sub></span>；(2) 碰撞取向正確。以下為大測高頻辨析表：
-        </p>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs sm:text-sm">
-            <thead>
-              <tr class="border-b-2 border-blue-900 text-blue-950 bg-slate-50">
-                <th class="py-2.5 px-3">改變條件</th>
-                <th class="py-2.5 px-3">活化能 E<sub>a</sub></th>
-                <th class="py-2.5 px-3">活化分子百分數</th>
-                <th class="py-2.5 px-3">單位體積活化分子數</th>
-                <th class="py-2.5 px-3">速率常數 k</th>
-                <th class="py-2.5 px-3">正、逆反應速率變化</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200">
-              <tr>
-                <td class="py-2.5 px-3 font-semibold">增大反應物濃度</td>
-                <td class="py-2.5 px-3">不變</td>
-                <td class="py-2.5 px-3">不變</td>
-                <td class="py-2.5 px-3 text-emerald-700 font-medium">增加（總分子變密）</td>
-                <td class="py-2.5 px-3">不變</td>
-                <td class="py-2.5 px-3">v<sub>正</sub> 瞬間增大</td>
-              </tr>
-              <tr>
-                <td class="py-2.5 px-3 font-semibold">加壓（縮小氣體體積）</td>
-                <td class="py-2.5 px-3">不變</td>
-                <td class="py-2.5 px-3">不變</td>
-                <td class="py-2.5 px-3 text-emerald-700 font-medium">增加（氣體濃度增大）</td>
-                <td class="py-2.5 px-3">不變</td>
-                <td class="py-2.5 px-3">v<sub>正</sub>、v<sub>逆</sub> 均增大</td>
-              </tr>
-              <tr>
-                <td class="py-2.5 px-3 font-semibold">升高溫度</td>
-                <td class="py-2.5 px-3">不變</td>
-                <td class="py-2.5 px-3 text-amber-700 font-bold">顯著增加</td>
-                <td class="py-2.5 px-3 text-amber-700 font-bold">顯著增加</td>
-                <td class="py-2.5 px-3 text-amber-700 font-bold">增大</td>
-                <td class="py-2.5 px-3">v<sub>正</sub>、v<sub>逆</sub> 均增大</td>
-              </tr>
-              <tr>
-                <td class="py-2.5 px-3 font-semibold">加入正催化劑</td>
-                <td class="py-2.5 px-3 text-amber-700 font-bold">降低（低能障路徑）</td>
-                <td class="py-2.5 px-3 text-amber-700 font-bold">顯著增加</td>
-                <td class="py-2.5 px-3 text-amber-700 font-bold">顯著增加</td>
-                <td class="py-2.5 px-3 text-amber-700 font-bold">增大</td>
-                <td class="py-2.5 px-3">v<sub>正</sub>、v<sub>逆</sub> 同倍數增大</td>
-              </tr>
-              <tr>
-                <td class="py-2.5 px-3 font-semibold">增大固體表面積</td>
-                <td class="py-2.5 px-3">不變</td>
-                <td class="py-2.5 px-3">不變</td>
-                <td class="py-2.5 px-3 text-emerald-700 font-medium">接觸面積增大</td>
-                <td class="py-2.5 px-3">不變</td>
-                <td class="py-2.5 px-3">表面反應速率加快</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- 1.4 化學平衡常數 Kc、Kp、反應商 Qc 與勒沙特列原理 -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
-        <h2 class="text-lg sm:text-xl font-bold text-blue-950 flex items-center gap-2 mb-3">
-          <span class="w-7 h-7 rounded-lg bg-blue-900 text-white text-xs flex items-center justify-center font-bold">04</span>
-          化學平衡常數 K<sub>c</sub> / K<sub>p</sub>、反應商 Q<sub>c</sub> 與勒沙特列原理
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-            <div class="text-xs font-bold uppercase text-blue-900 mb-1">濃度平衡常數 K<sub>c</sub> 與壓強平衡常數 K<sub>p</sub></div>
-            <p class="text-sm font-semibold text-slate-900 math-font mb-2">
-              K<sub>c</sub> = ([C]<sup>c</sup> &middot; [D]<sup>d</sup>) / ([A]<sup>a</sup> &middot; [B]<sup>b</sup>)<br>
-              K<sub>p</sub> = (p(C)<sup>c</sup> &middot; p(D)<sup>d</sup>) / (p(A)<sup>a</sup> &middot; p(B)<sup>b</sup>)
-            </p>
-            <p class="text-xs text-slate-600">
-              &bull; <strong>純固體 (s) 與純液體 (l) 不寫入表達式</strong>（活性視為 1）。<br>
-              &bull; <strong>K<sub>c</sub> 與 K<sub>p</sub> 只受溫度影響</strong>，與起始濃度、壓強、催化劑無關。
-            </p>
-          </div>
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-            <div class="text-xs font-bold uppercase text-amber-800 mb-1">反應商 Q<sub>c</sub> 判斷平衡移動方向</div>
-            <ul class="text-xs sm:text-sm text-slate-700 space-y-1.5 mt-2">
-              <li>&bull; <strong>Q<sub>c</sub> &lt; K<sub>c</sub></strong>：v<sub>正</sub> &gt; v<sub>逆</sub>，反應向<strong>正反應方向（右）</strong>進行。</li>
-              <li>&bull; <strong>Q<sub>c</sub> = K<sub>c</sub></strong>：v<sub>正</sub> = v<sub>逆</sub> &gt; 0，體系<strong>處於化學平衡狀態</strong>。</li>
-              <li>&bull; <strong>Q<sub>c</sub> &gt; K<sub>c</sub></strong>：v<sub>正</sub> &lt; v<sub>逆</sub>，反應向<strong>逆反應方向（左）</strong>進行。</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs sm:text-sm">
-            <thead>
-              <tr class="border-b-2 border-blue-900 text-blue-950 bg-slate-50">
-                <th class="py-2 px-3">外界條件改變</th>
-                <th class="py-2 px-3">速率瞬間與過程變化</th>
-                <th class="py-2 px-3">平衡移動方向</th>
-                <th class="py-2 px-3">平衡常數 K<sub>c</sub></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200">
-              <tr>
-                <td class="py-2 px-3 font-semibold">增大反應物濃度</td>
-                <td class="py-2 px-3">v<sub>正</sub> 突增，v<sub>逆</sub> 漸增至新平衡</td>
-                <td class="py-2 px-3 text-blue-900 font-medium">向正反應方向移動</td>
-                <td class="py-2 px-3">不變</td>
-              </tr>
-              <tr>
-                <td class="py-2 px-3 font-semibold">增大壓強（縮小體積）</td>
-                <td class="py-2 px-3">氣體濃度皆增，係數和大的一側增幅更大</td>
-                <td class="py-2 px-3 text-blue-900 font-medium">向氣體分子數減小（&Delta;n<sub>氣</sub> &lt; 0）方向移動</td>
-                <td class="py-2 px-3">不變</td>
-              </tr>
-              <tr>
-                <td class="py-2 px-3 font-semibold">升高溫度</td>
-                <td class="py-2 px-3">v<sub>正</sub>、v<sub>逆</sub> 均增大，吸熱方向增幅更大</td>
-                <td class="py-2 px-3 text-amber-800 font-medium">向吸熱反應方向（&Delta;H &gt; 0）移動</td>
-                <td class="py-2 px-3 font-semibold">吸熱增大；放熱減小</td>
-              </tr>
-              <tr>
-                <td class="py-2 px-3 font-semibold">加入正催化劑</td>
-                <td class="py-2 px-3">v<sub>正</sub>、v<sub>逆</sub> 同等倍數增大</td>
-                <td class="py-2 px-3 text-slate-600">不移動（僅縮短達平衡時間）</td>
-                <td class="py-2 px-3">不變</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==================== TAB 2: 8 大易錯陷阱剖析 ==================== -->
-    <section id="tab-pitfalls" class="tab-panel hidden space-y-5">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <div>
-            <h2 class="text-lg sm:text-xl font-bold text-blue-950">大測最常失分的 8 大易錯陷阱剖析</h2>
-            <p class="text-xs sm:text-sm text-slate-600 mt-0.5">點擊下方分類篩選，或點擊卡片切換展開／收合避坑詳解</p>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <button type="button" data-pitfall-filter="all" class="pitfall-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-900 text-white">全部 (8)</button>
-            <button type="button" data-pitfall-filter="rate" class="pitfall-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">速率與單位陷阱</button>
-            <button type="button" data-pitfall-filter="eq" class="pitfall-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">平衡判據與移動陷阱</button>
-            <button type="button" data-pitfall-filter="calc" class="pitfall-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Kc 與三段式計算陷阱</button>
-          </div>
-        </div>
-
-        <div id="pitfalls-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-      </div>
-    </section>
-
-    <!-- ==================== TAB 3: ICE 三段式互動計算機 ==================== -->
-    <section id="tab-calculator" class="tab-panel hidden space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
-        <h2 class="text-lg sm:text-xl font-bold text-blue-950 mb-2">ICE 三段式（起始、變化、平衡）與 K<sub>c</sub> 互動驗算機</h2>
-        <p class="text-xs sm:text-sm text-slate-600 mb-4">
-          選擇大測經典反應模型或自訂參數，即時計算三段式濃度、平均反應速率 <span class="math-font">v</span>、平衡轉化率 <span class="math-font">&alpha;</span>、平衡常數 <span class="math-font">K<sub>c</sub></span> 及恆溫恆容壓強比：
-        </p>
-
-        <!-- Preset Buttons -->
-        <div class="flex flex-wrap gap-2 mb-5">
-          <button type="button" data-preset="nh3" class="calc-preset-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-900 text-white">
-            模型 A：N₂(g) + 3H₂(g) ⇌ 2NH₃(g)（試卷第 8 題數據）
-          </button>
-          <button type="button" data-preset="co" class="calc-preset-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">
-            模型 B：C(s) + CO₂(g) ⇌ 2CO(g)（試卷第 9 題含固體反應）
-          </button>
-          <button type="button" data-preset="hi" class="calc-preset-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">
-            模型 C：H₂(g) + I₂(g) ⇌ 2HI(g)（Δn氣 = 0 模型）
-          </button>
-        </div>
-
-        <!-- Calculator Inputs -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-5">
-          <div>
-            <label for="calc-vol" class="block text-xs font-semibold text-slate-700 mb-1">容器體積 V (L)</label>
-            <input id="calc-vol" type="number" step="0.1" min="0.1" value="2.0" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-mono">
-          </div>
-          <div>
-            <label for="calc-time" class="block text-xs font-semibold text-slate-700 mb-1">達平衡時間 &Delta;t (min)</label>
-            <input id="calc-time" type="number" step="1" min="1" value="10" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-mono">
-          </div>
-          <div>
-            <label id="lbl-na0" for="calc-na0" class="block text-xs font-semibold text-slate-700 mb-1">起始 n(N₂) (mol)</label>
-            <input id="calc-na0" type="number" step="0.1" min="0.1" value="2.0" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-mono">
-          </div>
-          <div>
-            <label id="lbl-nb0" for="calc-nb0" class="block text-xs font-semibold text-slate-700 mb-1">起始 n(H₂) (mol)</label>
-            <input id="calc-nb0" type="number" step="0.1" min="0" value="6.0" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-mono">
-          </div>
-          <div>
-            <label id="lbl-dna" for="calc-dna" class="block text-xs font-semibold text-amber-800 mb-1">轉化量 &Delta;n(N₂) (mol)</label>
-            <input id="calc-dna" type="number" step="0.1" min="0.05" value="0.8" class="w-full px-3 py-1.5 rounded-lg border border-amber-400 bg-amber-50/40 text-sm font-mono">
-          </div>
-        </div>
-
-        <!-- Generated ICE Table & Metrics -->
-        <div id="calc-output-area" class="space-y-4"></div>
-      </div>
-    </section>
-
-    <!-- ==================== TAB 4: 大測實戰試卷 (100分) ==================== -->
-    <section id="tab-exam" class="tab-panel hidden space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4 mb-5">
-          <div>
-            <h2 class="text-lg sm:text-xl font-bold text-blue-950">第三部分：化學大測實戰練習卷（滿分 100 分）</h2>
-            <p class="text-xs sm:text-sm text-slate-600 mt-0.5">甲部選擇題 36 分 + 乙部綜合計算題 64 分｜完成後點擊「批改整份試卷」或逐題查看三段式詳解</p>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <button id="btn-grade-all" type="button" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-900 hover:bg-blue-800 text-white shadow-sm transition">
-              批改整份試卷並計分
-            </button>
-            <button id="btn-toggle-all-solutions" type="button" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-amber-100 hover:bg-amber-200 text-amber-900 transition">
-              展開/收合全部詳解
-            </button>
-            <button id="btn-reset-exam" type="button" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
-              清空重做
-            </button>
-          </div>
-        </div>
-
-        <!-- Score Summary Banner (Hidden until graded) -->
-        <div id="exam-score-banner" class="hidden mb-6 p-4 rounded-xl bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <div class="text-xs text-slate-400 uppercase font-semibold">大測批改結果</div>
-            <div id="exam-score-detail" class="text-base sm:text-lg font-bold mt-0.5"></div>
-          </div>
-          <div id="exam-score-badge" class="text-2xl font-extrabold text-amber-400"></div>
-        </div>
-
-        <!-- Part A: Multiple Choice Questions -->
-        <h3 class="text-base font-bold text-amber-800 mb-3">甲部：易錯觀念與速算選擇題（共 6 題，每題 6 分，共 36 分）</h3>
-        <div id="mcq-container" class="space-y-4 mb-8"></div>
-
-        <!-- Part B: Structured Calculation Questions -->
-        <h3 class="text-base font-bold text-amber-800 mb-3">乙部：結構化綜合計算題（共 4 大題，共 64 分，填入計算結果即可自動批改）</h3>
-        <div id="calc-q-container" class="space-y-6"></div>
-      </div>
-    </section>
-
-    <!-- ==================== TAB 5: 匯出與 GitHub Pages 部署指南 ==================== -->
-    <section id="tab-deploy" class="tab-panel hidden space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
-        <h2 class="text-lg sm:text-xl font-bold text-blue-950 mb-2">一鍵匯出 HTML 與 GitHub Pages 免費網站部署指南</h2>
-        <p class="text-sm text-slate-700 leading-relaxed mb-4">
-          本網頁已封裝為<strong>單一自包含檔案（<code>index.html</code>）</strong>，無需任何後端伺服器或額外資料夾，直接上傳至 GitHub 即可透過 GitHub Pages 生成永久免費的溫習網址（方便在手機、iPad 或電腦隨時刷題）。
-        </p>
-
-        <div class="flex flex-wrap gap-3 mb-6">
-          <button id="btn-copy-html" type="button" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-blue-900 hover:bg-blue-800 text-white shadow-sm transition">
-            複製完整 index.html 原始碼
-          </button>
-          <button id="btn-print-page" type="button" class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 transition">
-            列印 / 另存為 PDF
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-            <div class="text-xs font-bold uppercase text-blue-900 mb-1">步驟 1：建立 GitHub 儲存庫</div>
-            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
-              登入 GitHub，點擊右上角 <strong>+ &rarr; New repository</strong>，輸入儲存庫名稱（例如 <code>chem-quiz</code>），選擇 <strong>Public（公開）</strong>，並勾選 <strong>Add a README file</strong> 後點擊 Create repository。
-            </p>
-          </div>
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-            <div class="text-xs font-bold uppercase text-blue-900 mb-1">步驟 2：上傳或貼上 index.html</div>
-            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
-              在儲存庫頁面點擊 <strong>Add file &rarr; Upload files</strong>（直接將本檔案 <code>index.html</code> 拖曳上傳），或點擊 <strong>Create new file</strong>，命名為 <code>index.html</code> 並貼上上方複製的原始碼，點擊 <strong>Commit changes</strong>。
-            </p>
-          </div>
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-            <div class="text-xs font-bold uppercase text-blue-900 mb-1">步驟 3：啟用 GitHub Pages</div>
-            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
-              點擊儲存庫頂部的 <strong>Settings &rarr; 左側 Pages</strong>，在 <strong>Build and deployment &rarr; Branch</strong> 下拉選單選擇 <code>main</code>（資料夾選 <code>/ (root)</code>），點擊 <strong>Save</strong>。約 1 分鐘後即可透過 <code>https://&lt;你的帳號&gt;.github.io/chem-quiz/</code> 訪問！
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="no-print bg-white border-t border-slate-200 py-4 mt-8">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
-      <span>化學大測專項溫習系統｜化學反應速率與化學平衡</span>
-      <span>支援桌面、平板與手機自適應排版 &bull; GitHub Pages 單檔部署</span>
-    </div>
-  </footer>
-
+    <footer>高三中文・第一段<span>作答紀錄儲存在此瀏覽器</span></footer>
+  </div>
+  <noscript><p class="no-js">請開啟 JavaScript 後使用選擇題練習。</p></noscript>
   <script>
-    // =========================================================================
-    // 1. Toast Notification Helper
-    // =========================================================================
-    let toastTimer = null;
-    function showToast(msg) {
-      const box = document.getElementById('toast-box');
-      if (!box) return;
-      box.textContent = msg;
-      box.classList.remove('hidden');
-      if (toastTimer) clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        box.classList.add('hidden');
-      }, 3200);
-    }
+const classical = [
+  ['xiang-shu', '《相鼠》用鼠的皮、齒、體與人的儀、止、禮作對照。這種寫法的主要作用是甚麼？', ['借鼠反襯人無禮，語氣尖銳', '借鼠自比，表達不願入仕', '描寫鼠的習性，勸人愛護動物', '用鼠比喻隱士，表達對山林的嚮往'], '三章都先說鼠尚有皮、齒、體，再責人失去做人應有的禮儀。'],
+  ['xiang-shu', '「人而無止，不死何俟？」中的「俟」應怎樣解釋？', ['等待', '侍奉', '畏懼', '預備'], '「俟」是等待。「何俟」即「俟何」，是疑問代詞作賓語而前置。'],
+  ['xiang-shu', '《相鼠》三章末句以反問斥責無禮的人。以下哪項最能概括全詩的語調？', ['憤激譏刺', '溫婉勸勉', '低迴悼念', '歡快慶賀'], '強烈的反問一再出現，把對無禮者的厭惡和責斥逐章推出。'],
+  ['wu-yi', '《無衣》三章末句由「同仇」、「偕作」寫到「偕行」。這樣安排有甚麼效果？', ['從同仇敵愾寫到一同起身、出征', '從一同出征寫到戰後分道揚鑣', '從軍中缺衣寫到歸家重聚', '從個人請戰寫到眾人反對'], '三個章末動作逐步推進，表現戰士由共同情緒走到集體行動。'],
+  ['wu-yi', '「王于興師」中的「興師」是甚麼意思？', ['出動軍隊', '興辦學校', '召見老師', '鼓舞使臣'], '「師」在此指軍隊，「興師」是調動軍隊、出兵。'],
+  ['wu-yi', '《無衣》反覆以「豈曰無衣」開篇，從同袍、同澤到同裳。這種章法稱為甚麼？', ['重章疊句', '首尾倒敘', '欲揚先抑', '正話反說'], '每章使用近似句式，替換少量詞語，形成反覆吟唱、層層推進的效果。'],
+  ['jian-jia', '《蒹葭》開篇以蘆葦、白露點明環境，再轉入對「伊人」的思慕。主要運用了甚麼手法？', ['起興', '用典', '反語', '借代'], '先描寫蒹葭和白露，再引出追尋，屬於「先言他物」的起興。'],
+  ['jian-jia', '「溯洄從之」與「溯游從之」中的「從」如何解釋？', ['追尋', '聽命', '放任', '自從'], '兩句都寫沿水追尋「伊人」，「之」指所追尋的人。'],
+  ['jian-jia', '《蒹葭》反覆寫伊人似在水中央、水中坻、水中沚。這些描寫主要傳達甚麼感受？', ['似近實遠，可望難即', '成功渡河，終於團聚', '水勢衰退，行路容易', '人物移居，地址分明'], '伊人看似就在眼前，但追尋者始終未能抵達，反覆吟唱加深迷離與惆悵。'],
+  ['shi-zuo', '《侍坐章》中，哪一組人物與志向相符？', ['冉有：治理小國，使百姓富足', '子路：願擔任宗廟會同中的小相', '公西華：治理受大國夾逼的千乘之國', '曾皙：使小國百姓衣食無憂'], '子路談治千乘之國，冉有談足民，公西華願學做小相，曾皙描述暮春出遊。'],
+  ['shi-zuo', '孔子聽完子路的志向後微笑。文末交代的原因是甚麼？', ['子路談以禮治國，當下言辭卻不謙讓', '子路表示想棄官回鄉', '子路沒有提到治國', '子路的志向與曾皙完全相同'], '孔子重視以禮治國，指出子路「其言不讓」。他評論的是表達欠謙讓。'],
+  ['shi-zuo', '「不吾知也」換成現代語序，最接近下列哪項？', ['不了解我', '我不知道', '我不說出來', '我不被允許'], '「吾」是「知」的賓語。否定句中，代詞賓語放在動詞前。'],
+  ['shi-zuo', '「吾與點也」中的「與」是甚麼意思？', ['贊同', '交付', '參與', '比較'], '「點」是曾皙。孔子表示認同曾點所敘的暮春生活與志趣。'],
+  ['shi-zuo', '《侍坐章》中「如或知爾」的「或」指甚麼？', ['有人', '或許', '有時', '或者'], '「如」表假設，「或」在這裏是不定代詞，意思是「有人」。'],
+  ['xue-ji', '《學記》以佳餚須親嘗比喻甚麼道理？', ['有精妙道理，也要親自學習才明白', '學習難度高，應等待老師解說', '知識在書本外，無須研習經典', '學習必須先做完所有練習才可請教'], '佳餚不吃就不知道滋味，至道不學就不明白其好處，以日常體驗說明親身學習的重要。'],
+  ['xue-ji', '《學記》提出「道而弗牽，強而弗抑，開而弗達」。以下哪個做法最符合這套原則？', ['提供線索和鼓勵，讓學生自己想出解法', '要求全班逐字背下老師的答案', '看到學生出錯就停止提問', '先代學生解完，再叫他們抄錄'], '引導而不拖着走，勉勵而不壓迫，啟發而留思考空間。'],
+  ['xue-ji', '老師趁學生具備準備、最適合學習時才教相應內容，符合《學記》所說的哪項原則？', ['當其可之謂時', '相觀而善之謂摩', '禁於未發之謂豫', '不陵節而施之謂孫'], '「時」指把握適當的時機。「豫」是預防，「孫」是循序，「摩」是同學相互觀摩。'],
+  ['xue-ji', '學生的錯誤來源不同。哪句最直接說明老師要按學生的情況輔導？', ['知其心，然後能救其失也', '獨學而無友，則孤陋而寡聞', '建國君民，教學為先', '善問者如攻堅木'], '先了解學生的心理、學習傾向，才知道怎樣補救其偏失。'],
+  ['xue-ji', '「教也者，長善而救其失者也」屬於哪種常見文言句式？', ['判斷句', '被動句', '賓語前置句', '定語後置句'], '句子用「……也者，……者也」判斷並解釋教育的作用。'],
+  ['ji-shi', '孔子援引周任之言，主要是要說明冉有、季路應怎樣處理季氏的主張？', ['既任其職，便應盡責勸阻', '既是臣子，便須無條件從命', '應與顓臾商定各自的祭祀地位', '見有利益便應先發制人'], '引用周任是為了說明任職者有擔當，不能一面居位、一面把責任推給上司。'],
+  ['ji-shi', '「既來之，則安之」中的兩個動詞應怎樣理解？', ['使歸附的人來，並使他們安定', '自己到了別處，便隨遇而安', '既然已決定征討，就讓士卒休息', '有人投靠後，便遠離本國'], '「來」和「安」在此用作使動。上文談以文德使遠方不服者歸附。'],
+  ['ji-shi', '孔子說真正的憂患在「蕭牆之內」。這個說法把注意力轉向哪裏？', ['季氏內部的矛盾與危機', '顓臾的城牆和防禦', '魯國境外其他諸侯國', '東蒙山的祭祀活動'], '蕭牆本是門內屏牆，此處指內部。孔子警告季氏憂患的根源在內。'],
+  ['shun-fa', '《舜發於畎畝之中章》開頭並列舜、傅說等六人的經歷，有甚麼作用？', ['用例證引出人才經歷困厄而受重用的論點', '比較六位人物的家族出身孰高孰低', '說明有政績的人必定生於富室', '證明官職只應在親族間世襲'], '六人從不同的困厄或平凡處境中被選用，為下文談磨礪和擔當大任作鋪墊。'],
+  ['shun-fa', '「困於心，衡於慮，而後作」中的「衡」應怎樣理解？', ['通「橫」，指思慮受阻', '秤量，指計算得失', '均衡，指心情平靜', '橫行，指恣意妄為'], '「衡」通「橫」，形容思慮堵塞、不順；「作」在此是奮起、有所作為。'],
+  ['shun-fa', '「入則無法家拂士，出則無敵國外患者，國恆亡」如何把立論推進一步？', ['從個人的磨礪擴展至國家的存亡', '從國家的戰事轉寫舜的家世', '從國家的地理環境推斷百姓多寡', '從法令的利弊推定文武官職'], '孟子由個人遇困而振作，推至國家缺乏內部輔弼與外部警惕而易亡。'],
+  ['shun-fa', '「勞其筋骨」的「勞」與哪一個詞使用相同的文言詞類活用？', ['苦其心志的「苦」', '人恆過的「過」', '徵於色的「色」', '舉於市的「市」'], '「勞」和「苦」都是使動，使筋骨勞累、使心志受苦。「過」在文中作動詞「犯錯」。'],
+  ['feng-xuan', '馮諼替孟嘗君「市義」的具體做法是甚麼？', ['借孟嘗君名義免除薛地百姓債務，焚去債券', '到梁國買下大量土地，轉贈孟嘗君', '用收回的債款招攬三批新門客', '在齊國購置珍寶和車馬'], '「市義」字面是購買義，實際上是以免債換取百姓的感激與擁護。'],
+  ['feng-xuan', '「孟嘗君客我」之「客」是甚麼意思？', ['把我當作賓客看待', '請我代為招待賓客', '我現正在外地客居', '驅逐我這位門客'], '「客」是名詞的意動用法，意思是「以我為客」。'],
+  ['feng-xuan', '馮諼所謂「狡兔三窟」，除為孟嘗君在薛地贏得民心外，還包括哪兩步？', ['遊說梁國重聘以促齊王回心，並在薛地立宗廟', '回鄉奉養母親，並依禮接受梁王相位', '入楚求兵，並與顓臾結盟', '焚券後追收債款，並另闢一處封地'], '梁國高調聘請促使齊國請孟嘗君歸任；再立宗廟於薛，鞏固其封地。'],
+  ['feng-xuan', '「今君有區區之薛」中的「區區」，在句中最接近哪個意思？', ['小小的', '這個在下', '單獨一人', '忠心不二'], '此處「區區」形容薛地不大，接着質疑不愛護百姓、反從百姓身上求利的做法。'],
+  ['shi-jing', '《詩經》「六義」中，哪一組都屬於表現手法？', ['賦、比、興', '風、雅、頌', '風、比、頌', '雅、賦、興'], '賦是鋪陳直敘，比是譬喻，興是先言他物引起所詠之事。風、雅、頌是分類。'],
+  ['shi-jing', '哪一組作品與所屬的《詩經》篇類全部配對正確？', ['《相鼠》—鄘風；《無衣》—秦風；《蒹葭》—秦風', '《相鼠》—周頌；《無衣》—秦風；《蒹葭》—小雅', '《相鼠》—秦風；《無衣》—鄘風；《蒹葭》—鄘風', '《相鼠》—鄘風；《無衣》—大雅；《蒹葭》—商頌'], '三篇皆屬國風。《相鼠》屬鄘風，課內這首《無衣》與《蒹葭》屬秦風。'],
+  ['chu-ci', '下列關於《楚辭》的敘述，哪一項正確？', ['西漢劉向輯錄，收屈原、宋玉等作家的作品', '南朝蕭統輯錄，專收五言古詩', '由宋玉一人創作，全書皆為國風', '孔子撰寫，主要記錄弟子的問答'], '《楚辭》有楚地特色。「楚辭」也可指文體，作為總集時即劉向輯錄的《楚辭》。'],
+  ['chu-ci', '下列哪一項最能概括《離騷》的作者與文學特色？', ['屈原，富有浪漫想像和象徵', '宋玉，記錄國君與諸侯的編年史', '曹植，以五言樂府寫木蘭從軍', '司馬遷，以紀傳體寫自己的遭遇'], '《離騷》是屈原的代表作，常借香草、美人等意象寄寓理想與身世。'],
+  ['lun-yu', '《論語》的體裁及內容，哪項配對最恰當？', ['語錄體，記錄孔子及其弟子言行', '國別體史書，專記戰國各國謀士', '編年體史書，按年月記載魯史', '紀傳體史書，以人物傳記為中心'], '《論語》由孔子弟子及再傳弟子編成，主要是言行和問答，常見簡短語錄，也有敘事片段。'],
+  ['meng-zi', '下列哪項正確指出《孟子》的思想及文章特色？', ['主張仁政，常借譬喻與問答展開論辯', '主張藉刑法治國，主要是法令彙編', '推崇征伐，以年次編錄諸侯戰爭', '以詩寫祭禮，全書採用四言韻文'], '孟子是戰國儒家，主張仁政、民本，並提出性善說。《孟子》常以有層次的問答和譬喻展開說理。'],
+  ['li-ji', '關於《禮記》與《學記》的關係，哪項正確？', ['《學記》是《禮記》中的一篇，專論教育', '《禮記》是《學記》中的一篇，專論教育', '《學記》是《孟子》中的一篇，專論善性', '《禮記》由屈原編成，專論楚國風俗'], '《禮記》傳統上與西漢戴聖輯錄相關；《學記》是其中論及教育目的與施教方法的一篇。'],
+];
 
-    // =========================================================================
-    // 2. Navigation Tabs
-    // =========================================================================
-    const tabButtons = document.querySelectorAll('.nav-tab-btn');
-    const tabPanels = {
-      notes: document.getElementById('tab-notes'),
-      pitfalls: document.getElementById('tab-pitfalls'),
-      calculator: document.getElementById('tab-calculator'),
-      exam: document.getElementById('tab-exam'),
-      deploy: document.getElementById('tab-deploy')
-    };
+const literature = [
+  ['神話與先秦', '以下哪一項最符合早期中國神話的流傳特色？', ['集體創作，可經口述、儀式等途徑流傳', '由唐代文人書寫成有固定平仄的七律', '以章回小說的形式完整出版後才流傳', '都是史官逐年記下的真實事件'], '「后羿射日」「嫦娥奔月」皆是神話例子，集體創作與口述流傳是其特色。（讀本第 55 項）'],
+  ['神話與先秦', '哪組作品同屬先秦歷史散文？', ['《左傳》與《戰國策》', '《論語》與《孟子》', '《墨子》與《左傳》', '《莊子》與《戰國策》'], '《左傳》是編年體史書，《戰國策》是國別體史書。其餘幾部屬諸子散文。（第 56–57、60–61 項）'],
+  ['神話與先秦', '通常所說的《詩經》正文收錄多少首有辭的詩？', ['305 首', '300 首', '318 首', '360 首'], '《詩經》收詩 305 首，亦稱「詩三百」。「三百」在這一稱呼中是約數。（第 58 項）'],
+  ['神話與先秦', '哪一組全屬「四書」？', ['《論語》《孟子》《大學》《中庸》', '《詩經》《尚書》《周易》《春秋》', '《論語》《左傳》《大學》《中庸》', '《孟子》《禮記》《論語》《周易》'], '五經通常列為《詩經》《尚書》《禮記》《周易》《春秋》，《大學》《中庸》原是《禮記》篇章。（第 62 項）'],
+  ['神話與先秦', '哪一部經典收集上古至周代的政令、誥命等歷史文獻？', ['《尚書》', '《楚辭》', '《論語》', '《詩經》'], '《尚書》是中國現存很早的歷史文獻總集，所收文體包括典、謨、誓、誥等。（第 63 項）'],
+  ['兩漢魏晉南北朝', '以下「作者—作品—性質」的配對，哪一項正確？', ['揚雄—《方言》—記錄各地方言', '左丘明—《史記》—紀傳體通史', '司馬遷—《尚書》—歷史文獻總集', '劉向—《古詩十九首》—五言詩選錄'], '揚雄著《方言》。司馬遷撰《史記》，它是中國第一部紀傳體史書。（第 64–65 項）'],
+  ['兩漢魏晉南北朝', '哪項正確區分「漢賦」與「樂府」？', ['賦是介於詩與散文之間的文體；樂府原指音樂機構', '賦是一種朝廷機構；樂府只指四言詩', '漢賦與樂府同指一種宋代詞牌', '漢賦以記錄方言為主；樂府用於編寫傳記'], '漢賦多鋪陳描寫。樂府有採集歌辭等職能，所採集、整理的詩歌也稱樂府詩。（第 66–67 項）'],
+  ['兩漢魏晉南北朝', '關於《古詩十九首》，下列哪一項正確？', ['多為漢代無名氏作品，由南朝蕭統選錄', '由曹操獨力完成，主要寫建安戰事', '由屈原撰寫，全部是楚辭體作品', '由蘇軾編訂，收北宋十九首詞作'], '《古詩十九首》收入蕭統所編《文選》，是五言詩成熟的重要標誌。（第 68 項）'],
+  ['兩漢魏晉南北朝', '下列哪一作是漢樂府長篇敘事詩，主角是焦仲卿與劉蘭芝？', ['《孔雀東南飛》', '《西洲曲》', '《木蘭詩》', '《迢迢牽牛星》'], '《孔雀東南飛》敘寫焦、劉的婚姻悲劇，是樂府長篇敘事詩代表。（第 69 項）'],
+  ['兩漢魏晉南北朝', '下列哪項最符合「建安風骨」的特色？', ['慷慨悲涼，剛健明朗', '柔靡綺豔，專寫宮廷享樂', '平淡疏朗，專寫田園隱逸', '婉轉低吟，嚴守宋代詞牌'], '「建安風骨」常用來概括漢末建安時期文學的剛健風格。曹操、曹丕、曹植是代表人物。（第 70–71 項）'],
+  ['兩漢魏晉南北朝', '以下哪一組人物與文學群體配對正確？', ['孔融、王粲、陳琳—建安七子', '曹操、曹丕、曹植—初唐四傑', '盧照鄰、駱賓王、王勃—建安七子', '蘇洵、蘇軾、蘇轍—元曲四大家'], '建安七子為孔融、陳琳、王粲、徐幹、阮瑀、應瑒、劉楨；三曹與他們同為建安文學人物。（第 71–72 項）'],
+  ['兩漢魏晉南北朝', '哪一項作品與類型配對正確？', ['《世說新語》—記人物言行、軼事的筆記小說', '《搜神記》—唐代近體詩總集', '《木蘭詩》—南朝文學批評著作', '《文心雕龍》—記仙鬼異事的志怪小說'], '《世說新語》著重人物言談與軼事。干寶《搜神記》則是志怪小說的代表。（第 73、80 項）'],
+  ['兩漢魏晉南北朝', '「南朝抒情長詩」與「北朝代父從軍的民歌」依次對應哪兩篇？', ['《西洲曲》《木蘭詩》', '《木蘭詩》《西洲曲》', '《孔雀東南飛》《西洲曲》', '《木蘭詩》《孔雀東南飛》'], '《西洲曲》是南朝抒情長詩；《木蘭詩》是北朝民歌代表，主要寫木蘭代父從軍。（第 74–75 項）'],
+  ['兩漢魏晉南北朝', '下列哪一組人物與詩歌類型配對正確？', ['謝靈運—山水詩；陶淵明—田園詩', '謝靈運—田園詩；陶淵明—邊塞詩', '謝靈運—邊塞詩；陶淵明—宮廷詩', '謝靈運—山水詩；陶淵明—豪放詞'], '謝靈運以山水詩著稱；東晉陶淵明有《歸園田居》等田園作品。（第 76、79 項）'],
+  ['兩漢魏晉南北朝', '兩部南朝文學批評名著《文心雕龍》和《詩品》的作者依次是誰？', ['劉勰、鍾嶸', '鍾嶸、劉勰', '蕭統、劉義慶', '干寶、謝靈運'], '劉勰《文心雕龍》有完整的文學理論體系，鍾嶸《詩品》則側重評議詩歌。（第 77–78 項）'],
+  ['唐代', '唐傳奇的文學體裁是甚麼？', ['文言短篇小說', '演出用的元雜劇', '近體詩歌', '史官所作的編年體史書'], '唐代詩、文、小說發達，唐傳奇常寫奇聞異事，且影響後來小說與戲曲。（第 81–82 項）'],
+  ['唐代', '古體詩和近體詩相比，哪一項敘述正確？', ['近體詩的平仄有規範，古體詩相對自由', '古體詩只准寫四句', '近體詩字數、平仄均無限制', '律詩與絕句都只屬古體詩'], '讀本將唐代近體詩主要分為律詩和絕句。格律對平仄、押韻等有規範。（第 83 項）'],
+  ['唐代', '下列哪位是初唐四傑之一，並作《滕王閣序》？', ['王勃', '王維', '王昌齡', '王之渙'], '初唐四傑是王勃、楊炯、盧照鄰、駱賓王。王勃寫「落霞與孤鶩齊飛」。（第 84–85 項）'],
+  ['唐代', '下列哪組同屬盛唐山水田園詩的代表詩人？', ['王維、孟浩然', '高適、岑參', '杜牧、李商隱', '韓愈、柳宗元'], '王維如《山居秋暝》，孟浩然如《過故人莊》。高適與岑參則以邊塞詩著稱。（第 86–87 項）'],
+  ['唐代', '下列哪一組詩題與作者配對正確？', ['《出塞》（秦時明月漢時關）—王昌齡；《登鸛雀樓》—王之渙', '《出塞》（秦時明月漢時關）—王維；《登鸛雀樓》—王勃', '《出塞》（秦時明月漢時關）—岑參；《登鸛雀樓》—孟浩然', '《出塞》（秦時明月漢時關）—王之渙；《登鸛雀樓》—王昌齡'], '《出塞》常用篇目是王昌齡七絕；《登鸛雀樓》按讀本歸於王之渙，是五絕。（第 88–89 項）'],
+  ['唐代', '以下詩人稱號與作品的配對，哪項正確？', ['杜甫—詩聖—《三吏》', '李白—詩聖—《琵琶行》', '白居易—詩仙—《夢遊天姥吟留別》', '杜甫—詩仙—《早發白帝城》'], '李白為「詩仙」，杜甫為「詩聖」且其詩稱「詩史」，白居易作《長恨歌》《琵琶行》。（第 90–92 項）'],
+  ['唐宋', '唐宋古文八大家中的兩位唐代作家是誰？', ['韓愈、柳宗元', '歐陽修、曾鞏', '蘇洵、蘇軾', '王安石、蘇轍'], '韓愈與柳宗元倡導唐代古文運動，合稱「韓柳」。《馬說》是韓愈作品，《永州八記》是柳宗元作品。（第 93、97–98 項）'],
+  ['唐宋', '下列哪位北宋作家字永叔，曾領導詩文革新？', ['歐陽修', '柳宗元', '李商隱', '蘇轍'], '歐陽修字永叔，是北宋詩文革新的重要人物，擅寫散文、詩詞和傳記。（第 94 項）'],
+  ['唐宋', '「三蘇」之中，哪位作有前、後《赤壁賦》？', ['蘇軾', '蘇洵', '蘇轍', '蘇舜欽'], '三蘇指蘇洵及其子蘇軾、蘇轍。蘇軾寫前、後《赤壁賦》。（第 95–96 項）'],
+  ['唐宋', '晚唐有「小李杜」之稱的兩位詩人是誰？', ['李商隱、杜牧', '李白、杜甫', '李煜、杜牧', '李清照、杜甫'], '李商隱善寫七律，杜牧長於七絕。李白與杜甫一般合稱「李杜」。（第 99 項）'],
+  ['五代至元', '「問君能有幾多愁，恰似一江春水向東流」出自哪位詞人？', ['李煜', '柳永', '晏幾道', '辛棄疾'], '句出李煜的〈虞美人〉。李煜是南唐後主，詞在五代興盛並在宋代取得很高成就。（第 100、102–103 項）'],
+  ['五代至元', '宋代說書人用以講唱故事的底本，一般稱為甚麼？', ['話本', '詞牌', '樂府', '墓誌銘'], '話本和說書有關，影響後來的明清小說。詞牌則規定填詞的格式。（第 101、104 項）'],
+  ['五代至元', '「凡有井水處，皆能歌柳詞」最能反映哪一位作家的作品流傳廣泛？', ['柳永', '柳宗元', '李清照', '歐陽修'], '說法形容柳永詞作流傳之廣。讀本把柳永列為詞風偏婉約的代表。（第 102 項）'],
+  ['五代至元', '下列有關宋詞「詞牌」的敘述，哪一項正確？', ['詞牌一般規定句數、字數和平仄', '每換一首詞，就要自行創定全部格律', '作品只要每句同字數，便符合任何詞牌', '《浣溪沙》與《蝶戀花》是兩種唐代七律格式'], '詞體可長短句相間，寫不同詞牌時依該詞牌的固定格式。（第 104 項）'],
+  ['五代至元', '下列哪一組「作者—作品—寫作要點」正確？', ['周敦頤—《愛蓮說》—借蓮寫君子品格', '歐陽修—《岳陽樓記》—提出先憂後樂', '范仲淹—《泊船瓜洲》—以春風吹綠江岸寫思歸', '王安石—《愛蓮說》—借蓮寫君子品格'], '《愛蓮說》是周敦頤之作；《岳陽樓記》是范仲淹之作；《泊船瓜洲》是王安石之作。（第 105–107 項）'],
+  ['五代至元', '「易安居士」與「稼軒居士」分別是哪兩人？', ['李清照、辛棄疾', '辛棄疾、李清照', '陸游、歐陽修', '王安石、蘇軾'], '李清照號易安居士，是婉約代表；辛棄疾號稼軒居士，是豪放代表。（第 108–109 項）'],
+  ['五代至元', '下列哪一組作品與作者配對完全正確？', ['《示兒》—陸游；《過零丁洋》—文天祥', '《示兒》—文天祥；《過零丁洋》—岳飛', '《示兒》—辛棄疾；《過零丁洋》—陸游', '《示兒》—范仲淹；《過零丁洋》—辛棄疾'], '陸游號放翁；文天祥留詩明志。讀本第 110 項另列岳飛與傳為其作的《滿江紅》。（第 110–112 項）'],
+  ['五代至元', '下列關於元曲的敘述，哪一項正確？', ['元曲通常包含雜劇與散曲', '元曲只包括宋代詞牌與明清話本', '唐代近體詩是元曲的兩大類之一', '只有不演出的散曲才屬元曲'], '元曲是元雜劇、散曲的總稱。（第 113 項）'],
+  ['五代至元', '下列哪一組全屬讀本所列的元曲四大家？', ['關漢卿、馬致遠、鄭光祖、白樸', '關漢卿、王實甫、鄭光祖、白樸', '關漢卿、馬致遠、高明、白樸', '王實甫、馬致遠、鄭光祖、高明'], '王實甫和高明同為知名戲曲家，但讀本所列四家是關、馬、鄭、白。（第 114 項）'],
+];
 
-    tabButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const target = btn.getAttribute('data-tab');
-        tabButtons.forEach(b => {
-          b.classList.remove('tab-btn-active');
-          b.classList.add('tab-btn-inactive');
-        });
-        btn.classList.remove('tab-btn-inactive');
-        btn.classList.add('tab-btn-active');
+const quotations = [
+  [6, '《詩經・小雅・車轄》', '高山仰止，＿＿。', ['景行行止', '景行仰止', '景行不止', '高行行止'], '仰望高山，比喻仰慕高德。小測表記作「景行行止」。'],
+  [15, '屈原《離騷》', '＿＿，吾將上下而求索。', ['路曼曼其修遠兮', '路漫漫而修遠兮', '路曼曼兮修且遠', '路修遠其曼曼兮'], '前半句按名句表寫「曼曼」與「其」，後半句表達不停止追尋。'],
+  [24, '《楚辭・卜居》', '尺有所短，＿＿。', ['寸有所長', '尺有所長', '寸有長短', '寸有所用'], '即使尺比寸長，各有擅長與不足，不能單憑長短定高下。'],
+  [26, '《尚書・大禹謨》', '＿＿，謙受益。', ['滿招損', '謙招損', '滿受損', '滿則損'], '自滿容易招致損失，謙虛使人受益。'],
+  [29, '《左傳・襄公十一年》', '居安思危，＿＿，有備無患。', ['思則有備', '思而有備', '思則無備', '備則有思'], '從安定時想到風險，再由思慮到準備，最後寫準備能預防禍患。'],
+  [40, '孫武《孫子兵法・謀攻》', '知己知彼，＿＿。', ['百戰不殆', '百戰不敗', '百戰百勝', '百戰不怠'], '「殆」是危險。按小測名句表的版本作答，「百戰百勝」意思相近但並非本句。'],
+  [49, '老子《道德經・六十四章》', '＿＿，始於足下。', ['千里之行', '千里之途', '萬里之行', '千里之路'], '名句用長途出行說明宏大的事情也從眼前第一步開始。'],
+  [55, '《周易・象傳》', '天行健，君子以自強不息。地勢坤，＿＿。', ['君子以厚德載物', '君子以厚德養物', '君子以厚德立身', '君子以至德載物'], '乾象說自強，坤象說以深厚的德行包容與承載萬物。'],
+  [59, '《論語・為政》', '學而不思則罔，＿＿。', ['思而不學則殆', '思而不學則罔', '思而不問則殆', '思而弗學則罔'], '「罔」對應只學不思而迷惘，「殆」對應只思不學而陷入疑惑或危險。'],
+  [66, '《論語・述而》', '＿＿，小人長戚戚。', ['君子坦蕩蕩', '君子長坦蕩', '君子常蕩蕩', '君子坦戚戚'], '「坦蕩蕩」與「長戚戚」對比，一方心地坦然，一方常憂懼。'],
+  [75, '《論語・衛靈公》', '工欲善其事，＿＿。', ['必先利其器', '必先善其器', '必先磨其器', '必先利其工'], '「利」在此是使器具鋒利，比喻辦事須先做好準備。'],
+  [78, '《論語・衛靈公》', '君子求諸己，＿＿。', ['小人求諸人', '小人責諸己', '君子求諸人', '小人求諸友'], '「諸」可理解為「之於」。君子反求自己，小人把要求放在別人身上。'],
+  [89, '《論語・微子》', '＿＿，來者猶可追。', ['往者不可諫', '往者猶可諫', '逝者不可追', '往事不可追'], '過去的不能挽回，未來仍來得及追補。「諫」按名句表作答。'],
+  [93, '《莊子・山木》', '君子之交淡若水，＿＿。', ['小人之交甘若醴', '小人之交濃若茶', '小人之交甘若蜜', '小人之交甘如水'], '「醴」是甘甜的酒。兩句以水與甜酒對照兩種交往。'],
+  [99, '《孟子・梁惠王上》', '老吾老，以及人之老；＿＿。', ['幼吾幼，以及人之幼', '幼吾幼，以養人之幼', '愛吾幼，以及人之幼', '幼人幼，以及吾之幼'], '由尊敬、愛護自己家中的長幼，推及別人的長幼。'],
+  [104, '《孟子・滕文公下》', '富貴不能淫，貧賤不能移，＿＿。', ['威武不能屈', '威武不能移', '威武不能淫', '威武不可折'], '淫、移、屈依次表示迷亂、改變志節、使屈服。'],
+  [119, '《禮記・學記》', '＿＿，則孤陋而寡聞。', ['獨學而無友', '自學而無師', '獨學而無疑', '寡友而少學'], '沒有同伴切磋，見識便容易狹窄。「孤陋」「寡聞」連用。'],
+  [121, '《禮記・中庸》', '凡事預則立，＿＿。', ['不預則廢', '不預則敗', '無預則廢', '不立則廢'], '「預」表示事前準備，「立」與「廢」相對。'],
+  [129, '司馬遷《史記・李將軍列傳》', '桃李不言，＿＿。', ['下自成蹊', '下必成蹊', '下自成徑', '人自成蹊'], '「蹊」是小路。桃李無言，仍吸引人走來，喻有德者自然使人敬慕。'],
+  [133, '司馬遷《史記・留侯世家》', '良藥苦口利於病，＿＿。', ['忠言逆耳利於行', '忠言刺耳利於身', '良言逆耳利於志', '忠言逆耳利於心'], '藥雖苦，能治病；忠告雖不順耳，卻有助於端正行為。'],
+  [143, '《古詩十九首・迢迢牽牛星》', '盈盈一水間，＿＿。', ['脈脈不得語', '默默不得語', '脈脈不可語', '相望不得語'], '「脈脈」形容含情相視，寫只隔一道水卻無法交談。'],
+  [145, '漢樂府《長歌行》', '少壯不努力，＿＿！', ['老大徒傷悲', '老去徒傷悲', '老大空傷悲', '老大難追回'], '「老大」是年老，「徒」是白白地，勸人趁年少把握光陰。'],
+  [161, '諸葛亮《誡子書》', '非淡泊無以明志，＿＿。', ['非寧靜無以致遠', '非寧靜無以志遠', '非安靜無以致遠', '非寧靜無以明德'], '兩句勉勵人恬淡而清楚立志，寧靜專注才可達成長遠目標。'],
+  [164, '陶淵明《飲酒》', '採菊東籬下，＿＿。', ['悠然見南山', '悠然望南山', '怡然見南山', '忽然見南山'], '依名句表是「見」。「悠然」與不經意見到南山的情景相合。'],
+  [173, '李百藥《北齊書・元景安傳》', '寧為玉碎，＿＿。', ['不為瓦全', '不作瓦全', '不願瓦全', '無為瓦全'], '寧可保全氣節而犧牲，也不為苟全而失守。「為」兩次呼應。'],
+  [181, '王勃《送杜少府之任蜀州》', '＿＿，天涯若比鄰。', ['海內存知己', '海內皆知己', '四海存知己', '海內有故人'], '世間有知己，即使遠隔天涯，仍像近鄰一樣親近。'],
+  [184, '陳子昂《登幽州台歌》', '念天地之悠悠，＿＿。', ['獨愴然而涕下', '獨悵然而淚下', '獨愴然而淚下', '忽愴然而涕下'], '易錯字是「愴」與「涕」。天地無窮與詩人的孤獨形成對照。'],
+  [188, '張九齡《望月懷遠》', '海上生明月，＿＿。', ['天涯共此時', '天涯若比鄰', '四海共此時', '天涯同此夜'], '兩地的人同見一輪明月，詩句寫遠隔而能同時相思。'],
+  [194, '王維《九月九日憶山東兄弟》', '＿＿，每逢佳節倍思親。', ['獨在異鄉為異客', '獨在他鄉為過客', '獨在異鄉成異客', '獨在異鄉為客人'], '「異鄉」與「異客」重疊用「異」，強調離鄉的孤獨。'],
+  [198, '王昌齡《出塞》', '秦時明月漢時關，＿＿。', ['萬里長征人未還', '萬里征人猶未還', '千里長征人未還', '萬里長征人未回'], '首句以秦、漢互文，次句落在長期戍邊未歸的人。'],
+];
 
-        Object.keys(tabPanels).forEach(k => {
-          if (k === target) {
-            tabPanels[k].classList.remove('hidden');
-          } else {
-            tabPanels[k].classList.add('hidden');
-          }
-        });
-      });
-    });
+const language = [
+  ['普通話讀音', '下列各組詞語中，以「」標示的字，普通話讀音完全相同的是哪一組？', ['「厲」行、鼓「勵」、「礪」石', '「徑」直、結「晶」、「精」神', '「屈」服、「區」域、有「趣」', '追「溯」、樸「素」、塑「造」'], '「厲」「勵」「礪」均讀 lì。「徑」讀 jìng，「趣」讀 qù，「造」讀 zào。'],
+  ['普通話讀音', '下列各組詞語中，以「」標示的字，普通話讀音完全相同的是哪一組？', ['報「酬」、「惆」悵、「籌」備', '「提」醒、「啼」哭、「堤」岸', '「仰」望、「抑」制、「迎」接', '「決」心、「抉」擇、「缺」席'], '「酬」「惆」「籌」均讀 chóu。「堤」讀 dī，「缺」讀 quē。'],
+  ['普通話讀音', '下列哪一組以「」標示的字，普通話讀音不完全相同？', ['銀「行」、「行」走、「行」動', '「慕」名、夜「幕」、墳「墓」', '「呈」現、路「程」、忠「誠」', '「繼」續、「記」錄、「紀」念'], '銀行的「行」是 háng，行走、行動的「行」是 xíng。其餘依次同讀 mù、chéng、jì。'],
+  ['錯別字', '下列哪一組詞語全都沒有錯別字？', ['再接再厲、前仆後繼、迫不及待', '再接再勵、前仆後繼、迫不急待', '再接再厲、前僕後繼、迫不急待', '再接再勵、前僕後繼、迫不及待'], '「厲」本指磨刀石，這裏是磨礪；「仆」指倒下；「及」表示來得及。'],
+  ['錯別字', '下列句子中的成語，哪一句有錯別字？', ['他做事一絲不荀，每次交卷都仔細檢查。', '朗讀比賽剛結束，大家仍津津樂道。', '幾位同學按部就班，把資料逐一歸檔。', '老師循循善誘，讓我們自己找出答案。'], '應寫「一絲不苟」。「苟」表示隨便、草率，別寫成姓氏「荀」。'],
+  ['錯別字', '哪一組詞語全都合乎通行寫法？', ['不脛而走、聲名鵲起、甘拜下風', '不徑而走、聲名雀起、甘敗下風', '不脛而走、聲名雀起、甘敗下風', '不逕而走、聲名鵲起、甘敗下風'], '「脛」是小腿；「鵲」是喜鵲；「拜」用在甘願承認自己不及他人的「甘拜下風」。'],
+  ['成語、諺語', '下列句子中，成語使用最恰當的是哪一句？', ['他想不經練習便寫好文章，無異於緣木求魚。', '她把朋友的秘密說出去，真是守口如瓶。', '工作早已全部完成，大家仍在束手無策地慶祝。', '這套方法沿用多年，從未改動，可說是推陳出新。'], '「緣木求魚」是爬到樹上找魚，比喻方法或方向錯誤而無法達到目的。'],
+  ['成語、諺語', '樓宇尚未遇上雨季，管理員已先檢修排水設施。最適合用哪個成語概括？', ['未雨綢繆', '亡羊補牢', '臨渴掘井', '得過且過'], '「未雨綢繆」比喻事前準備；「亡羊補牢」指出問題後補救。'],
+  ['成語、諺語', '以下哪句最接近「單靠自己難以辦成，需要眾人出力」的道理？', ['眾人拾柴火焰高。', '紙上得來終覺淺。', '路遙知馬力，日久見人心。', '近水樓臺先得月。'], '拾柴的人多，火焰就高，比喻人多力量大，合作更容易成功。'],
+  ['漢字結構', '「刃」在「刀」的刀鋒處添上一點。這造字方式屬於六書的哪一類？', ['指事', '象形', '形聲', '假借'], '用符號標出刀鋒的位置，以此指出所指的事物，屬於指事。'],
+  ['漢字結構', '「銅」字中，「金」和「同」主要分別提供甚麼線索？', ['「金」表義類，「同」表讀音', '「金」表讀音，「同」表義類', '兩個部件都只表讀音', '兩個部件結合成兩人同行的意思'], '「銅」是形聲字。「金」指出與金屬有關，「同」提供讀音線索。'],
+  ['漢字結構', '現代字形「林」由兩個「木」組成，用以表示樹木聚集。此字最常歸入六書哪類？', ['會意', '象形', '指事', '轉注'], '兩個表示樹木的部件合在一起，會合兩者的意思，屬於會意。'],
+  ['敬語謙詞、稱謂使用', '給老師寄送自己寫的文章，以下哪一句用語最得體？', ['隨信附上拙作，敬請老師斧正。', '隨信附上大作，請老師替我斧正。', '請把老師的拙作交給我，我替您拜讀。', '敬請老師把我的大作拜讀一遍。'], '「拙作」謙稱自己的作品；「斧正」用於請人修改指正。敬稱他人的作品可說「大作」。'],
+  ['敬語謙詞、稱謂使用', '在長輩面前詢問對方父親的近況，哪一句最合宜？', ['請問令尊近來身體可好？', '請問家父近來身體可好？', '請問先父近來身體可好？', '請問小兒近來身體可好？'], '「令尊」敬稱對方父親，「家父」是自稱自己的父親，「先父」指已故父親，「小兒」可謙稱自己的兒子。'],
+  ['敬語謙詞、稱謂使用', '會議將結束，主持人代表全體向到場嘉賓表示感謝。哪句最合適？', ['感謝各位撥冗出席。', '感謝大家親自拜訪各位。', '敝會今天承蒙各位惠存。', '我們敬請各位謝絕蒞臨。'], '「撥冗」表示於繁忙中抽空；「惠存」常用於請對方保存所贈的物品。'],
+  ['病句', '以下哪句沒有語病？', ['這次展覽讓同學看到舊照片，也讓他們知道城區如何變遷。', '透過這次展覽，使同學了解了城區的歷史。', '同學參觀了展覽和深刻的心得。', '為了防止不再弄丟展品，館方增設了保安。'], 'B 缺主語；C「參觀」不能搭配「心得」；D「防止不再」否定失當。'],
+  ['病句', '「在閱讀這篇文章後，使我明白了取捨的重要。」應改成哪一句？', ['閱讀這篇文章後，我明白了取捨的重要。', '使我在閱讀這篇文章後，明白了取捨的重要。', '在閱讀這篇文章後，讓我明白了取捨的重要。', '對於閱讀這篇文章後，使我明白了取捨的重要。'], '前置介詞結構加使令詞使原句缺主語，改後用「我」直接做主語。'],
+  ['病句', '「同學們撰寫並克服了報告和困難。」主要有甚麼語病？', ['動詞和受詞部分搭配不當', '句中缺少時間詞', '所有詞語次序均正確但缺少標點', '用了重複的否定詞'], '「撰寫」配「報告」，「克服」配「困難」，兩組宜分開寫，否則容易讀成「撰寫困難」或「克服報告」。'],
+  ['關聯詞', '填入合適的關聯詞：「他＿＿能背出原句，＿＿能說明這句在文章中的作用。」', ['不但……還……', '即使……也……', '因為……所以……', '寧可……也不……'], '由背誦遞進至理解作用，宜用「不但……還……」表示遞進。'],
+  ['關聯詞', '填入合適的關聯詞：「＿＿遇到讀不懂的段落，她＿＿會先看上下文，再查詞典。」', ['即使……也……', '既然……就……', '只有……才……', '一面……一面……'], '「即使……也……」表示假設性的讓步：即便遇上難處，仍採取同一做法。'],
+  ['關聯詞', '填入合適的關聯詞：「＿＿掌握前因後果，＿＿能真正讀懂這個人物的決定。」題意強調必要條件。', ['只有……才……', '只要……就……', '既……又……', '與其……不如……'], '「只有……才……」表示前項是必要條件。「只要……就……」表示條件成立便足以引出結果。'],
+  ['標點', '哪一句標點最恰當？', ['老師說：「下一課請帶《論語》。」', '老師說，「下一課請帶《論語》」。', '老師說：「下一課請帶「論語」。」', '老師說：「下一課請帶《論語》。'], '直接引語用冒號引出，完整引語的句號放在引號內；書名用書名號。'],
+  ['標點', '以下哪一句最適合用頓號分隔並列的短語？', ['這頁收了作者簡介、篇章摘要、重點詞義。', '這頁收了作者簡介；篇章摘要，重點詞義。', '這頁收了作者簡介：篇章摘要：重點詞義。', '這頁收了作者簡介。篇章摘要。重點詞義。'], '簡短的並列項目屬於同一句話，這裏用頓號分隔最清楚。'],
+  ['標點', '哪一句問號用得恰當？', ['你知道誰負責整理筆記嗎？', '我想知道誰負責整理筆記？', '他已知道誰負責整理筆記？於是準備聯絡那位同學。', '老師說明了誰負責整理筆記？並請大家配合。'], '第一句真正向對方發問。含疑問詞的成分若只是陳述句的受詞，句末仍須按整句語氣用標點。'],
+  ['修辭', '「冬日的樹伸懶腰，把第一縷晨光攬進懷裏。」主要運用了甚麼修辭？', ['擬人', '反問', '排比', '借代'], '樹被賦予「伸懶腰」「攬進懷裏」等人的動作。'],
+  ['修辭', '「難道只背答案，就能真正讀懂文章嗎？」主要運用了甚麼修辭？', ['反問', '設問', '反復', '對偶'], '句子用強烈的疑問語氣表達否定，答案已包含在問句中。'],
+  ['修辭', '「讀書能開闊眼界，能磨練思考，能豐富心靈。」主要使用哪種修辭？', ['排比', '借代', '反語', '雙關'], '三個「能……」結構相似，連續列舉讀書的三種作用。'],
+  ['詞語與文化', '「太陽升起」按構詞關係屬主謂結構。下列哪項同屬主謂結構？', ['百花齊放', '精心設計', '整修道路', '高山流水'], '「百花」是主語，「齊放」是謂語。其餘依次為偏正、動賓、並列。'],
+  ['詞語與文化', '下列哪一項完整列出古代儒家六藝所指的六種技能？', ['禮、樂、射、御、書、數', '禮、樂、詩、書、易、春秋', '詩、詞、歌、賦、書、畫', '禮、樂、射、棋、書、數'], '六藝作學習技藝解時是禮儀、音樂、射箭、駕車、文字書寫與算術。'],
+];
 
-    // =========================================================================
-    // 3. Countdown Exam Timer
-    // =========================================================================
-    let remainingSeconds = 60 * 60;
-    let timerInterval = null;
-    let timerRunning = false;
+const readingPassages = {
+  library: ['語體文短篇', '學校圖書館把舊雜誌放在入口附近，讓同學隨手取閱。起初，借閱冊上沒有增加任何數字，負責的同學以為計劃失敗了。後來他們發現，下課時有人圍着其中一期雜誌討論，還把有興趣的文章題目記在便條上。於是圖書館在架旁貼了一塊小白板，讓讀者留下推薦。借閱數仍然只增加了一點，白板上的留言卻一周比一周多。'],
+  wood: ['文言文短篇・《禮記・學記》', '善問者如攻堅木，先其易者，後其節目，及其久也，相說以解。不善問者反此。善待問者如撞鐘，叩之以小者則小鳴，叩之以大者則大鳴，待其從容，然後盡其聲。不善答問者反此。'],
+};
 
-    function renderTimer() {
-      const mins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
-      const secs = String(remainingSeconds % 60).padStart(2, '0');
-      const disp = document.getElementById('timer-display');
-      if (disp) disp.textContent = `${mins}:${secs}`;
-    }
+const readings = [
+  ['library', '負責的同學起初為甚麼以為計劃失敗？', ['借閱紀錄沒有增長', '舊雜誌全部遺失', '白板一開始已寫滿', '同學表示不願意閱讀'], '開頭用借閱冊衡量效果，紀錄不變，所以他們對計劃的成效判斷過早。'],
+  ['library', '最後一句將「借閱數」與「留言」並列，主要想突顯甚麼？', ['借閱數難以反映所有閱讀與交流', '留言多了必然使人少借雜誌', '白板的存在令雜誌借閱停止', '圖書館只應記錄借書的人數'], '同學在館內閱讀、討論和推薦，這些活動未必會反映在借閱數字上。'],
+  ['library', '如果要給短文配一個標題，哪一項最貼合主旨？', ['借閱數字以外', '如何保管珍本', '修繕學校圖書館', '手抄雜誌的由來'], '全文由單看借閱數字，轉至觀察實際活動與留言，呈現衡量閱讀成效的不同角度。'],
+  ['wood', '「先其易者，後其節目」在問學上意味着甚麼？', ['先處理較易的疑問，再處理難點', '先處理最難之處，再跳過容易的內容', '先等別人解答，才開始提問', '應一次問完所有難題'], '「節目」在此指木的節疤、紋理交結處，借指學習中較難處理的部分。'],
+  ['wood', '「叩之以小者則小鳴，叩之以大者則大鳴」主要比喻甚麼？', ['回應應配合提問的深淺和分量', '教師授課時聲音越大越好', '提問要挑老師聽不見的時候', '只應回答程度高的問題'], '以撞鐘的力度與聲響作比，說明答問要因應提問，而有恰當、充分的回應。'],
+  ['wood', '文中兩次使用「不善……者反此」，有甚麼作用？', ['把善與不善的做法作簡明對照', '逐一交代兩個反例的人物與結局', '補充伐木和鑄鐘的技術差異', '說明提問和答問完全一樣'], '作者先正面說明善問、善答，隨即以「反此」帶出相反做法，令對比鮮明。'],
+];
 
-    document.getElementById('btn-timer-toggle').addEventListener('click', function() {
-      if (timerRunning) {
-        clearInterval(timerInterval);
-        timerRunning = false;
-        this.textContent = '繼續';
-      } else {
-        clearInterval(timerInterval);
-        timerRunning = true;
-        this.textContent = '暫停';
-        timerInterval = setInterval(() => {
-          if (remainingSeconds > 0) {
-            remainingSeconds--;
-            renderTimer();
-          } else {
-            clearInterval(timerInterval);
-            timerRunning = false;
-            document.getElementById('btn-timer-toggle').textContent = '開始';
-            showToast('60 分鐘作答時間到！請點擊「批改整份試卷」查看得分。');
-          }
-        }, 1000);
-      }
-    });
+const sections = {
+  mixed: '綜合練習',
+  classical: '課文與自讀',
+  literature: '文學常識',
+  quotations: '名句填空',
+  language: '語文基礎',
+  reading: '閱讀理解',
+};
 
-    document.getElementById('btn-timer-reset').addEventListener('click', () => {
-      clearInterval(timerInterval);
-      timerRunning = false;
-      remainingSeconds = 60 * 60;
-      renderTimer();
-      document.getElementById('btn-timer-toggle').textContent = '開始';
-      showToast('計時器已重設為 60:00');
-    });
+const classicalLabels = {
+  'xiang-shu': '《相鼠》', 'wu-yi': '《無衣》', 'jian-jia': '《蒹葭》', 'shi-zuo': '《侍坐章》',
+  'xue-ji': '《學記》', 'ji-shi': '《季氏章》', 'shun-fa': '《舜發於畎畝之中章》',
+  'feng-xuan': '《齊人有馮諼章》', 'shi-jing': '《詩經》', 'chu-ci': '《楚辭》',
+  'lun-yu': '《論語》', 'meng-zi': '《孟子》', 'li-ji': '《禮記》',
+};
 
-    // =========================================================================
-    // 4. Interactive Charts (Chart.js)
-    // =========================================================================
-    let eaChart = null;
-    let eqChart = null;
-    let showCatalystCurve = true;
-    let eqFastMode = false;
+const questionSets = {
+  classical,
+  literature,
+  quotations: quotations.map(([number, source, sentence, options, explanation]) => [
+    `名句第 ${number} 句・${source}`, `選出最符合小測名句表的一項。${sentence}`, options, explanation,
+  ]),
+  language,
+  reading: readings,
+};
 
-    function initCharts() {
-      if (typeof Chart === 'undefined') return;
+const questions = Object.entries(questionSets).flatMap(([section, entries]) => entries.map((entry, index) => {
+  const [tag, prompt, options, explanation] = entry;
+  const passage = section === 'reading' ? readingPassages[tag] : null;
+  return {
+    id: `${section}-${index + 1}`, section, tag, prompt, options, explanation, passage,
+    label: classicalLabels[tag] || (passage && passage[0]) || tag,
+  };
+}));
+const byId = new Map(questions.map(question => [question.id, question]));
+const pools = Object.fromEntries(Object.keys(questionSets).map(section => [section, questions.filter(question => question.section === section)]));
+const roundSize = 10;
+const saveKey = 'senior-chinese-practice-v1';
+const letters = ['A', 'B', 'C', 'D'];
 
-      // Chart A: Activation Energy Curve
-      const ctxEa = document.getElementById('chart-ea');
-      const xLabels = [];
-      const yUncat = [];
-      const yCat = [];
-      for (let i = 0; i <= 50; i++) {
-        const x = i * 0.2;
-        xLabels.push(x.toFixed(1));
-        const base = 40 - 25 / (1 + Math.exp(-1.5 * (x - 5)));
-        const bump1 = 64 * Math.exp(-0.45 * Math.pow(x - 4.7, 2));
-        const bump2 = 38 * Math.exp(-0.45 * Math.pow(x - 4.7, 2));
-        yUncat.push(Number((base + bump1).toFixed(2)));
-        yCat.push(Number((base + bump2).toFixed(2)));
-      }
+const main = document.querySelector('#practice');
+const topics = document.querySelector('#topic-list');
+const filter = document.querySelector('#topic-filter');
+const stats = document.querySelector('#stats');
+const navPractice = document.querySelector('#nav-practice');
+const navReview = document.querySelector('#nav-review');
+const navCount = document.querySelector('#nav-count');
+const storageText = document.querySelector('footer span');
 
-      eaChart = new Chart(ctxEa, {
-        type: 'line',
-        data: {
-          labels: xLabels,
-          datasets: [
-            {
-              label: '無催化劑路徑 (Ea = 52 kJ/mol)',
-              data: yUncat,
-              borderColor: '#1e3a8a',
-              backgroundColor: 'rgba(30, 58, 138, 0.08)',
-              borderWidth: 2.5,
-              pointRadius: 0,
-              tension: 0.35
-            },
-            {
-              label: '有催化劑路徑 (Ea\' = 26 kJ/mol)',
-              data: yCat,
-              borderColor: '#d97706',
-              borderDash: [6, 4],
-              borderWidth: 2.5,
-              pointRadius: 0,
-              tension: 0.35,
-              hidden: !showCatalystCurve
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'top', labels: { boxWidth: 18, font: { size: 11 } } }
-          },
-          scales: {
-            x: { display: false },
-            y: {
-              min: 0,
-              max: 105,
-              title: { display: true, text: '相對位能 (kJ·mol⁻¹)', font: { size: 11 } }
-            }
-          }
-        }
-      });
+function loadState() {
+  const blank = { section: 'mixed', tag: '', view: 'practice', rounds: {}, seen: {}, missed: {}, attempts: 0, hits: 0 };
+  try {
+    const saved = JSON.parse(localStorage.getItem(saveKey));
+    return saved && Object.hasOwn(sections, saved.section) ? { ...blank, ...saved } : blank;
+  } catch {
+    return blank;
+  }
+}
 
-      // Chart B: Equilibrium Concentration vs Time
-      renderEquilibriumChart();
-    }
+const state = loadState();
 
-    function renderEquilibriumChart() {
-      if (typeof Chart === 'undefined') return;
-      const ctxEq = document.getElementById('chart-eq');
-      if (eqChart) eqChart.destroy();
+function save() {
+  try {
+    localStorage.setItem(saveKey, JSON.stringify(state));
+  } catch {
+    storageText.textContent = '此瀏覽器未能儲存作答紀錄';
+  }
+}
 
-      const tEq = eqFastMode ? 5 : 10;
-      const tau = eqFastMode ? 1.3 : 2.6;
-      const labels = [];
-      const dataH2 = [];
-      const dataN2 = [];
-      const dataNH3 = [];
+function escapeText(value) {
+  const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  return String(value).replace(/[&<>"']/g, character => entities[character]);
+}
 
-      for (let t = 0; t <= 15; t += 0.5) {
-        labels.push(t.toFixed(1));
-        const factor = t <= tEq
-          ? (1 - Math.exp(-t / tau)) / (1 - Math.exp(-tEq / tau))
-          : 1.0;
-        dataN2.push(Number((1.0 - 0.4 * factor).toFixed(3)));
-        dataH2.push(Number((3.0 - 1.2 * factor).toFixed(3)));
-        dataNH3.push(Number((0.0 + 0.8 * factor).toFixed(3)));
-      }
+function shuffle(values) {
+  const result = [...values];
+  for (let index = result.length - 1; index > 0; index--) {
+    const position = Math.floor(Math.random() * (index + 1));
+    [result[index], result[position]] = [result[position], result[index]];
+  }
+  return result;
+}
 
-      eqChart = new Chart(ctxEq, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: '[H₂] (起始 3.0 → 平衡 1.8 mol·L⁻¹)',
-              data: dataH2,
-              borderColor: '#1e3a8a',
-              borderWidth: 2.5,
-              pointRadius: 0,
-              tension: 0.3
-            },
-            {
-              label: '[N₂] (起始 1.0 → 平衡 0.6 mol·L⁻¹)',
-              data: dataN2,
-              borderColor: '#0f766e',
-              borderWidth: 2.5,
-              pointRadius: 0,
-              tension: 0.3
-            },
-            {
-              label: '[NH₃] (起始 0.0 → 平衡 0.8 mol·L⁻¹)',
-              data: dataNH3,
-              borderColor: '#d97706',
-              borderWidth: 2.5,
-              pointRadius: 0,
-              tension: 0.3
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'top', labels: { boxWidth: 16, font: { size: 11 } } }
-          },
-          scales: {
-            x: {
-              title: { display: true, text: '反應時間 t (min)', font: { size: 11 } }
-            },
-            y: {
-              min: 0,
-              max: 3.2,
-              title: { display: true, text: '濃度 c (mol·L⁻¹)', font: { size: 11 } }
-            }
-          }
-        }
-      });
-    }
+function sample(pool, count, done) {
+  const fresh = pool.filter(question => !done.has(question.id));
+  const previous = pool.filter(question => done.has(question.id));
+  return [...shuffle(fresh), ...shuffle(previous)].slice(0, count);
+}
 
-    document.getElementById('btn-toggle-catalyst').addEventListener('click', () => {
-      if (!eaChart) return;
-      showCatalystCurve = !showCatalystCurve;
-      eaChart.data.datasets[1].hidden = !showCatalystCurve;
-      eaChart.update();
-      showToast(showCatalystCurve ? '已顯示有催化劑的低活化能路徑' : '已隱藏有催化劑路徑');
-    });
+function roundKey() {
+  return `${state.section}:${state.tag}`;
+}
 
-    document.getElementById('btn-toggle-eq-speed').addEventListener('click', () => {
-      eqFastMode = !eqFastMode;
-      renderEquilibriumChart();
-      const cap = document.getElementById('eq-caption');
-      if (eqFastMode) {
-        cap.innerHTML = '<strong>已加入正催化劑狀態</strong>：正、逆反應速率同等倍數加快，達致平衡時間由 10 min 縮短至 <strong>5 min</strong>，但平衡濃度（[N₂]=0.6、[H₂]=1.8、[NH₃]=0.8 mol·L⁻¹）與轉化率（40%）<strong>完全不變</strong>！';
-        showToast('已切換為加入催化劑狀態：達平衡時間縮短至 5 min，平衡濃度不變');
-      } else {
-        cap.innerHTML = '目前狀態：無額外催化劑（於 t = 10 min 達致平衡）。三種物質的濃度變化量 |&Delta;c(N<sub>2</sub>)| : |&Delta;c(H<sub>2</sub>)| : |&Delta;c(NH<sub>3</sub>)| = 0.4 : 1.2 : 0.8 = 1 : 3 : 2。';
-        showToast('已恢復為原始條件（t = 10 min 達致平衡）');
-      }
-    });
+function makeRound(explicitQuestions) {
+  const key = roundKey();
+  const seen = new Set(state.seen[key] || []);
+  let selected = explicitQuestions;
+  if (!selected && state.section === 'mixed') {
+    selected = shuffle(Object.values(pools).flatMap(pool => sample(pool, 2, seen)));
+  }
+  if (!selected) {
+    const pool = pools[state.section].filter(question => !state.tag || question.tag === state.tag);
+    selected = sample(pool, roundSize, seen);
+  }
+  selected.forEach(question => seen.add(question.id));
+  state.seen[key] = [...seen];
+  return { items: selected.map(question => ({ id: question.id, order: shuffle([0, 1, 2, 3]) })), answers: {}, position: 0, complete: false };
+}
 
-    // =========================================================================
-    // 5. 8 Common Exam Pitfalls Data & Filter
-    // =========================================================================
-    const pitfallsData = [
-      {
-        id: 1,
-        cat: 'calc',
-        title: '陷阱 1：把固體 (s) 或純液體 (l) 誤代入公式',
-        wrong: '計算反應速率時對固體求 Δc/Δt，或將 C(s)、Fe(s)、H₂O(l) 寫入平衡常數 Kc 的分母。',
-        right: '純固體與純液體濃度視為常數，既不可用 Δc/Δt 表示反應速率，也絕不寫入 Kc、Qc 表達式（注意：水蒸氣 H₂O(g) 為氣體，必須寫入）。'
-      },
-      {
-        id: 2,
-        cat: 'calc',
-        title: '陷阱 2：漏除容器體積 V，直接用 mol 代入 Kc',
-        wrong: '題目給出 V = 2.0 L 或 5.0 L，卻直接把物質的量 n (mol) 代入 Kc 或速率方程。',
-        right: '審題第一步先圈出「容器體積 V」！代入 Kc 前務必將所有物質的量除以 V 轉換為平衡濃度 [X] = n(X) / V。'
-      },
-      {
-        id: 3,
-        cat: 'rate',
-        title: '陷阱 3：不同物質速率比較漏看 min 與 s 單位',
-        wrong: '直接用 v(X)/係數 比大小，卻忽略選項中混用了 mol·L⁻¹·min⁻¹ 與 mol·L⁻¹·s⁻¹。',
-        right: '牢記 1 mol·L⁻¹·s⁻¹ = 60 mol·L⁻¹·min⁻¹。比較快慢前，先把所有速率統一換算為每秒 (s⁻¹)，再除以各自的化學計量數。'
-      },
-      {
-        id: 4,
-        cat: 'eq',
-        title: '陷阱 4：充入惰性氣體（稀有氣體）迷思',
-        wrong: '看到「充入 Ar 氣使容器總壓增大」，就以為氣體反應速率一定加快、平衡向氣體分子數少的方向移動。',
-        right: '嚴格區分：① 恆溫恆容充入惰性氣體 → 各反應氣體分壓與濃度不變 → 速率不變、平衡不移動；② 恆溫恆壓充入惰性氣體 → 體積擴大、分壓減小 → 速率減慢、平衡向氣體分子數增多方向移動。'
-      },
-      {
-        id: 5,
-        cat: 'eq',
-        title: '陷阱 5：誤以為「平衡正向移動 = 反應物轉化率必升」',
-        wrong: '向 N₂ + 3H₂ ⇌ 2NH₃ 中單獨再充入 N₂，認為平衡正向移動，所以 N₂ 與 H₂ 的轉化率都升高。',
-        right: '單獨增加反應物 A 的用量，平衡雖正向移動，另一反應物 B 的轉化率確實升高，但 A 自身的轉化率反而降低！若按起始配比成比例投料（恆溫恆容），才相當於加壓。'
-      },
-      {
-        id: 6,
-        cat: 'eq',
-        title: '陷阱 6：將「恆成立的不變量」誤判為已達平衡標誌',
-        wrong: '在 H₂(g) + I₂(g) ⇌ 2HI(g)（恆溫恆容）中，看到「總壓強不變」或「混合氣體密度不變」就選為平衡標誌。',
-        right: '口訣：「變量不變，才算平衡」。若 Δn氣 = 0，恆溫恆容下總壓始終不變；若反應物與生成物全為氣體，恆容下氣體總質量 m 與體積 V 始終不變（密度 ρ = m/V 恆定），皆不能作為平衡判據。'
-      },
-      {
-        id: 7,
-        cat: 'rate',
-        title: '陷阱 7：正、逆反應速率方向判讀錯誤',
-        wrong: '看到「單位時間內消耗 1 mol N₂ 同時生成 2 mol NH₃」就以為 v正 = v逆。',
-        right: '消耗反應物 N₂ 與生成產物 NH₃ 都是描述「正反應方向」，在反應開始後的任何時刻都成立！必須是「一正一逆」（如消耗 1 mol N₂ 同時消耗 2 mol NH₃）且比例等於計量數之比，才代表達致平衡。'
-      },
-      {
-        id: 8,
-        cat: 'calc',
-        title: '陷阱 8：化學方程式翻倍或逆寫時 Kc 算錯',
-        wrong: '將方程式係數乘 2 時把 Kc 乘 2；將方程式逆寫時把 Kc 加上負號。',
-        right: '平衡常數屬於指數冪次關係：方程式係數乘 n 則 Kc\' = (Kc)ⁿ；方程式逆寫則 Kc\' = 1 / Kc；兩個反應相加則 K總 = K₁ × K₂。'
-      }
-    ];
+function currentRound() {
+  if (state.view === 'drill' && state.drill) return state.drill;
+  const key = roundKey();
+  if (!state.rounds[key]) {
+    state.rounds[key] = makeRound();
+    save();
+  }
+  return state.rounds[key];
+}
 
-    function renderPitfalls(filterCat) {
-      const container = document.getElementById('pitfalls-grid');
-      const list = filterCat === 'all' ? pitfallsData : pitfallsData.filter(p => p.cat === filterCat);
-      container.innerHTML = list.map(item => `
-        <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between gap-2 mb-2">
-              <span class="text-sm font-bold text-blue-950">${item.title}</span>
-              <span class="px-2 py-0.5 text-[11px] font-semibold rounded bg-amber-100 text-amber-900 shrink-0">高頻易錯</span>
-            </div>
-            <div class="text-xs text-rose-800 bg-rose-50 border border-rose-200 rounded-lg p-2.5 mb-2">
-              <strong>常見錯誤：</strong>${item.wrong}
-            </div>
-            <div class="text-xs text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5">
-              <strong>避坑守則：</strong>${item.right}
-            </div>
-          </div>
+function missedQuestions() {
+  return Object.keys(state.missed).reverse().map(id => byId.get(id)).filter(Boolean);
+}
+
+function renderSidebar() {
+  const practising = state.view === 'practice';
+  const wrongCount = missedQuestions().length;
+  navPractice.toggleAttribute('aria-current', state.view !== 'review');
+  navReview.toggleAttribute('aria-current', state.view === 'review');
+  (state.view === 'review' ? navReview : navPractice).setAttribute('aria-current', 'page');
+  navCount.hidden = wrongCount === 0;
+  navCount.textContent = wrongCount;
+
+  topics.innerHTML = Object.entries(sections).map(([key, label]) => `
+    <button type="button" class="topic" data-section="${key}" aria-pressed="${practising && state.section === key}">
+      <span>${label}</span><span class="topic-count">${key === 'mixed' ? questions.length : pools[key].length}</span>
+    </button>`).join('');
+
+  const filters = practising && ['classical', 'literature', 'language', 'reading'].includes(state.section)
+    ? [...new Map(pools[state.section].map(question => [question.tag, question.label]))]
+    : [];
+  filter.innerHTML = filters.length ? `
+    <label for="subtopic" class="filter-label">細分專題</label>
+    <select class="filter" id="subtopic">
+      <option value="">全部</option>
+      ${filters.map(([tag, label]) => `<option value="${escapeText(tag)}" ${state.tag === tag ? 'selected' : ''}>${escapeText(label)}</option>`).join('')}
+    </select>` : '';
+
+  stats.innerHTML = [[state.attempts, '已作答'], [state.attempts ? `${Math.round(100 * state.hits / state.attempts)}%` : '—', '答對率'], [wrongCount, '待重練']]
+    .map(([value, label]) => `<div><strong class="stat-number">${value}</strong><span class="stat-label">${label}</span></div>`).join('');
+}
+
+function renderQuiz(round) {
+  const item = round.items[round.position];
+  const question = byId.get(item.id);
+  const answer = round.answers[question.id];
+  const answered = answer !== undefined;
+  const count = round.items.length;
+  const completed = Object.keys(round.answers).length;
+  const position = round.position + 1;
+  const heading = state.view === 'drill' ? '錯題重練' : sections[state.section];
+  const passage = question.passage ? `
+    <details class="passage" open>
+      <summary>閱讀短文</summary>
+      <p>${escapeText(question.passage[1])}</p>
+    </details>` : '';
+  const options = item.order.map((choiceIndex, displayedIndex) => {
+    const isAnswer = answered && choiceIndex === 0;
+    const pickedWrong = answered && answer !== 0 && choiceIndex === answer;
+    const className = isAnswer ? ' is-right' : pickedWrong ? ' is-wrong' : '';
+    const status = isAnswer ? '正解' : pickedWrong ? '你的選擇' : '';
+    return `<label class="choice${className}">
+      <input type="radio" name="choice" value="${choiceIndex}" ${answer === choiceIndex ? 'checked' : ''} ${answered ? 'disabled' : ''}>
+      <span class="choice-letter" aria-hidden="true">${letters[displayedIndex]}</span>
+      <span class="choice-text">${escapeText(question.options[choiceIndex])}</span>
+      ${status ? `<span class="choice-status">${status}</span>` : ''}
+    </label>`;
+  }).join('');
+  const feedback = answered ? `
+    <div class="feedback${answer === 0 ? '' : ' wrong'}" tabindex="-1" id="feedback">
+      <strong>${answer === 0 ? '答對了' : `正確答案是 ${letters[item.order.indexOf(0)]}`}</strong>
+      <p>${escapeText(question.explanation)}</p>
+    </div>` : '';
+
+  main.innerHTML = `
+    <section class="panel quiz-panel" aria-labelledby="quiz-title">
+      <div class="quiz-head"><h2 id="quiz-title">${heading}</h2><p class="quiz-progress">第 ${position} / ${count} 題</p></div>
+      <progress class="progress-bar" value="${completed}" max="${count}" aria-label="已答 ${completed} 題，共 ${count} 題"></progress>
+      <form id="answer-form">
+        <div class="question-line">
+          <span class="question-topic">${escapeText(question.label)}</span>
+          <p class="question-title" id="question-title" tabindex="-1">${escapeText(question.prompt)}</p>
         </div>
-      `).join('');
-    }
-
-    document.querySelectorAll('.pitfall-filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.pitfall-filter-btn').forEach(b => {
-          b.className = 'pitfall-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200';
-        });
-        btn.className = 'pitfall-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-900 text-white';
-        renderPitfalls(btn.getAttribute('data-pitfall-filter'));
-      });
-    });
-
-    // =========================================================================
-    // 6. Interactive ICE Table Calculator
-    // =========================================================================
-    let currentCalcModel = 'nh3';
-
-    function updateCalculatorLabels() {
-      const lblNa0 = document.getElementById('lbl-na0');
-      const lblNb0 = document.getElementById('lbl-nb0');
-      const lblDna = document.getElementById('lbl-dna');
-      const inpNb0 = document.getElementById('calc-nb0');
-      if (currentCalcModel === 'nh3') {
-        lblNa0.textContent = '起始 n(N₂) (mol)';
-        lblNb0.textContent = '起始 n(H₂) (mol)';
-        lblDna.textContent = '轉化量 Δn(N₂) (mol)';
-        inpNb0.disabled = false;
-      } else if (currentCalcModel === 'co') {
-        lblNa0.textContent = '起始 n(CO₂) (mol)';
-        lblNb0.textContent = '足量固體 C(s) (不計入濃度)';
-        lblDna.textContent = '轉化量 Δn(CO₂) (mol)';
-        inpNb0.disabled = true;
-      } else {
-        lblNa0.textContent = '起始 n(H₂) (mol)';
-        lblNb0.textContent = '起始 n(I₂) (mol)';
-        lblDna.textContent = '轉化量 Δn(H₂) (mol)';
-        inpNb0.disabled = false;
-      }
-    }
-
-    function runIceCalculator() {
-      const V = Math.max(0.1, parseFloat(document.getElementById('calc-vol').value) || 2.0);
-      const dt = Math.max(0.1, parseFloat(document.getElementById('calc-time').value) || 10);
-      const na0 = Math.max(0.05, parseFloat(document.getElementById('calc-na0').value) || 2.0);
-      const nb0 = Math.max(0.05, parseFloat(document.getElementById('calc-nb0').value) || 6.0);
-      let dna = Math.max(0.01, parseFloat(document.getElementById('calc-dna').value) || 0.8);
-
-      const out = document.getElementById('calc-output-area');
-
-      if (currentCalcModel === 'nh3') {
-        const maxDna = Math.min(na0 - 0.01, (nb0 / 3) - 0.01);
-        if (dna > maxDna) dna = Math.max(0.01, Number(maxDna.toFixed(2)));
-        const ca0 = na0 / V, cb0 = nb0 / V;
-        const dca = dna / V, dcb = 3 * dca, dcc = 2 * dca;
-        const caEq = ca0 - dca, cbEq = cb0 - dcb, ccEq = dcc;
-        const alphaA = (dca / ca0) * 100;
-        const alphaB = (dcb / cb0) * 100;
-        const vH2 = dcb / dt;
-        const Kc = (ccEq * ccEq) / (caEq * Math.pow(cbEq, 3));
-        const pRatio = (caEq + cbEq + ccEq) / (ca0 + cb0);
-
-        out.innerHTML = `
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs sm:text-sm">
-              <thead>
-                <tr class="border-b-2 border-blue-900 bg-slate-50 text-blue-950">
-                  <th class="py-2 px-3">ICE 三段式（濃度 mol·L⁻¹）</th>
-                  <th class="py-2 px-3">N₂(g)</th>
-                  <th class="py-2 px-3">+ 3H₂(g)</th>
-                  <th class="py-2 px-3">⇌ 2NH₃(g)</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-200 font-mono">
-                <tr>
-                  <td class="py-2 px-3 font-sans font-semibold">起始濃度 c(始) = n(始)/V</td>
-                  <td class="py-2 px-3">${ca0.toFixed(3)}</td>
-                  <td class="py-2 px-3">${cb0.toFixed(3)}</td>
-                  <td class="py-2 px-3">0.000</td>
-                </tr>
-                <tr>
-                  <td class="py-2 px-3 font-sans font-semibold text-amber-800">變化濃度 Δc (按 1 : 3 : 2)</td>
-                  <td class="py-2 px-3 text-amber-800">-${dca.toFixed(3)}</td>
-                  <td class="py-2 px-3 text-amber-800">-${dcb.toFixed(3)}</td>
-                  <td class="py-2 px-3 text-amber-800">+${dcc.toFixed(3)}</td>
-                </tr>
-                <tr class="bg-blue-50/50 font-bold">
-                  <td class="py-2 px-3 font-sans text-blue-950">平衡濃度 c(平)</td>
-                  <td class="py-2 px-3 text-blue-950">${caEq.toFixed(3)}</td>
-                  <td class="py-2 px-3 text-blue-950">${cbEq.toFixed(3)}</td>
-                  <td class="py-2 px-3 text-blue-950">${ccEq.toFixed(3)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <div class="text-xs text-slate-500">平均反應速率 v(H₂)</div>
-              <div class="text-base font-bold text-blue-950 mt-0.5">${vH2.toFixed(3)} mol·L⁻¹·min⁻¹</div>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <div class="text-xs text-slate-500">平衡轉化率 α(N₂) / α(H₂)</div>
-              <div class="text-base font-bold text-blue-950 mt-0.5">${alphaA.toFixed(1)}% / ${alphaB.toFixed(1)}%</div>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <div class="text-xs text-slate-500">濃度平衡常數 Kc</div>
-              <div class="text-base font-bold text-amber-700 mt-0.5">${Kc.toFixed(4)} L²·mol⁻²</div>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <div class="text-xs text-slate-500">平始壓強比 p(平) / p(始)</div>
-              <div class="text-base font-bold text-teal-800 mt-0.5">${pRatio.toFixed(3)}</div>
-            </div>
-          </div>
-        `;
-      } else if (currentCalcModel === 'co') {
-        if (dna >= na0) dna = Math.max(0.01, Number((na0 - 0.05).toFixed(2)));
-        const ca0 = na0 / V;
-        const dca = dna / V, dcc = 2 * dca;
-        const caEq = ca0 - dca, ccEq = dcc;
-        const alpha = (dca / ca0) * 100;
-        const vCO = dcc / dt;
-        const Kc = (ccEq * ccEq) / caEq;
-        const pRatio = (caEq + ccEq) / ca0;
-
-        out.innerHTML = `
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs sm:text-sm">
-              <thead>
-                <tr class="border-b-2 border-blue-900 bg-slate-50 text-blue-950">
-                  <th class="py-2 px-3">ICE 三段式（濃度 mol·L⁻¹）</th>
-                  <th class="py-2 px-3">C(s) [純固體]</th>
-                  <th class="py-2 px-3">+ CO₂(g)</th>
-                  <th class="py-2 px-3">⇌ 2CO(g)</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-200 font-mono">
-                <tr>
-                  <td class="py-2 px-3 font-sans font-semibold">起始濃度 c(始)</td>
-                  <td class="py-2 px-3 font-sans text-slate-400">常數（不列入 Kc）</td>
-                  <td class="py-2 px-3">${ca0.toFixed(3)}</td>
-                  <td class="py-2 px-3">0.000</td>
-                </tr>
-                <tr>
-                  <td class="py-2 px-3 font-sans font-semibold text-amber-800">變化濃度 Δc (按 1 : 2)</td>
-                  <td class="py-2 px-3 font-sans text-slate-400">消耗 ${dna.toFixed(2)} mol</td>
-                  <td class="py-2 px-3 text-amber-800">-${dca.toFixed(3)}</td>
-                  <td class="py-2 px-3 text-amber-800">+${dcc.toFixed(3)}</td>
-                </tr>
-                <tr class="bg-blue-50/50 font-bold">
-                  <td class="py-2 px-3 font-sans text-blue-950">平衡濃度 c(平)</td>
-                  <td class="py-2 px-3 font-sans text-slate-400">足量固體</td>
-                  <td class="py-2 px-3 text-blue-950">${caEq.toFixed(3)}</td>
-                  <td class="py-2 px-3 text-blue-950">${ccEq.toFixed(3)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <div class="text-xs text-slate-500">平均生成速率 v(CO)</div>
-              <div class="text-base font-bold text-blue-950 mt-0.5">${vCO.toFixed(3)} mol·L⁻¹·min⁻¹</div>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <div class="text-xs text-slate-500">CO₂ 平衡轉化率 α</div>
-              <div class="text-base font-bold text-blue-950 mt-0.5">${alpha.toFixed(1)}%</div>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <div class="text-xs text-slate-500">平衡常數 Kc = [CO]²/[CO₂]</div>
-              <div class="text-base font-bold text-amber-700 mt-0.5">${Kc.toFixed(3)} mol·L⁻¹</div>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <div class="text-xs text-slate-500">平始壓強比 p(平) / p(始)</div>
-              <div class="text-base font-bold text-teal-800 mt-0.5">${pRatio.toFixed(3)}</div>
-            </div>
-          </div>
-        `;
-      } else {
-        const maxDna = Math.min(na0 - 0.01, nb0 - 0.01);
-        if (dna > maxDna) dna = Math.max(0.01, Number(maxDna.toFixed(2)));
-        const ca0 = na0 / V, cb0 = nb0 / V;
-        const dca = dna / V, dcc = 2 * dca;
-        const caEq = ca0 - dca, cbEq = cb0 - dca, ccEq = dcc;
-        const alphaA = (dca / ca0) * 100;
-        const vHI = dcc / dt;
-        const Kc = (ccEq * ccEq) / (caEq * cbEq);
-
-        out.innerHTML = `
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs sm:text-sm">
-              <thead>
-                <tr class="border-b-2 border-blue-900 bg-slate-50 text-blue-950">
-                  <th class="py-2 px-3">ICE 三段式（濃度 mol·L⁻¹）</th>
-                  <th class="py-2 px-3">H₂(g)</th>
-                  <th class="py-2 px-3">+ I₂(g)</th>
-                  <th class="py-2 px-3">⇌ 2HI(g)</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-200 font-mono">
-                <tr>
-                  <td class="py-2 px-3 font-sans font-semibold">起始濃度 c(始)</td>
-                  <td class="py-2 px-3">${ca0.toFixed(3)}</td>
-                  <td class="py-2 px-3">${cb0.toFixed(3)}</td>
-                  <td class="py-2 px-3">0.000</td>
-                </tr>
-                <tr>
-                  <td class="py-2 px-3 font-sans font-semibold text-amber-800">變化濃度 Δc (按 1 : 1 : 2)</td>
-                  <td class="py-2 px-3 text-amber-800">-${dca.toFixed(3)}</td>
-                  <td class="py-2 px-3 text-amber-800">-${dca.toFixed(3)}</td>
-                  <td class="py-2 px-3 text-amber-800">+${dcc.toFixed(3)}</td>
-                </tr>
-                <tr class="bg-blue-50/50 font-bold">
-                  <td class="py-2 px-3 font-sans text-blue-950">平衡濃度 c(平)</td>
-                  <td class="py-2 px-3 text-blue-950">${caEq.toFixed(3)}</td>
-                  <td class="py-2 px-3 text-blue-950">${cbEq.toFixed(3)}</td>
-                  <td class="py-2 px-3 text-blue-950">${ccEq.toFixed(3)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <div class="text-xs text-slate-500">平均生成速率 v(HI)</div>
-              <div class="text-base font-bold text-blue-950 mt-0.5">${vHI.toFixed(3)} mol·L⁻¹·min⁻¹</div>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <div class="text-xs text-slate-500">H₂ 平衡轉化率 α</div>
-              <div class="text-base font-bold text-blue-950 mt-0.5">${alphaA.toFixed(1)}%</div>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <div class="text-xs text-slate-500">濃度平衡常數 Kc (無量綱)</div>
-              <div class="text-base font-bold text-amber-700 mt-0.5">${Kc.toFixed(2)}</div>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <div class="text-xs text-slate-500">平始壓強比 p(平) / p(始)</div>
-              <div class="text-base font-bold text-teal-800 mt-0.5">1.000 (Δn氣 = 0 恆定)</div>
-            </div>
-          </div>
-        `;
-      }
-    }
-
-    document.querySelectorAll('.calc-preset-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.calc-preset-btn').forEach(b => {
-          b.className = 'calc-preset-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200';
-        });
-        btn.className = 'calc-preset-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-900 text-white';
-        currentCalcModel = btn.getAttribute('data-preset');
-        if (currentCalcModel === 'nh3') {
-          document.getElementById('calc-vol').value = '2.0';
-          document.getElementById('calc-time').value = '10';
-          document.getElementById('calc-na0').value = '2.0';
-          document.getElementById('calc-nb0').value = '6.0';
-          document.getElementById('calc-dna').value = '0.8';
-        } else if (currentCalcModel === 'co') {
-          document.getElementById('calc-vol').value = '2.0';
-          document.getElementById('calc-time').value = '10';
-          document.getElementById('calc-na0').value = '2.0';
-          document.getElementById('calc-dna').value = '1.0';
-        } else {
-          document.getElementById('calc-vol').value = '2.0';
-          document.getElementById('calc-time').value = '10';
-          document.getElementById('calc-na0').value = '1.0';
-          document.getElementById('calc-nb0').value = '1.0';
-          document.getElementById('calc-dna').value = '0.8';
-        }
-        updateCalculatorLabels();
-        runIceCalculator();
-      });
-    });
-
-    ['calc-vol', 'calc-time', 'calc-na0', 'calc-nb0', 'calc-dna'].forEach(id => {
-      document.getElementById(id).addEventListener('input', runIceCalculator);
-    });
-
-    // =========================================================================
-    // 7. 100-Point Exam Questions & Auto-Grading Logic
-    // =========================================================================
-    const mcqQuestions = [
-      {
-        id: 'q1',
-        num: 1,
-        tag: '速率比較與單位換算陷阱',
-        points: 6,
-        stem: '在一定條件下，可逆反應 A(s) + 3B(g) ⇌ 2C(g) + 4D(g) 在四個不同密閉容器中進行，測得以下反應速率數據。請問哪一個容器中的反應進行得最快？',
-        options: [
-          { key: 'A', text: 'v(A) = 0.50 mol·L⁻¹·s⁻¹' },
-          { key: 'B', text: 'v(B) = 0.60 mol·L⁻¹·s⁻¹' },
-          { key: 'C', text: 'v(C) = 0.50 mol·L⁻¹·s⁻¹' },
-          { key: 'D', text: 'v(D) = 48.0 mol·L⁻¹·min⁻¹' }
-        ],
-        answer: 'C',
-        explanation: '首先排除 A，因為 A(s) 為純固體，不可用濃度變化表示速率（陷阱 1）。再將各氣體統一換成 s⁻¹ 並除以係數：B 為 0.60/3 = 0.20；C 為 0.50/2 = 0.25；D 為 (48.0/60)/4 = 0.80/4 = 0.20。故 C (0.25) 最快。'
-      },
-      {
-        id: 'q2',
-        num: 2,
-        tag: '初始速率法與速率方程',
-        points: 6,
-        stem: '某溫度下，反應 2NO(g) + Cl₂(g) → 2NOCl(g) 的實驗初始速率數據如下：當 [NO]=0.10, [Cl₂]=0.10 mol·L⁻¹ 時，v₀ = 1.2×10⁻³ mol·L⁻¹·s⁻¹；保持 [Cl₂] 不變，將 [NO] 增至 0.20 mol·L⁻¹ 時，v₀ = 4.8×10⁻³ mol·L⁻¹·s⁻¹；保持 [NO]=0.20 mol·L⁻¹，將 [Cl₂] 增至 0.30 mol·L⁻¹ 時，v₀ = 1.44×10⁻² mol·L⁻¹·s⁻¹。下列敘述何者正確？',
-        options: [
-          { key: 'A', text: '該反應的速率方程為 v = k[NO][Cl₂]²，總級數為 3' },
-          { key: 'B', text: '該溫度下速率常數 k = 1.2 L²·mol⁻²·s⁻¹' },
-          { key: 'C', text: '將容器體積縮小一半，速率常數 k 增大為原來的 8 倍' },
-          { key: 'D', text: '加入正催化劑後，活化能 Ea 與反應熱 ΔH 均顯著減小' }
-        ],
-        answer: 'B',
-        explanation: '[NO] 變 2 倍時 v₀ 變 4 倍 (2²)，故對 NO 為 2 級；[Cl₂] 變 3 倍時 v₀ 變 3 倍 (3¹)，故對 Cl₂ 為 1 級，速率方程 v = k[NO]²[Cl₂]。代入第 1 組數據得 k = 1.2×10⁻³ / (0.10² × 0.10) = 1.2 L²·mol⁻²·s⁻¹。'
-      },
-      {
-        id: 'q3',
-        num: 3,
-        tag: '化學平衡狀態判據陷阱',
-        points: 6,
-        stem: '在恆溫恆容的密閉容器中發生反應：Fe₂O₃(s) + 3CO(g) ⇌ 2Fe(s) + 3CO₂(g) ΔH < 0。下列哪些現象能說明該反應已經達到化學平衡狀態？ ① 容器內混合氣體的總壓強不再變化 ② 容器內混合氣體的密度 ρ 不再變化 ③ 單位時間內消耗 3 mol CO 同時生成 3 mol CO₂ ④ 混合氣體的平均摩爾質量 M̄ 不再變化 ⑤ c(CO) : c(CO₂) = 1 : 1',
-        options: [
-          { key: 'A', text: '①②④' },
-          { key: 'B', text: '②④' },
-          { key: 'C', text: '②③⑤' },
-          { key: 'D', text: '①④⑤' }
-        ],
-        answer: 'B',
-        explanation: '氣體係數差 Δn氣 = 3 - 3 = 0，恆溫恆容下氣體總物質的量與總壓始終不變（①錯）；隨反應進行，CO(g) 奪取固體氧變成 CO₂(g)，氣體總質量 m氣 是變量，故密度 ρ = m氣/V 與平均摩爾質量 M̄ = m氣/n氣 均為變量，「變量不變」說明已達平衡（②④正確）。'
-      },
-      {
-        id: 'q4',
-        num: 4,
-        tag: '惰性氣體與轉化率綜合辨析',
-        points: 6,
-        stem: '在密閉容器中進行合成甲醇反應：CO(g) + 2H₂(g) ⇌ CH₃OH(g) ΔH = -90.8 kJ·mol⁻¹，達到平衡後，下列操作及其對應結果何者正確？',
-        options: [
-          { key: 'A', text: '恆溫恆容下充入氦氣 (He)，容器總壓增大，平衡向正反應方向移動' },
-          { key: 'B', text: '恆溫恆容下再充入 1 mol CO，平衡正向移動，CO 與 H₂ 的平衡轉化率均升高' },
-          { key: 'C', text: '升高溫度，正反應速率減小、逆反應速率增大，平衡常數 Kc 減小' },
-          { key: 'D', text: '恆溫恆壓下充入氦氣 (He)，容器體積增大，正逆反應速率均減小，平衡向逆反應方向移動' }
-        ],
-        answer: 'D',
-        explanation: 'A 恆溫恆容充入 He，各反應氣體濃度不變，平衡不移動；B 單獨增加 CO，H₂ 轉化率升高但 CO 自身轉化率降低；C 升溫時正、逆速率均增大；D 恆溫恆壓充入 He 相當於擴容減壓，正逆速率均減小，平衡向氣體分子數增多（逆反應）方向移動。'
-      },
-      {
-        id: 'q5',
-        num: 5,
-        tag: '平衡常數變形與多重平衡',
-        points: 6,
-        stem: '已知在 800 K 時，反應 ① SO₂(g) + 1/2 O₂(g) ⇌ SO₃(g) 的平衡常數 K₁ = 5.0。則在相同溫度下，反應 ② 2SO₃(g) ⇌ 2SO₂(g) + O₂(g) 的平衡常數 K₂ 為多少？',
-        options: [
-          { key: 'A', text: '-10.0' },
-          { key: 'B', text: '0.20' },
-          { key: 'C', text: '0.04' },
-          { key: 'D', text: '25.0' }
-        ],
-        answer: 'C',
-        explanation: '反應 ② 是將反應 ① 逆寫並將係數乘以 2。根據冪次法則：K₂ = (1 / K₁)² = (1 / 5.0)² = 0.04。'
-      },
-      {
-        id: 'q6',
-        num: 6,
-        tag: '反應商 Qc 與平衡移動方向計算',
-        points: 6,
-        stem: '某溫度下，可逆反應 H₂(g) + I₂(g) ⇌ 2HI(g) 的平衡常數 Kc = 64。現向體積為 2.0 L 的密閉容器中同時充入 0.40 mol H₂、0.40 mol I₂ 及 4.0 mol HI，則在該時刻：',
-        options: [
-          { key: 'A', text: 'Qc = 100 > Kc，反應向逆反應方向進行，v逆 > v正' },
-          { key: 'B', text: 'Qc = 25 < Kc，反應向正反應方向進行，v正 > v逆' },
-          { key: 'C', text: 'Qc = 64 = Kc，反應已處於化學平衡狀態' },
-          { key: 'D', text: 'Qc = 10 < Kc，反應向正反應方向進行' }
-        ],
-        answer: 'A',
-        explanation: '先除以 V = 2.0 L 求濃度：[H₂]=0.20、[I₂]=0.20、[HI]=2.0 mol·L⁻¹。Qc = 2.0² / (0.20 × 0.20) = 4.0 / 0.04 = 100 > Kc (64)，故反應向逆反應方向進行，v逆 > v正。'
-      }
-    ];
-
-    const calcQuestions = [
-      {
-        id: 'q7',
-        num: 7,
-        title: '第 7 題【實驗初始速率法求級數與速率常數】（14 分）',
-        stemHtml: `
-          <p class="text-sm text-slate-700 mb-2">
-            在 298 K 下，測定溶液中反應 <span class="math-font font-semibold">S₂O₈²⁻(aq) + 3I⁻(aq) → 2SO₄²⁻(aq) + I₃⁻(aq)</span> 的初始反應速率 v₀（以 I₃⁻ 的生成速率表示），得到以下四組數據：
-          </p>
-          <div class="overflow-x-auto mb-3">
-            <table class="w-full text-left border-collapse text-xs sm:text-sm">
-              <thead>
-                <tr class="border-b border-slate-300 bg-slate-100">
-                  <th class="py-1.5 px-3">實驗編號</th>
-                  <th class="py-1.5 px-3">c(S₂O₈²⁻) / mol·L⁻¹</th>
-                  <th class="py-1.5 px-3">c(I⁻) / mol·L⁻¹</th>
-                  <th class="py-1.5 px-3">I₃⁻ 初始生成速率 v₀ / (mol·L⁻¹·s⁻¹)</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-200 font-mono">
-                <tr><td class="py-1 px-3 font-sans">實驗 1</td><td class="py-1 px-3">0.040</td><td class="py-1 px-3">0.040</td><td class="py-1 px-3">6.4 × 10⁻⁶</td></tr>
-                <tr><td class="py-1 px-3 font-sans">實驗 2</td><td class="py-1 px-3">0.080</td><td class="py-1 px-3">0.040</td><td class="py-1 px-3">1.28 × 10⁻⁵</td></tr>
-                <tr><td class="py-1 px-3 font-sans">實驗 3</td><td class="py-1 px-3">0.080</td><td class="py-1 px-3">0.120</td><td class="py-1 px-3">3.84 × 10⁻⁵</td></tr>
-                <tr><td class="py-1 px-3 font-sans">實驗 4</td><td class="py-1 px-3">0.100</td><td class="py-1 px-3">x</td><td class="py-1 px-3">2.00 × 10⁻⁵</td></tr>
-              </tbody>
-            </table>
-          </div>
-        `,
-        subparts: [
-          { subId: 'q7_1', label: '(1) 該反應的總反應級數 (m + n) 為：', unit: '級', ans: 2, tol: 0.01, pts: 5 },
-          { subId: 'q7_2', label: '(2) 速率常數 k = 4.0×10⁻³ L·mol⁻¹·s⁻¹，則實驗 4 中未知濃度 x 為：', unit: 'mol·L⁻¹', ans: 0.05, tol: 0.002, pts: 5 },
-          { subId: 'q7_3', label: '(3) 實驗 3 初始時刻，以 I⁻ 消耗速率表示的 v(I⁻) 是幾乘以 10⁻⁴ mol·L⁻¹·s⁻¹？(填係數，如 1.152)：', unit: '× 10⁻⁴ mol·L⁻¹·s⁻¹', ans: 1.152, tol: 0.02, pts: 4 }
-        ],
-        solutionHtml: `
-          <strong>第 7 題標準詳解：</strong><br>
-          1. 對比實驗 1、2：[I⁻] 不變，[S₂O₈²⁻] 變 2 倍時 v₀ 變 2 倍 &rArr; m = 1；對比實驗 2、3：[S₂O₈²⁻] 不變，[I⁻] 變 3 倍時 v₀ 變 3 倍 &rArr; n = 1。速率方程為 <code>v = k[S₂O₈²⁻][I⁻]</code>，總級數 m + n = <strong>2</strong>。<br>
-          2. 代入實驗 1：<code>k = 6.4×10⁻⁶ / (0.040 × 0.040) = 4.0×10⁻³ L·mol⁻¹·s⁻¹</code>。代入實驗 4：<code>2.00×10⁻⁵ = 4.0×10⁻³ × 0.100 × x &rArr; x = 0.050 mol·L⁻¹</code>。<br>
-          3. 按化學計量數之比 <code>v(I⁻) = 3 × v₀(I₃⁻) = 3 × 3.84×10⁻⁵ = 1.152×10⁻⁴ mol·L⁻¹·s⁻¹</code>。
-        `
-      },
-      {
-        id: 'q8',
-        num: 8,
-        title: '第 8 題【合成氨反應標準三段式、轉化率與平衡常數計算】（16 分）',
-        stemHtml: `
-          <p class="text-sm text-slate-700 mb-3">
-            在一定溫度下，將 <strong>2.0 mol N₂</strong> 和 <strong>6.0 mol H₂</strong> 充入容積固定為 <strong>V = 2.0 L</strong> 的密閉容器中發生反應：<span class="math-font font-semibold">N₂(g) + 3H₂(g) ⇌ 2NH₃(g)</span>。反應進行到 <strong>10 min</strong> 時達到平衡，測得容器內含有 <strong>1.6 mol NH₃</strong>。
-          </p>
-        `,
-        subparts: [
-          { subId: 'q8_1', label: '(1) 0 ~ 10 min 內，以 H₂ 表示的平均反應速率 v(H₂) 為：', unit: 'mol·L⁻¹·min⁻¹', ans: 0.12, tol: 0.005, pts: 4 },
-          { subId: 'q8_2', label: '(2) 平衡時 N₂ 與 H₂ 的平衡轉化率 α 均為多少 %？(只填數字)：', unit: '%', ans: 40, tol: 0.5, pts: 4 },
-          { subId: 'q8_3', label: '(3) 該溫度下的濃度平衡常數 Kc 為 (四捨五入至小數點後三位)：', unit: 'L²·mol⁻²', ans: 0.183, tol: 0.005, pts: 4 },
-          { subId: 'q8_4', label: '(4) 平衡時總壓強與起始總壓強之比 p(平衡)/p(起始) 為 (填小數)：', unit: '', ans: 0.80, tol: 0.01, pts: 4 }
-        ],
-        solutionHtml: `
-          <strong>第 8 題標準三段式詳解：</strong><br>
-          先除以 V = 2.0 L 換成濃度：起始 [N₂]=1.0、[H₂]=3.0、[NH₃]=0 mol·L⁻¹；平衡 [NH₃] = 1.6/2.0 = 0.80 mol·L⁻¹。<br>
-          &bull; 變化濃度 Δc(N₂) : Δc(H₂) : Δc(NH₃) = 0.40 : 1.20 : 0.80；平衡濃度 [N₂]=0.60、[H₂]=1.80、[NH₃]=0.80 mol·L⁻¹。<br>
-          1. <code>v(H₂) = Δc(H₂)/Δt = 1.20 / 10 = 0.12 mol·L⁻¹·min⁻¹</code>。<br>
-          2. <code>α(N₂) = (0.40/1.0)×100% = 40%</code>；因起始投料比 2:6 = 1:3 恰等於係數比，故兩者轉化率均為 <strong>40%</strong>。<br>
-          3. <code>Kc = 0.80² / (0.60 × 1.80³) = 0.64 / 3.4992 ≈ 0.183 L²·mol⁻²</code>。<br>
-          4. <code>p(平)/p(始) = c(總,平)/c(總,始) = (0.60+1.80+0.80)/(1.0+3.0) = 3.20/4.00 = 0.80 (即 4:5)</code>。
-        `
-      },
-      {
-        id: 'q9',
-        num: 9,
-        title: '第 9 題【含固體可逆反應之 Kc 反推與 Qc 平衡移動判斷】（16 分）',
-        stemHtml: `
-          <p class="text-sm text-slate-700 mb-3">
-            在 1100 K 時，向容積固定為 <strong>V = 2.0 L</strong> 的密閉容器中加入 <strong>2.0 mol C(s)</strong> 並充入 <strong>2.0 mol CO₂(g)</strong>，發生反應：<span class="math-font font-semibold">C(s) + CO₂(g) ⇌ 2CO(g)</span>。已知該溫度下平衡常數 <strong>Kc = 2.0 mol·L⁻¹</strong>。
-          </p>
-        `,
-        subparts: [
-          { subId: 'q9_1', label: '(1) 平衡時容器內 CO(g) 的平衡濃度 [CO] 為：', unit: 'mol·L⁻¹', ans: 1.0, tol: 0.02, pts: 5 },
-          { subId: 'q9_2', label: '(2) CO₂ 的平衡轉化率 α(CO₂) 為多少 %？(只填數字)：', unit: '%', ans: 50, tol: 0.5, pts: 3 },
-          { subId: 'q9_3', label: '(3) 平衡時容器內剩餘固體炭粉 C(s) 的物質的量為：', unit: 'mol', ans: 1.0, tol: 0.02, pts: 3 },
-          { subId: 'q9_4', label: '(4) 若再同時充入 0.50 mol CO₂(g) 和 2.0 mol CO(g)，此時的濃度商 Qc 為 (保留兩位小數)：', unit: 'mol·L⁻¹', ans: 5.33, tol: 0.05, pts: 5 }
-        ],
-        solutionHtml: `
-          <strong>第 9 題標準詳解：</strong><br>
-          1. C(s) 不寫入 Kc，故 <code>Kc = [CO]² / [CO₂] = 2.0</code>。起始 [CO₂] = 2.0/2.0 = 1.0 mol·L⁻¹，設轉化濃度為 x，則平衡時 [CO₂] = 1.0 - x，[CO] = 2x。代入得 <code>(2x)² / (1.0 - x) = 2.0 &rArr; 2x² + x - 1 = 0 &rArr; x = 0.50 mol·L⁻¹</code>。故平衡時 <strong>[CO] = 2x = 1.0 mol·L⁻¹</strong>，[CO₂] = 0.50 mol·L⁻¹。<br>
-          2. 轉化率 <code>α(CO₂) = (0.50 / 1.0) × 100% = 50%</code>。<br>
-          3. 消耗 CO₂ 物質的量 = 0.50 × 2.0 = 1.0 mol，按 1:1 消耗 C(s) 1.0 mol，剩餘 C(s) = 2.0 - 1.0 = <strong>1.0 mol</strong>。<br>
-          4. 再充入後：[CO₂]' = 0.50 + 0.50/2.0 = 0.75 mol·L⁻¹；[CO]' = 1.0 + 2.0/2.0 = 2.0 mol·L⁻¹。<code>Qc = 2.0² / 0.75 ≈ 5.33 > Kc (2.0)</code>，平衡向<strong>逆反應方向</strong>移動。
-        `
-      },
-      {
-        id: 'q10',
-        num: 10,
-        title: '第 10 題【氣體解離度、摩爾分數與分壓平衡常數 Kp 進階計算】（18 分）',
-        stemHtml: `
-          <p class="text-sm text-slate-700 mb-3">
-            在 333 K 下，將 <strong>1.0 mol N₂O₄(g)</strong> 充入裝有活塞的密閉容器中，維持總壓強恆定為 <strong>p總 = 100 kPa</strong>，發生解離反應：<span class="math-font font-semibold">N₂O₄(g) ⇌ 2NO₂(g)</span>。達到平衡時，測得 N₂O₄ 的平衡解離度為 <strong>α = 60%</strong>（相對原子質量：N = 14.0, O = 16.0）。
-          </p>
-        `,
-        subparts: [
-          { subId: 'q10_1', label: '(1) 平衡時混合氣體的總物質的量 n總 為：', unit: 'mol', ans: 1.60, tol: 0.02, pts: 6 },
-          { subId: 'q10_2', label: '(2) 該溫度下的壓強平衡常數 Kp 為：', unit: 'kPa', ans: 225, tol: 1.0, pts: 6 },
-          { subId: 'q10_3', label: '(3) 平衡時混合氣體的平均摩爾質量 M̄ 為：', unit: 'g·mol⁻¹', ans: 57.5, tol: 0.2, pts: 6 }
-        ],
-        solutionHtml: `
-          <strong>第 10 題標準詳解：</strong><br>
-          1. 起始 n(N₂O₄) = 1.0 mol，轉化 0.60 mol，生成 NO₂ = 1.20 mol。平衡時 n(N₂O₄) = 0.40 mol，n(NO₂) = 1.20 mol，總物質的量 <strong>n總 = 1.60 mol</strong>。摩爾分數 x(N₂O₄) = 0.25，x(NO₂) = 0.75。<br>
-          2. 分壓 p(N₂O₄) = 100 × 0.25 = 25.0 kPa，p(NO₂) = 100 × 0.75 = 75.0 kPa。<code>Kp = 75.0² / 25.0 = 225 kPa</code>。<br>
-          3. 根據質量守恆 m總 = 1.0 × 92.0 = 92.0 g，平均摩爾質量 <code>M̄ = 92.0 / 1.60 = 57.5 g·mol⁻¹</code>。若加壓至 200 kPa，體積縮小，勒沙特列移動只能減弱而不能抵消濃度增大，故最終氣體顏色比壓縮前<strong>更深</strong>，而溫度不變故 Kp <strong>保持 225 kPa 不變</strong>。
-        `
-      }
-    ];
-
-    const userMcqAnswers = {};
-
-    function renderExam() {
-      // Render MCQs
-      const mcqBox = document.getElementById('mcq-container');
-      mcqBox.innerHTML = mcqQuestions.map(q => `
-        <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4" id="card-${q.id}">
-          <div class="flex items-center justify-between gap-2 mb-2">
-            <span class="text-sm font-bold text-blue-950">第 ${q.num} 題【${q.tag}】（${q.points} 分）</span>
-            <span id="status-${q.id}" class="text-xs font-semibold text-slate-400">尚未作答</span>
-          </div>
-          <p class="text-xs sm:text-sm text-slate-800 leading-relaxed mb-3">${q.stem}</p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-            ${q.options.map(opt => `
-              <button type="button" data-qid="${q.id}" data-opt="${opt.key}"
-                class="mcq-opt-btn text-left px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs sm:text-sm transition">
-                <strong class="mr-1.5">${opt.key}.</strong>${opt.text}
-              </button>
-            `).join('')}
-          </div>
-          <button type="button" data-sol-toggle="sol-${q.id}" class="sol-toggle-btn text-xs font-semibold text-blue-800 hover:underline">
-            查看本題詳解
-          </button>
-          <div id="sol-${q.id}" class="exam-sol-box hidden mt-2.5 p-3 rounded-lg bg-blue-50/80 border border-blue-200 text-xs text-slate-800 leading-relaxed">
-            <strong>正確答案：${q.answer}</strong><br>${q.explanation}
-          </div>
+        ${passage}
+        <div class="choices" role="radiogroup" aria-labelledby="question-title">${options}</div>
+        ${feedback}
+        <div class="quiz-actions">
+          <button type="button" class="secondary" data-action="prev" ${position === 1 ? 'disabled' : ''}>上一題</button>
+          ${answered
+            ? `<button type="button" class="primary" data-action="next">${position === count ? '查看結果' : '下一題'}</button>`
+            : '<button type="submit" class="primary" id="confirm-answer" disabled>確認答案</button>'}
         </div>
-      `).join('');
+      </form>
+      <nav class="question-index" aria-label="題號">
+        ${round.items.map(({ id }, index) => {
+          const previous = round.answers[id];
+          const outcome = previous === 0 ? 'right' : previous === undefined ? '' : 'wrong';
+          const description = previous === 0 ? '，答對' : previous === undefined ? '' : '，答錯';
+          return `<button type="button" data-position="${index}" aria-label="第 ${index + 1} 題${description}" data-outcome="${outcome}" ${index === round.position ? 'aria-current="step"' : ''} ${index !== round.position && previous === undefined ? 'disabled' : ''}>${index + 1}</button>`;
+        }).join('')}
+      </nav>
+    </section>`;
+}
 
-      // Render Structured Calculation Questions
-      const calcBox = document.getElementById('calc-q-container');
-      calcBox.innerHTML = calcQuestions.map(q => `
-        <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5">
-          <div class="flex items-center justify-between gap-2 mb-2">
-            <h4 class="text-sm sm:text-base font-bold text-blue-950">${q.title}</h4>
-            <span id="status-${q.id}" class="text-xs font-semibold text-slate-400">待批改</span>
-          </div>
-          ${q.stemHtml}
-          <div class="space-y-2.5 mb-3">
-            ${q.subparts.map(sp => `
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white p-3 rounded-lg border border-slate-200">
-                <label for="inp-${sp.subId}" class="text-xs sm:text-sm font-medium text-slate-800">${sp.label} <span class="text-slate-400">(${sp.pts}分)</span></label>
-                <div class="flex items-center gap-2 shrink-0">
-                  <input id="inp-${sp.subId}" type="number" step="any" placeholder="輸入數值"
-                    class="w-28 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm font-mono">
-                  <span class="text-xs text-slate-600 font-mono">${sp.unit}</span>
-                  <span id="badge-${sp.subId}" class="text-xs font-bold"></span>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-          <button type="button" data-sol-toggle="sol-${q.id}" class="sol-toggle-btn text-xs font-semibold text-blue-800 hover:underline">
-            查看本題三段式與詳解
-          </button>
-          <div id="sol-${q.id}" class="exam-sol-box hidden mt-2.5 p-3.5 rounded-lg bg-amber-50/80 border border-amber-200 text-xs text-slate-800 leading-relaxed">
-            ${q.solutionHtml}
-          </div>
-        </div>
-      `).join('');
+function answerList(items) {
+  return `<ul class="answer-list">${items.map(({ question, answer }) => `
+    <li><details>
+      <summary><span class="list-marker${answer === 0 ? '' : ' wrong'}">${answer === 0 ? '答對' : '答錯'}</span>
+        ${escapeText(question.prompt)}</summary>
+      ${question.passage ? `<p>${escapeText(question.passage[1])}</p>` : ''}
+      ${answer === 0 ? '' : `<p>你的答案：${escapeText(question.options[answer])}</p>`}
+      <p><strong>正解：</strong>${escapeText(question.options[0])}</p>
+      <p>${escapeText(question.explanation)}</p>
+    </details></li>`).join('')}</ul>`;
+}
 
-      // Attach listeners for MCQ buttons
-      document.querySelectorAll('.mcq-opt-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const qid = btn.getAttribute('data-qid');
-          const opt = btn.getAttribute('data-opt');
-          userMcqAnswers[qid] = opt;
-          document.querySelectorAll(`.mcq-opt-btn[data-qid="${qid}"]`).forEach(b => {
-            b.className = 'mcq-opt-btn text-left px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs sm:text-sm transition';
-          });
-          btn.className = 'mcq-opt-btn text-left px-3 py-2 rounded-lg border-2 border-blue-900 bg-blue-50 text-blue-950 font-semibold text-xs sm:text-sm transition';
-          const st = document.getElementById(`status-${qid}`);
-          if (st) {
-            st.textContent = `已選 ${opt}`;
-            st.className = 'text-xs font-semibold text-blue-800';
-          }
-        });
-      });
+function renderResult(round) {
+  const items = round.items.map(({ id }) => ({ question: byId.get(id), answer: round.answers[id] }));
+  const correct = items.filter(item => item.answer === 0).length;
+  const wrong = items.length - correct;
+  const heading = state.view === 'drill' ? '錯題重練完成' : '本輪練習完成';
+  main.innerHTML = `
+    <section class="panel result-panel" aria-labelledby="result-title">
+      <h2 id="result-title" tabindex="-1">${heading}</h2>
+      <div class="score-banner"><strong>${correct} / ${items.length}</strong><span>答對 ${correct} 題${wrong ? `，答錯 ${wrong} 題` : '，本輪全對。'}</span></div>
+      <div class="result-actions">
+        ${wrong ? '<button type="button" class="primary" data-action="retry-round">重做本輪錯題</button>' : ''}
+        <button type="button" class="${wrong ? 'secondary' : 'primary'}" data-action="new-round">開始新一輪</button>
+      </div>
+      <p class="result-intro">展開題目查看答案和解析。</p>
+      ${answerList(items)}
+    </section>`;
+}
 
-      // Attach listeners for solution toggles
-      document.querySelectorAll('.sol-toggle-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const targetId = btn.getAttribute('data-sol-toggle');
-          const box = document.getElementById(targetId);
-          if (box) box.classList.toggle('hidden');
-        });
-      });
+function renderReview() {
+  const missed = missedQuestions();
+  main.innerHTML = `
+    <section class="panel review-panel" aria-labelledby="review-title">
+      <h2 id="review-title" tabindex="-1">錯題簿</h2>
+      ${missed.length ? `
+        <p class="review-intro">目前有 ${missed.length} 題待重練。再次答對，題目就會移出錯題簿。</p>
+        <div class="result-actions"><button type="button" class="primary" data-action="retry-review">重練錯題（${Math.min(missed.length, roundSize)} 題）</button></div>
+        ${answerList(missed.map(question => ({ question, answer: state.missed[question.id] })))}
+      ` : `
+        <p class="empty-review">目前沒有待重練的題目。</p>
+        <button type="button" class="primary" data-view="practice">返回練習</button>
+      `}
+    </section>`;
+}
+
+function render(focus) {
+  renderSidebar();
+  if (state.view === 'review') {
+    renderReview();
+  } else {
+    const round = currentRound();
+    if (round.complete) renderResult(round);
+    else renderQuiz(round);
+  }
+  if (focus) {
+    const target = document.querySelector(focus === 'content' ? '#question-title, #result-title, #review-title' : focus);
+    target?.focus({ preventScroll: focus === '#feedback' });
+  }
+}
+
+function beginDrill(items) {
+  state.drill = makeRound(items);
+  state.view = 'drill';
+}
+
+document.addEventListener('click', event => {
+  const button = event.target.closest('button');
+  if (!button || button.disabled) return;
+  const { view, section, position, action } = button.dataset;
+
+  if (view) {
+    state.view = view;
+  } else if (section) {
+    state.section = section;
+    state.tag = '';
+    state.view = 'practice';
+  } else if (action === 'retry-review') {
+    beginDrill(missedQuestions().slice(0, roundSize));
+  } else if (position !== undefined || action) {
+    const round = currentRound();
+    if (position !== undefined) {
+      round.position = Number(position);
+    } else if (action === 'prev') {
+      round.position--;
+    } else if (action === 'next') {
+      if (round.position === round.items.length - 1) round.complete = true;
+      else round.position++;
+    } else if (action === 'new-round') {
+      state.view = 'practice';
+      state.rounds[roundKey()] = makeRound();
+    } else if (action === 'retry-round') {
+      beginDrill(round.items.filter(({ id }) => round.answers[id] !== 0).map(({ id }) => byId.get(id)));
     }
+  } else {
+    return;
+  }
+  save();
+  render('content');
+});
 
-    // Grade Entire Exam
-    document.getElementById('btn-grade-all').addEventListener('click', () => {
-      let mcqScore = 0;
-      let calcScore = 0;
+document.addEventListener('change', event => {
+  if (event.target.id === 'subtopic') {
+    state.tag = event.target.value;
+    save();
+    render('content');
+  } else if (event.target.name === 'choice') {
+    document.querySelector('#confirm-answer').disabled = false;
+  }
+});
 
-      mcqQuestions.forEach(q => {
-        const chosen = userMcqAnswers[q.id];
-        const st = document.getElementById(`status-${q.id}`);
-        const sol = document.getElementById(`sol-${q.id}`);
-        if (sol) sol.classList.remove('hidden');
+main.addEventListener('submit', event => {
+  if (event.target.id !== 'answer-form') return;
+  event.preventDefault();
+  const selected = new FormData(event.target).get('choice');
+  if (selected === null) return;
+  const round = currentRound();
+  const { id } = round.items[round.position];
+  if (round.answers[id] !== undefined) return;
+  const answer = Number(selected);
+  round.answers[id] = answer;
+  state.attempts++;
+  if (answer === 0) {
+    state.hits++;
+    delete state.missed[id];
+  } else {
+    delete state.missed[id];
+    state.missed[id] = answer;
+  }
+  save();
+  render('#feedback');
+});
 
-        if (chosen === q.answer) {
-          mcqScore += q.points;
-          if (st) {
-            st.textContent = `✓ 正確 (+${q.points}分)`;
-            st.className = 'text-xs font-bold text-emerald-700';
-          }
-        } else {
-          if (st) {
-            st.textContent = `✗ 錯誤 (正確為 ${q.answer})`;
-            st.className = 'text-xs font-bold text-rose-700';
-          }
-        }
-      });
-
-      calcQuestions.forEach(q => {
-        let qEarned = 0;
-        let qTotal = 0;
-        const sol = document.getElementById(`sol-${q.id}`);
-        if (sol) sol.classList.remove('hidden');
-
-        q.subparts.forEach(sp => {
-          qTotal += sp.pts;
-          const inp = document.getElementById(`inp-${sp.subId}`);
-          const badge = document.getElementById(`badge-${sp.subId}`);
-          const val = inp ? parseFloat(inp.value) : NaN;
-          if (!isNaN(val) && Math.abs(val - sp.ans) <= sp.tol) {
-            qEarned += sp.pts;
-            calcScore += sp.pts;
-            if (badge) {
-              badge.textContent = `✓ +${sp.pts}分`;
-              badge.className = 'text-xs font-bold text-emerald-700';
-            }
-          } else {
-            if (badge) {
-              badge.textContent = `✗ 答案: ${sp.ans}`;
-              badge.className = 'text-xs font-bold text-rose-700';
-            }
-          }
-        });
-
-        const st = document.getElementById(`status-${q.id}`);
-        if (st) {
-          st.textContent = `得分：${qEarned} / ${qTotal} 分`;
-          st.className = qEarned === qTotal ? 'text-xs font-bold text-emerald-700' : 'text-xs font-bold text-amber-800';
-        }
-      });
-
-      const totalScore = mcqScore + calcScore;
-      document.getElementById('header-score').textContent = `${totalScore} / 100`;
-      const banner = document.getElementById('exam-score-banner');
-      const detail = document.getElementById('exam-score-detail');
-      const badge = document.getElementById('exam-score-badge');
-      banner.classList.remove('hidden');
-      detail.textContent = `甲部選擇題：${mcqScore} / 36 分 ｜ 乙部綜合計算題：${calcScore} / 64 分`;
-      badge.textContent = `總分：${totalScore} / 100`;
-      showToast(`批改完成！你的總分為 ${totalScore} / 100 分，全部詳解已自動展開。`);
-    });
-
-    let allSolutionsOpen = false;
-    document.getElementById('btn-toggle-all-solutions').addEventListener('click', () => {
-      allSolutionsOpen = !allSolutionsOpen;
-      document.querySelectorAll('.exam-sol-box').forEach(box => {
-        if (allSolutionsOpen) {
-          box.classList.remove('hidden');
-        } else {
-          box.classList.add('hidden');
-        }
-      });
-      showToast(allSolutionsOpen ? '已展開全部試題詳解' : '已收合全部試題詳解');
-    });
-
-    document.getElementById('btn-reset-exam').addEventListener('click', () => {
-      Object.keys(userMcqAnswers).forEach(k => delete userMcqAnswers[k]);
-      document.getElementById('header-score').textContent = '0 / 100';
-      document.getElementById('exam-score-banner').classList.add('hidden');
-      renderExam();
-      showToast('試卷已清空，可以重新作答！');
-    });
-
-    // =========================================================================
-    // 8. Export / Copy HTML & Print Controls
-    // =========================================================================
-    document.getElementById('btn-copy-html').addEventListener('click', () => {
-      const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(fullHtml).then(() => {
-          showToast('已複製完整 index.html 原始碼！可直接貼上至 GitHub。');
-        }).catch(() => {
-          fallbackCopy(fullHtml);
-        });
-      } else {
-        fallbackCopy(fullHtml);
-      }
-    });
-
-    function fallbackCopy(text) {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        document.execCommand('copy');
-        showToast('已複製完整 index.html 原始碼！可直接貼上至 GitHub。');
-      } catch (e) {
-        showToast('複製失敗，請直接下載檔案上傳。');
-      }
-      document.body.removeChild(ta);
-    }
-
-    document.getElementById('btn-print-page').addEventListener('click', () => {
-      window.print();
-    });
-
-    // =========================================================================
-    // Initialize App on Load
-    // =========================================================================
-    window.addEventListener('DOMContentLoaded', () => {
-      renderTimer();
-      renderPitfalls('all');
-      updateCalculatorLabels();
-      runIceCalculator();
-      renderExam();
-      initCharts();
-    });
-  </script>
+document.querySelector('#bank-size').textContent = questions.length;
+render();
+</script>
 </body>
 </html>
