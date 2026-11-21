@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-21T09:21+00:00",
+  "updated_at": "2026-11-21T09:23+00:00",
   "datasets": [
     "pokemon",
     "moves",
@@ -12,7 +12,8 @@
     "rank10000",
     "cpm",
     "powerups",
-    "raids"
+    "raids",
+    "evolutions"
   ],
   "stale_datasets": [],
   "source": "WatWowMap / PvPoke / PoGO API",
