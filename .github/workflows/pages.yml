@@ -24,6 +24,36 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up Python for offline translation
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Cache Argos Traditional Chinese model
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/argos-translate/packages
+          key: argos-en-zt-v1.9-ubuntu-latest
+      - name: Prepare offline Traditional Chinese translator
+        run: |
+          python -m pip install --disable-pip-version-check argostranslate
+          python - <<'PY'
+          import argostranslate.package
+          import argostranslate.translate
+
+          installed = argostranslate.translate.get_installed_languages()
+          has_pair = any(
+              language.code == "en" and any(t.to_lang.code == "zt" for t in language.translations)
+              for language in installed
+          )
+          if not has_pair:
+              packages = argostranslate.package.get_available_packages()
+              package = next((p for p in packages if p.from_code == "en" and p.to_code == "zt"), None)
+              if package is None:
+                  raise SystemExit("Argos en -> Traditional Chinese model was not found")
+              package_path = package.download()
+              argostranslate.package.install_from_path(package_path)
+          print("Argos en -> Traditional Chinese ready:", argostranslate.translate.translate("Upcoming Pokémon GO events", "en", "zt"))
+          PY
       - name: Validate application syntax
         run: |
           node --check pokemon-pvp/app.js
