@@ -39,3 +39,59 @@
 .raid-card>small{line-height:1.45}
 @media(max-width:900px){.raid-grid-inner{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.raid-grid-inner{grid-template-columns:1fr}}
+
+
+/* Raid layout fix: each tier group must span the full parent grid. */
+#raidBosses > .raid-source-note,
+#raidBosses > .raid-tier-group{
+  grid-column:1 / -1;
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+#raidBosses .raid-tier-group{
+  margin:14px 0 22px;
+}
+#raidBosses .raid-grid-inner{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,205px),1fr));
+  align-items:stretch;
+  gap:14px;
+  width:100%;
+}
+#raidBosses .raid-card{
+  width:100%;
+  min-width:0;
+  min-height:270px;
+  height:100%;
+  box-sizing:border-box;
+  align-content:start;
+  overflow-wrap:anywhere;
+}
+#raidBosses .raid-card b,
+#raidBosses .raid-card small{
+  max-width:100%;
+  overflow-wrap:anywhere;
+  line-height:1.5;
+}
+#raidBosses .raid-card img{
+  width:76px;
+  height:76px;
+  margin:0 auto 4px;
+  object-fit:contain;
+}
+@media(max-width:720px){
+  #raidBosses .raid-grid-inner{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+  #raidBosses .raid-card{
+    min-height:250px;
+    padding:12px;
+  }
+}
+@media(max-width:390px){
+  #raidBosses .raid-grid-inner{
+    grid-template-columns:1fr;
+  }
+}
