@@ -95,3 +95,26 @@
     grid-template-columns:1fr;
   }
 }
+
+
+/* Interactive evolution chain in Pokédex detail */
+.evolution-launch .detail-list{margin-bottom:10px}
+.evolution-panel{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#101d2e}
+.evolution-panel[hidden]{display:none}
+.evo-chain-intro{font-size:.78rem;color:var(--muted);margin-bottom:12px}
+.evo-level{display:grid;gap:9px}
+.evo-level-title{font-size:.76rem;font-weight:800;color:var(--mint)}
+.evo-level-nodes{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:9px}
+.evo-node{min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 8px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.evo-node:hover{border-color:var(--mint);background:#20364a}
+.evo-node.current{border-color:var(--mint);box-shadow:0 0 0 1px #70e7c833}
+.evo-node img{width:64px;height:64px;object-fit:contain}
+.evo-node-name{font-size:.82rem;font-weight:800;line-height:1.35;overflow-wrap:anywhere}
+.evo-node>small{font-size:.69rem;color:var(--muted)}
+.evo-node-tag{font-size:.65rem;color:var(--mint);font-weight:700}
+.evo-conditions{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
+.evo-conditions small{font-size:.64rem;line-height:1.4;padding:3px 6px;border-radius:6px;background:#293f57;color:#d2e3f5}
+.evo-level-connector{text-align:center;color:var(--mint);font-size:1.25rem;padding:6px 0}
+.evo-empty{display:flex;flex-direction:column;gap:7px;color:var(--muted);font-size:.8rem}
+.evo-empty b{color:var(--text)}
+@media(max-width:520px){.evo-level-nodes{grid-template-columns:repeat(2,minmax(0,1fr))}.evolution-panel{padding:10px}}
