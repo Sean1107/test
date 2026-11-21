@@ -339,6 +339,18 @@ MANUAL_ZH = {
     "Pokémon GO Hub（第三方攻略）": "Pokémon GO Hub（第三方攻略）",
 }
 
+_ARGOS_ZH_TRANSLATION = None
+
+def get_argos_zh_translation():
+    global _ARGOS_ZH_TRANSLATION
+    if _ARGOS_ZH_TRANSLATION is None:
+        import argostranslate.translate as argos_translate
+        languages = argos_translate.get_installed_languages()
+        source = next(language for language in languages if language.code == "en")
+        target = next(language for language in languages if language.code == "zt")
+        _ARGOS_ZH_TRANSLATION = source.get_translation(target)
+    return _ARGOS_ZH_TRANSLATION
+
 def google_translate_zh(text, pokemon_names):
     """Translate public English game text to Traditional Chinese; protect official Pokémon names."""
     protected = text
@@ -355,8 +367,7 @@ def google_translate_zh(text, pokemon_names):
     translated = None
     # Prefer the local Argos en -> Traditional Chinese model; it works offline and needs no API key.
     try:
-        import argostranslate.translate as argos_translate
-        candidate = argos_translate.translate(protected, "en", "zt")
+        candidate = get_argos_zh_translation().translate(protected)
         if candidate and candidate.strip() and candidate.strip() != protected.strip():
             translated = candidate.strip()
     except Exception as exc:
@@ -576,7 +587,7 @@ def main():
             "community_news_count": len(json.loads((OUT / "communityNews.json").read_text(encoding="utf-8"))),
             "zh_translation_count": translation_count,
             "zh_translations_added_this_run": new_translations,
-            "translation_source": "Lingva public translation API with Google Translate fallback (cached; English originals retained)",
+            "translation_source": "Cached local Argos en-to-Traditional-Chinese model (English originals retained)",
             "pokemon_base_count": len(json.loads((OUT / "pokemon.json").read_text(encoding="utf-8"))),
             "pokemon_form_count": len(json.loads((OUT / "forms.json").read_text(encoding="utf-8"))),
             "note": "Includes PvPoke battle forms; unreleased entries are labelled. CPM 45.5–50 extrapolated if absent upstream.",
