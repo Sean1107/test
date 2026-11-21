@@ -1,0 +1,20 @@
+{
+  "updated_at": "2026-11-21T09:21+00:00",
+  "datasets": [
+    "pokemon",
+    "moves",
+    "types",
+    "names",
+    "moveNames",
+    "typeNames",
+    "rank1500",
+    "rank2500",
+    "rank10000",
+    "cpm",
+    "powerups",
+    "raids"
+  ],
+  "stale_datasets": [],
+  "source": "WatWowMap / PvPoke / PoGO API",
+  "note": "Not official Niantic account data. CPM 45.5–50 extrapolated."
+}
