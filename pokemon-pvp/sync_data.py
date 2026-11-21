@@ -354,7 +354,7 @@ def google_translate_zh(text, pokemon_names):
     query = urlencode({"client": "gtx", "sl": "en", "tl": "zh-TW", "dt": "t", "q": protected})
     url = "https://translate.googleapis.com/translate_a/single?" + query
     request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 GO-Battle-Lab/3.0"})
-    with urllib.request.urlopen(request, timeout=30) as response:
+    with urllib.request.urlopen(request, timeout=12) as response:
         payload = json.load(response)
     translated = "".join(part[0] for part in (payload[0] or []) if part and part[0])
     if not translated:
@@ -423,6 +423,7 @@ def build_zh_translation_cache():
 
     pending = [value for value in sorted(strings) if value not in translations and value not in pokemon_names]
     success = 0
+    consecutive_failures = 0
     for index, value in enumerate(pending, 1):
         # Do not send strings that are already Traditional Chinese or contain no English letters.
         if re.search(r"[\u4e00-\u9fff]", value) or not re.search(r"[A-Za-z]", value):
@@ -432,8 +433,13 @@ def build_zh_translation_cache():
             if result and result != value:
                 translations[value] = result
                 success += 1
+                consecutive_failures = 0
         except Exception as exc:
+            consecutive_failures += 1
             print(f"WARN zh translation ({index}/{len(pending)}): {value[:70]}: {exc}", file=sys.stderr)
+            if consecutive_failures >= 5:
+                print("WARN translation service unavailable; stopping new requests and retaining cached translations", file=sys.stderr)
+                break
         if index % 25 == 0:
             print(f"INFO zh translation progress: {index}/{len(pending)}")
         time.sleep(0.08)
