@@ -1,241 +1,331 @@
 "use strict";
-/* GO Battle Lab — zero-dependency, locally stored Pokémon GO training log.
-   Initial values are editable historical notes, NOT live account data. */
-const KEY="go-battle-lab-v1";
-const TYPES=["一般","火","水","電","草","冰","格鬥","毒","地面","飛行","超能力","蟲","岩石","幽靈","龍","惡","鋼","妖精"];
-const TYPE_ATTACK={
-"一般":{岩石:.625,幽靈:.39,鋼:.625},"火":{火:.625,水:.625,草:1.6,冰:1.6,蟲:1.6,岩石:.625,龍:.625,鋼:1.6},
-"水":{火:1.6,水:.625,草:.625,地面:1.6,岩石:1.6,龍:.625},
-"電":{水:1.6,電:.625,草:.625,地面:.39,飛行:1.6,龍:.625},
-"草":{火:.625,水:1.6,草:.625,毒:.625,地面:1.6,飛行:.625,蟲:.625,岩石:1.6,龍:.625,鋼:.625},
-"冰":{火:.625,水:.625,草:1.6,冰:.625,地面:1.6,飛行:1.6,龍:1.6,鋼:.625},
-"格鬥":{一般:1.6,冰:1.6,毒:.625,飛行:.625,超能力:.625,蟲:.625,岩石:1.6,幽靈:.39,惡:1.6,鋼:1.6,妖精:.625},
-"毒":{草:1.6,毒:.625,地面:.625,岩石:.625,幽靈:.625,鋼:.39,妖精:1.6},
-"地面":{火:1.6,電:1.6,草:.625,毒:1.6,飛行:.39,蟲:.625,岩石:1.6,鋼:1.6},
-"飛行":{電:.625,草:1.6,格鬥:1.6,蟲:1.6,岩石:.625,鋼:.625},
-"超能力":{格鬥:1.6,毒:1.6,超能力:.625,惡:.39,鋼:.625},
-"蟲":{火:.625,草:1.6,格鬥:.625,毒:.625,飛行:.625,超能力:1.6,幽靈:.625,惡:1.6,鋼:.625,妖精:.625},
-"岩石":{火:1.6,冰:1.6,格鬥:.625,地面:.625,飛行:1.6,蟲:1.6,鋼:.625},
-"幽靈":{一般:.39,超能力:1.6,幽靈:1.6,惡:.625},
-"龍":{龍:1.6,鋼:.625,妖精:.39},"惡":{格鬥:.625,超能力:1.6,幽靈:1.6,惡:.625,妖精:.625},
-"鋼":{火:.625,水:.625,電:.625,冰:1.6,岩石:1.6,鋼:.625,妖精:1.6},
-"妖精":{火:.625,格鬥:1.6,毒:.625,龍:1.6,惡:1.6,鋼:.625}
+/* Data-driven Pokémon GO toolkit — no account connection and no LLM API key. */
+const Q=s=>document.querySelector(s), QA=s=>[...document.querySelectorAll(s)];
+const DATA={}, SOURCES={}, typeNames={};
+const LANG={1:"一般",2:"格鬥",3:"飛行",4:"毒",5:"地面",6:"岩石",7:"蟲",8:"幽靈",9:"鋼",10:"火",11:"水",12:"草",13:"電",14:"超能力",15:"冰",16:"龍",17:"惡",18:"妖精"};
+const ENTYPE={normal:1,fighting:2,flying:3,poison:4,ground:5,rock:6,bug:7,ghost:8,steel:9,fire:10,water:11,grass:12,electric:13,psychic:14,ice:15,dragon:16,dark:17,fairy:18};
+const escaped=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const show=(v,f="—")=>v===null||v===undefined||v===""?f:v;
+const num=v=>Number.isFinite(Number(v))?Number(v):0;
+const short=n=>Number.isFinite(n)?n.toLocaleString("zh-Hant"):"—";
+const BASE="https://raw.githubusercontent.com/WatWowMap/pogo-data-api/main/data/v1/";
+const PVP="https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-";
+const POGO="https://pogoapi.net/api/v1/";
+let state={tab:"overview",dexLimit:42,moveLimit:70,selectedDex:null,selectedRank:null,league:"1500",teamLeague:"1500",teamIds:["","",""],calcId:null,rankData:{},reportText:"",selectedRaid:null};
+function notify(s){const t=Q("#toast");t.textContent=s;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3000);}
+function badge(t){return '<span class="type-badge">'+escaped(t)+'</span>';}
+function typeName(t){return LANG[Number(t)]||String(t||"未知");}
+function pokemonName(p){return DATA.names?.["poke_"+p.pokedexId]||p.pokemonName||"未知";}
+function moveName(id){return DATA.moveNames?.["move_"+id]||DATA.moveMap?.get(Number(id))?.moveName||String(id);}
+function allPokemon(){return DATA.pokemon||[];}
+function getPokemon(id){return DATA.pokemonMap?.get(Number(id));}
+function sprite(id){return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"+Number(id)+".png";}
+function pokemonTypes(p){return (p.types||[]).map(typeName);}
+function typeBadges(p){return (p.types||[]).map(t=>badge(typeName(t))).join("");}
+function makeSelectOptions(){const all=allPokemon().slice().sort((a,b)=>a.pokedexId-b.pokedexId);return '<option value="">選擇寶可夢</option>'+all.map(p=>'<option value="'+p.pokedexId+'">'+escaped(pokemonName(p))+' (#'+p.pokedexId+')</option>').join("");}
+function urlData(key){return {
+pokemon:BASE+"pokemon.json",moves:BASE+"moves.json",types:BASE+"types.json",names:BASE+"translations/zh-tw/pokemon.json",moveNames:BASE+"translations/zh-tw/moves.json",typeNames:BASE+"translations/zh-tw/types.json",
+cpm:POGO+"cp_multiplier.json",powerups:POGO+"pokemon_powerup_requirements.json",raids:POGO+"raid_bosses.json",
+rank1500:PVP+"1500.json",rank2500:PVP+"2500.json",rank10000:PVP+"10000.json"
+}[key];}
+const REMOTE={
+pokemon:BASE+"pokemon.json",moves:BASE+"moves.json",types:BASE+"types.json",names:BASE+"translations/zh-tw/pokemon.json",moveNames:BASE+"translations/zh-tw/moves.json",typeNames:BASE+"translations/zh-tw/types.json",
+cpm:POGO+"cp_multiplier.json",powerups:POGO+"pokemon_powerup_requirements.json",raids:POGO+"raid_bosses.json",
+rank1500:PVP+"1500.json",rank2500:PVP+"2500.json",rank10000:PVP+"10000.json"
 };
-const INITIAL={
-version:1, snapshot:"2026/11/20",
-resources:{rareCandy:234,stardust:null,eliteFast:0,eliteCharged:null,regularFast:null,regularCharged:null,otherCandy:null},
-rank:{season:"本季（請填寫）",current:null,currentWins:0,neededWins:null,target:19,dailyLimit:25,extraToday:0,notes:"請參考遊戲內 Rank 顯示更新每級的實際勝場要求。"},
-pokemon:[
-{id:"p-kyurem",name:"焰白酋雷姆",league:"master",types:["龍","冰"],cp:4046,level:null,ivs:[15,15,15],candy:null,xlcandy:null,stardustCost:null,candyCost:null,quickMove:"龍息",quickType:"龍",chargeMove1:"",charge1Type:"",chargeMove2:"",charge2Type:"",secondUnlocked:false,needsElite:false,fusion:"焰白合體",status:"待培養",priority:1,notes:"從先前紀錄得知為合體、100 IV、CP 4046、已改龍息。其他招式請核對。"},
-{id:"p-zacian",name:"蒼響（劍之王）",league:"master",types:["妖精","鋼"],cp:null,level:null,ivs:[null,null,null],candy:null,xlcandy:null,stardustCost:null,candyCost:null,quickMove:"",quickType:"",chargeMove1:"",charge1Type:"",chargeMove2:"",charge2Type:"",secondUnlocked:false,needsElite:false,fusion:"非合體（形態）",status:"待測試",priority:2,notes:"招式及 IV 待你確認。"},
-{id:"p-metagross",name:"巨金怪",league:"master",types:["鋼","超能力"],cp:null,level:null,ivs:[null,null,null],candy:null,xlcandy:null,stardustCost:null,candyCost:null,quickMove:"",quickType:"",chargeMove1:"",charge1Type:"",chargeMove2:"",charge2Type:"",secondUnlocked:false,needsElite:false,fusion:"",status:"待培養",priority:3,notes:"是否開第二招式及實際 IV 待確認。"},
-{id:"p-kingdra",name:"刺龍王",league:"ultra",types:["水","龍"],cp:null,level:null,ivs:[null,null,null],candy:null,xlcandy:null,stardustCost:null,candyCost:null,quickMove:"",quickType:"",chargeMove1:"",charge1Type:"",chargeMove2:"",charge2Type:"",secondUnlocked:false,needsElite:false,fusion:"",status:"待測試",priority:3,notes:"暫列高級聯盟候選，請按實際配置核對。"},
-{id:"p-greninja",name:"甲賀忍蛙",league:"ultra",types:["水","惡"],cp:null,level:null,ivs:[null,null,null],candy:null,xlcandy:null,stardustCost:null,candyCost:null,quickMove:"",quickType:"",chargeMove1:"",charge1Type:"",chargeMove2:"",charge2Type:"",secondUnlocked:false,needsElite:false,fusion:"",status:"待測試",priority:3,notes:"暫列候選，數值待核對。"},
-{id:"p-ferrothorn",name:"堅果啞鈴",league:"ultra",types:["草","鋼"],cp:null,level:null,ivs:[null,null,null],candy:null,xlcandy:null,stardustCost:null,candyCost:null,quickMove:"",quickType:"",chargeMove1:"",charge1Type:"",chargeMove2:"",charge2Type:"",secondUnlocked:false,needsElite:false,fusion:"",status:"待測試",priority:3,notes:"暫列候選，數值待核對。"}
-],
-teams:[{id:"t-master",name:"大師聯盟主力（待核對）",league:"master",members:["p-kyurem","p-zacian","p-metagross"],status:"待測試",notes:"此為暫存的候選陣容，請與遊戲內實際隊伍核對。"}, {id:"t-ultra",name:"高級聯盟候選（待核對）",league:"ultra",members:["p-kingdra","p-greninja","p-ferrothorn"],status:"待測試",notes:"此為候選陣容，非已確認的最強隊伍。"}],
-battles:[],notes:[
-{id:"n-1",title:"記錄對戰失誤",category:"操作",status:"待測試",content:"每次敗北後，記下是否因為護盾分配、換人時機或能量管理失誤，並制定一個下場可以嘗試的改進方法。"},
-{id:"n-2",title:"培養前先核對資源",category:"養成",status:"待培養",content:"先核對 IV、CP、學習器、第二招式需求，以及遊戲內顯示的星星沙子和糖果成本，避免一次消耗所有神奇糖果。"}
-]};
-const $=s=>document.querySelector(s);
-const $$=s=>[...document.querySelectorAll(s)];
-function deepClone(x){return JSON.parse(JSON.stringify(x));}
-function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return deepClone(INITIAL);const x=JSON.parse(raw);if(!valid(x))throw Error("格式不符");return x;}catch(e){console.warn(e);return deepClone(INITIAL);}}
-function valid(x){return !!(x&&x.version===1&&Array.isArray(x.pokemon)&&Array.isArray(x.teams)&&Array.isArray(x.battles)&&Array.isArray(x.notes)&&x.resources&&x.rank);}
-let data=load(),activeLeague="master",activeTeam=null,editing=null;
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(data));$("#snapshotBadge").textContent="已儲存至本機";}catch(e){notify("儲存失敗，請匯出備份");}}
-function txt(v,f="待核對"){return v===null||v===undefined||v===""?f:String(v);}
-function num(v){if(v===null||v===undefined||v==="")return null;const n=Number(v);return Number.isFinite(n)?n:null;}
-function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function e(v){return esc(txt(v));}
-function league(x){return x==="master"?"大師聯盟":"高級聯盟";}
-function statusTag(s){const c=s==="已完成"?"success":s==="待培養"?"warn":s==="需替換"?"danger":"purple";return '<span class="tag '+c+'">'+esc(s||"待核對")+"</span>";}
-function pkm(id){return data.pokemon.find(p=>p.id===id);}
-function team(id){return data.teams.find(t=>t.id===id);}
-function newid(){return "id-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);}
-function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-function notify(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2600);}
-function safeDate(x){if(!x)return "";const d=String(x).slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(d)?d:"";}
-function resultCounts(list){const wins=list.filter(b=>b.outcome==="勝").length;return {wins,total:list.length,losses:list.filter(b=>b.outcome==="負").length};}
-function stat(label,value,foot,cls=""){return '<div class="stat '+cls+'"><div class="stat-label">'+esc(label)+'</div><div class="stat-number">'+esc(value)+'</div><div class="stat-foot">'+esc(foot)+'</div></div>';}
-function statPercent(a,b){return b?Math.round(100*a/b)+"%":"--";}
-function todayBattles(){return data.battles.filter(b=>safeDate(b.date)===today());}
-function render(){
-const battles=resultCounts(data.battles),d=resultCounts(todayBattles()),rank=data.rank,remaining=rank.neededWins===null||rank.neededWins===""?null:Math.max(0,Number(rank.neededWins)-(Number(rank.currentWins)||0));
-$("#stats").innerHTML=stat("目前 Rank",txt(rank.current,"待設定"),"目標 Rank "+txt(rank.target,19),"accent")+stat("還需勝場",remaining===null?"待設定":remaining,"本級設定的所需勝場")+stat("累積勝率",statPercent(battles.wins,battles.total),battles.wins+" 勝 / "+battles.total+" 場","violet")+stat("神奇糖果",txt(data.resources.rareCandy),"請手動更新庫存");
-let pct=rank.neededWins?Math.max(0,Math.min(100,Math.round((Number(rank.currentWins)||0)/Number(rank.neededWins)*100))):0;
-let steps=[15,16,17,18,19].map(n=>'<span class="rank-step '+(rank.current===n?"current":rank.current>n?"past":"")+'">'+n+'</span>').join("");
-$("#rankCard").innerHTML='<div class="progress-label"><strong>Rank '+e(rank.current)+'</strong><small>'+esc(rank.season||"")+'</small></div><div class="bar"><span style="width:'+pct+'%"></span></div><div class="hint">本級勝場：'+esc(txt(rank.currentWins,0))+" / "+e(rank.neededWins)+"　·　還需 "+esc(txt(remaining))+" 勝</div><div class='rank-steps'>"+steps+'</div><p class="hint">每級條件可能不同，請按遊戲內顯示填寫。達成門檻後更新 Rank。</p>';
-const used=d.total+(num(rank.extraToday)||0),limit=Math.max(1,num(rank.dailyLimit)||25),usedPct=Math.min(used,limit);
-$("#dailyCard").innerHTML='<div class="today-count">'+used+' <small>/ '+limit+' 場（手動設定每日上限）</small></div><div class="daily-circles">'+Array.from({length:Math.min(50,limit)},(_,i)=>'<span class="'+(i<usedPct?"done":"")+'"></span>').join("")+'</div><p class="hint">今日已記錄：'+d.wins+' 勝 '+d.losses+' 負。其他未逐場記錄的場次，可在 Rank 設定中補填。</p>';
-$("#quickTeams").innerHTML=data.teams.slice(0,4).map(teamCard).join("")||empty("尚未建立隊伍");
-const prioritized=data.pokemon.filter(p=>p.status!=="已完成"&&p.status!=="需替換").sort((a,b)=>(num(a.priority)||99)-(num(b.priority)||99)).slice(0,4);
-$("#priorityCard").innerHTML=prioritized.map(p=>'<div class="priority-row"><div><strong>'+esc(p.name)+'</strong><small>CP '+e(p.cp)+' · 優先級 '+e(p.priority)+'</small></div><button class="btn btn-sm btn-outline" data-action="edit-mon" data-id="'+esc(p.id)+'">修改</button></div>').join("")||empty("沒有待培養項目");
-$("#resourcesCard").innerHTML=[["神奇糖果",data.resources.rareCandy],["星星沙子",data.resources.stardust],["厲害特殊招式學習器",data.resources.eliteCharged],["厲害一般招式學習器",data.resources.eliteFast]].map(([a,b])=>'<div class="resource-row"><span>'+esc(a)+'</span><strong>'+e(b)+'</strong></div>').join("");
-renderTeams();renderRoster();renderBattles();renderNotes();
+const CACHE={};
+async function getJSON(url){const res=await fetch(url,{cache:"no-cache"});if(!res.ok)throw Error("HTTP "+res.status);return res.json();}
+async function loadResource(key){
+if(DATA[key])return DATA[key];if(CACHE[key])return CACHE[key];
+CACHE[key]=(async()=>{
+const candidates=["./data/"+key+".json",REMOTE[key]];let err;
+for(const url of candidates){try{
+const obj=await getJSON(url);
+if(!obj||typeof obj!=="object"||(Array.isArray(obj)&&!obj.length))throw Error("空白資料");
+DATA[key]=obj;SOURCES[key]=url.startsWith("./")?"已同步快照":"即時公開來源";
+return obj;
+}catch(e){err=e;}}
+SOURCES[key]="讀取失敗";throw err||Error("資料來源無法連線");
+})();
+try{return await CACHE[key];}finally{delete CACHE[key];}
 }
-function empty(message){return '<div class="empty">'+esc(message)+'</div>';}
-function teamCard(t){
-const mons=t.members.map(id=>pkm(id)).filter(Boolean);
-return '<article class="team-card"><div class="team-title"><div><div class="eyebrow">'+esc(league(t.league).toUpperCase())+'</div><h3>'+esc(t.name)+'</h3></div>'+statusTag(t.status)+'</div>'+
-mons.map(p=>'<div class="pokemon-row"><span class="poke-mark">✦</span><div><strong>'+esc(p.name)+'</strong><small>'+esc(p.types.join(" / ")||"屬性待核對")+'</small></div><div class="right"><strong>CP '+e(p.cp)+'</strong><small>'+e(p.ivs.map(n=>n===null?"?":n).join("/"))+' IV</small></div></div>').join("")+
-'<div class="team-actions"><span class="team-meta">'+mons.length+'/3 隻 · '+esc(t.notes||"已建立配置").slice(0,30)+'</span><button class="btn btn-sm btn-outline" data-action="edit-team" data-id="'+esc(t.id)+'">編輯隊伍</button></div></article>';
+async function loadCore(){
+const keys=["pokemon","moves","types","names","moveNames","typeNames","cpm","rank1500","rank2500","rank10000","raids"];
+await Promise.all(keys.map(k=>loadResource(k).catch(e=>console.warn("Resource",k,e))));
+buildIndexes();renderEverything();
 }
-function typeMultiplier(atk,def){return def.reduce((m,t)=>m*((TYPE_ATTACK[atk]||{})[t]||1),1);}
-function renderTeams(){
-$$("[data-league]").forEach(b=>b.classList.toggle("active",b.dataset.league===activeLeague));
-const list=data.teams.filter(t=>t.league===activeLeague);
-$("#teamsList").innerHTML=list.map(t=>teamCard(t).replace('</div></article>','<button class="btn btn-sm btn-outline" data-action="analyze-team" data-id="'+esc(t.id)+'">分析</button></div></article>')).join("")||empty("這個聯盟尚未有隊伍，按「新增隊伍」開始。");
-const t=team(activeTeam)||list[0];if(t&&t.league!==activeLeague){activeTeam=null;}
-const selected=(t&&t.league===activeLeague)?t:list[0];
-if(!selected){$("#typeAnalysis").innerHTML=empty("請先新增隊伍");return;}
-const mons=selected.members.map(pkm).filter(Boolean);const eligible=mons.filter(p=>p.types&&p.types.length);
-const weak=TYPES.map(type=>({type,items:eligible.filter(p=>typeMultiplier(type,p.types)>1.01).map(p=>p.name)})).filter(x=>x.items.length).sort((a,b)=>b.items.length-a.items.length);
-const covers=[...new Set(mons.flatMap(p=>[p.quickType,p.charge1Type,p.charge2Type]).filter(t=>TYPES.includes(t)))];
-const weakRows=weak.map(x=>'<div class="analysis-type"><b class="analysis-tag">'+esc(x.type)+' · '+x.items.length+' 隻弱點</b><small>'+esc(x.items.join("、"))+'</small></div>').join("");
-$("#typeAnalysis").innerHTML='<p class="hint">分析陣容：<strong>'+esc(selected.name)+'</strong>。弱點按 Pokémon GO 屬性克制倍數估計；實戰還取決於護盾、招式和能量。</p><div class="analysis-columns"><div><h4>全隊防守弱點</h4>'+(weakRows||'<p class="muted">未偵測到明顯弱點（請確認屬性）。</p>')+'</div><div><h4>已填寫的進攻招式屬性</h4><div class="coverage-list">'+(covers.map(t=>'<span class="type-pill">'+esc(t)+'</span>').join("")||'<p class="muted">尚未填寫招式屬性。</p>')+'</div><p class="hint">只有已填寫招式類型才計入覆蓋。請為每隻寶可夢更新招式及屬性。</p><div class="button-group"><button class="btn btn-sm btn-outline" data-action="edit-team" data-id="'+esc(selected.id)+'">編輯此隊</button></div></div></div>';
+function buildIndexes(){
+if(Array.isArray(DATA.pokemon))DATA.pokemonMap=new Map(DATA.pokemon.filter(p=>p&&Number.isInteger(Number(p.pokedexId))).map(p=>[Number(p.pokedexId),p]));
+if(Array.isArray(DATA.moves))DATA.moveMap=new Map(DATA.moves.map(m=>[Number(m.moveId),m]));
+if(Array.isArray(DATA.types))DATA.typeMap=new Map(DATA.types.map(t=>[Number(t.typeId),t]));
 }
-function renderRoster(){
-const q=($("#rosterSearch").value||"").trim().toLowerCase(),l=$("#rosterLeague").value,s=$("#rosterStatus").value;
-const ps=data.pokemon.filter(p=>(l==="all"||p.league===l)&&(s==="all"||p.status===s)&&[p.name,p.quickMove,p.chargeMove1,p.chargeMove2,p.notes].join(" ").toLowerCase().includes(q));
-$("#rosterGrid").innerHTML=ps.map(p=>{
-const ivs=p.ivs.map(v=>v===null?"?":v).join("/");const cost=(p.stardustCost===null&&p.candyCost===null)?"待填寫":txt(p.stardustCost,"?")+" 沙 + "+txt(p.candyCost,"?")+" 糖";
-return '<article class="mon-card"><div class="mon-top"><div class="mon-glyph">✦</div><div><h3>'+esc(p.name)+'</h3><small>'+esc(league(p.league))+' · '+esc(p.types.join(" / ")||"未知屬性")+'</small></div></div><div class="mon-cp"><span>CP </span>'+e(p.cp)+'</div><div class="mon-tags">'+statusTag(p.status)+(p.fusion?'<span class="tag purple">'+esc(p.fusion)+'</span>':"")+(p.secondUnlocked?'<span class="tag success">已開第二招</span>':'<span class="tag warn">第二招未確認／未開</span>')+'</div><div class="mon-fields"><div><small>IV 攻/防/體</small><strong>'+esc(ivs)+'</strong></div><div><small>等級</small><strong>'+e(p.level)+'</strong></div><div><small>糖果 / XL</small><strong>'+e(p.candy)+' / '+e(p.xlcandy)+'</strong></div><div><small>預估升級成本</small><strong>'+esc(cost)+'</strong></div></div><div class="mon-moves">一般：'+e(p.quickMove)+'<br>特殊 1：'+e(p.chargeMove1)+'<br>特殊 2：'+e(p.chargeMove2)+'</div><div class="mon-actions"><button class="btn btn-sm btn-outline" data-action="edit-mon" data-id="'+esc(p.id)+'">修改數值</button><button class="btn btn-sm btn-outline" data-action="delete-mon" data-id="'+esc(p.id)+'">刪除</button></div></article>';
-}).join("")||empty("沒有符合條件的寶可夢");
+function parsePvpId(x){const source=String(x||"").toLowerCase();return source.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");}
+function rankName(r){
+const name=String(r.speciesName||r.speciesId||"");
+const base=name.replace(/\s*\([^)]*\)/g,"").trim();
+const p=allPokemon().find(x=>parsePvpId(x.pokemonName)===parsePvpId(base));
+return p?pokemonName(p)+(base!==name?" "+name.slice(base.length).trim():""):name;
 }
-function renderBattles(){
-const all=data.battles,scope=$("#battleLeague").value,list=all.filter(b=>scope==="all"||b.league===scope).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-const r=resultCounts(list);
-$("#battleMetrics").innerHTML=stat("記錄場次",r.total,"逐場對戰總數")+stat("勝率",statPercent(r.wins,r.total),"勝場 "+r.wins+" / 負場 "+r.losses,"accent")+stat("今日對戰",todayBattles().length,"僅計算逐場紀錄");
-$("#battleList").innerHTML=list.map(b=>'<article class="battle-item"><div><div class="battle-head">'+statusTag(b.outcome==="勝"?"已完成":b.outcome==="負"?"需替換":"待測試")+'<strong>'+esc(b.opponent||"對手未記錄")+'</strong><span class="tag">'+esc(b.outcome)+'</span></div><div class="battle-meta">'+esc(b.date)+' · '+esc(league(b.league))+' · '+esc(team(b.teamId)?.name||"未指定隊伍")+'</div>'+(b.opponentTeam?'<p>對手陣容：'+esc(b.opponentTeam)+'</p>':"")+(b.issue?'<p>問題：'+esc(b.issue)+'</p>':"")+(b.improvement?'<p>改進：'+esc(b.improvement)+'</p>':"")+'</div><div class="battle-right"><button class="btn btn-sm btn-outline" data-action="edit-battle" data-id="'+esc(b.id)+'">編輯</button><button class="btn btn-sm btn-outline" data-action="delete-battle" data-id="'+esc(b.id)+'">刪除</button></div></article>').join("")||empty("尚未記錄對戰。每場輸贏與失誤都可以在這裡保存。");
+function rankPokemon(r){
+const name=String(r.speciesName||"").replace(/\s*\([^)]*\)/g,"");
+return allPokemon().find(x=>parsePvpId(x.pokemonName)===parsePvpId(name));
 }
-function renderNotes(){
-$("#noteList").innerHTML=data.notes.map(n=>'<article class="note-card"><span class="tag">'+esc(n.category||"技術")+'</span><h3 style="margin-top:12px">'+esc(n.title)+'</h3><p>'+esc(n.content||"")+'</p><div class="note-bottom">'+statusTag(n.status)+'<button class="btn btn-sm btn-outline" data-action="edit-note" data-id="'+esc(n.id)+'">編輯</button><button class="btn btn-sm btn-outline" data-action="delete-note" data-id="'+esc(n.id)+'">刪除</button></div></article>').join("")||empty("還沒有筆記，按新增筆記開始。");
+function rankEntry(id,limit){const list=DATA["rank"+limit]||[];return list.find(r=>parsePvpId(r.speciesId)===parsePvpId(id))||list.find(r=>parsePvpId(r.speciesName)===parsePvpId(id));}
+function typeEffect(attack,defense){
+const row=DATA.typeMap?.get(Number(attack));if(!row||!defense?.length)return 1;
+return defense.reduce((m,d)=>{
+if(row.strengths?.includes(Number(d)))return m*1.6;
+if(row.immunes?.includes(Number(d)))return m*.390625;
+if(row.weakAgainst?.includes(Number(d)))return m*.625;
+return m;
+},1);
 }
-function switchTab(which){
-if(!$("#"+which)||!$("#"+which).classList.contains("view"))return;
-$$(".view").forEach(x=>x.classList.toggle("active",x.id===which));$$("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===which));
-const titles={overview:"戰鬥總覽",teams:"隊伍分析",roster:"寶可夢倉庫",battles:"對戰日誌",notes:"技術筆記",settings:"設定與備份"};
-$("#pageTitle").textContent=titles[which];location.hash=which;window.scrollTo({top:0,behavior:"instant"});
+function weakTo(types){const all=[...Array(18)].map((_,i)=>i+1);return all.map(t=>({id:t,m:typeEffect(t,types)})).sort((a,b)=>b.m-a.m);}
+function switchTab(tab){const node=Q("#"+tab);if(!node||!node.classList.contains("view"))return;state.tab=tab;QA(".view").forEach(n=>n.classList.toggle("active",n.id===tab));QA("[data-tab]").forEach(n=>n.classList.toggle("active",n.dataset.tab===tab));
+Q("#pageTitle").textContent=({overview:"訓練家總覽",pokedex:"寶可夢圖鑑",pvp:"PVP 排名",team:"隊伍分析",calculator:"IV / CP 計算器",moves:"招式圖鑑",raids:"團體戰助手",advisor:"AI 智能分析"})[tab];if(location.hash.slice(1)!==tab)history.replaceState(null,"","#"+tab);scrollTo({top:0,behavior:"instant"});}
+function sourceSummary(){
+const meta=DATA.meta||{};
+Q("#dataPill").innerHTML='<i></i> '+(DATA.pokemon?"已載入公開資料":"部分資料未載入");
+Q("#sideDataStatus").textContent=meta.updated_at?"最近同步："+String(meta.updated_at).slice(0,16):"資料快照或遠端載入";
+const names={pokemon:"寶可夢",moves:"招式",types:"屬性",rank1500:"超級聯盟排名",rank2500:"高級聯盟排名",rank10000:"大師聯盟排名",raids:"團體戰"};
+Q("#sourceStatus").innerHTML=Object.entries(names).map(([k,v])=>'<div class="source-item"><span>'+v+'</span><small>'+escaped(SOURCES[k]||"尚未載入")+'</small></div>').join("");
+const stats=[
+["圖鑑資料",allPokemon().length||"—","寶可夢 GO 基礎資料"],
+["PVP 排名",["1500","2500","10000"].filter(k=>DATA["rank"+k]).length+"/3","超級 / 高級 / 大師"],
+["招式資訊",DATA.moves?.length||"—","PVP 威力與能量"],
+["同步時間",meta.updated_at?String(meta.updated_at).slice(5,10):"即時","GitHub 公開資料"]];
+Q("#overviewStats").innerHTML=stats.map(([a,b,c])=>'<div class="stat-card"><small>'+a+'</small><strong>'+short(b)+'</strong><span>'+c+'</span></div>').join("");
 }
-function field(name,label,value,type="text",opts=null,help="",wide=false){
-const attrs='name="'+esc(name)+'" id="f-'+esc(name)+'"';let control="";
-if(type==="textarea")control='<textarea '+attrs+' rows="3">'+esc(value??"")+'</textarea>';
-else if(type==="select")control='<select '+attrs+'>'+opts.map(o=>{const v=Array.isArray(o)?o[0]:o,lab=Array.isArray(o)?o[1]:o;return '<option value="'+esc(v)+'" '+(String(value??"")===String(v)?"selected":"")+'>'+esc(lab)+'</option>';}).join("")+'</select>';
-else if(type==="checkbox")control='<input '+attrs+' type="checkbox" style="width:19px;height:19px;min-height:19px" '+(value?"checked":"")+'>';
-else control='<input '+attrs+' type="'+type+'" value="'+esc(value??"")+'" '+(type==="number"?'step="any" min="0"':"")+'>';
-return '<div class="field '+(wide?"wide":"")+'"><label for="f-'+esc(name)+'">'+esc(label)+'</label>'+control+(help?'<small class="form-help">'+esc(help)+'</small>':"")+'</div>';
+function renderEverything(){
+sourceSummary();fillFilterTypes();renderDex();renderPvp();fillPokemonControls();renderTeam();renderMoves();renderRaids();
 }
-function section(title){return '<div class="form-section field wide">'+esc(title)+'</div>';}
-function showDialog(title,html,kind,id=null){
-editing={kind,id};$("#dialogTitle").textContent=title;$("#dialogFields").innerHTML='<div class="form-grid">'+html+'</div>';// Values are prefilled in the generated controls; do not reset them.
-$("#editor").showModal();
+function fillFilterTypes(){for(const id of ["dexType","moveType"]){const q=Q("#"+id);if(q.options.length>1)return;Object.entries(LANG).forEach(([k,v])=>q.insertAdjacentHTML("beforeend",'<option value="'+k+'">'+v+'</option>'));}}
+function sortPokedex(list){
+const sort=Q("#dexSort").value;
+if(sort==="attack")return list.sort((a,b)=>num(b.attack)-num(a.attack));
+if(sort==="cp")return list.sort((a,b)=>cp(b,[15,15,15],50)-cp(a,[15,15,15],50));
+if(sort==="name")return list.sort((a,b)=>pokemonName(a).localeCompare(pokemonName(b),"zh-Hant"));
+return list.sort((a,b)=>a.pokedexId-b.pokedexId);
 }
-function showForm(kind,id=null){
-if(kind==="rank"){
-const r=data.rank;
-showDialog("Rank 與每日進度",section("本季追蹤")+field("season","賽季名稱",r.season)+field("current","目前 Rank",r.current,"number")+field("target","目標 Rank",r.target,"number")+field("currentWins","目前 Rank 已勝場數",r.currentWins,"number")+field("neededWins","目前 Rank 升下一級所需勝場",r.neededWins,"number",null,"每升一級請更新門檻")+section("今日追蹤")+field("dailyLimit","每日對戰上限",r.dailyLimit,"number")+field("extraToday","今日其他未逐場記錄的場次",r.extraToday,"number")+field("notes","備註",r.notes,"textarea",null,"實際升 Rank 條件以遊戲畫面為準",true),kind);return;
+function renderDex(){
+if(!allPokemon().length){Q("#dexGrid").innerHTML='<div class="loading-card">暫時無法載入圖鑑。請按右上「更新資料」。</div>';return;}
+const q=Q("#dexSearch").value.trim().toLowerCase(),type=Q("#dexType").value;
+const all=sortPokedex(allPokemon().filter(p=>(!type||p.types?.includes(Number(type)))&&(!q||String(p.pokedexId).includes(q)||pokemonName(p).toLowerCase().includes(q)||String(p.pokemonName).toLowerCase().includes(q))));
+Q("#dexGrid").innerHTML=all.slice(0,state.dexLimit).map(p=>'<button class="dex-card '+(state.selectedDex===p.pokedexId?"selected":"")+'" data-dex="'+p.pokedexId+'"><small class="dex-id">#'+String(p.pokedexId).padStart(4,"0")+'</small><img class="dex-sprite" loading="lazy" alt="" src="'+sprite(p.pokedexId)+'"><b>'+escaped(pokemonName(p))+'</b><div class="type-badges">'+typeBadges(p)+'</div></button>').join("")||'<div class="empty-state">找不到符合條件的寶可夢。</div>';
+Q("#dexCount").textContent="顯示 "+Math.min(all.length,state.dexLimit)+" / "+all.length+" 隻";
+Q("#dexMore").hidden=all.length<=state.dexLimit;
+if(state.selectedDex)renderDexDetail(state.selectedDex);
 }
-if(kind==="resources"){
-const labels={rareCandy:"神奇糖果",stardust:"星星沙子",eliteFast:"厲害一般招式學習器",eliteCharged:"厲害特殊招式學習器",regularFast:"一般招式學習器",regularCharged:"特殊招式學習器",otherCandy:"其他糖果（自訂）"};
-showDialog("更新資源",Object.entries(labels).map(([k,label])=>field(k,label,data.resources[k],"number")).join(""),kind);return;
+function renderDexDetail(id){
+const p=getPokemon(id);if(!p)return;state.selectedDex=p.pokedexId;
+const stat=(label,value,max=320)=>'<div class="detail-stat"><small>'+label+'</small><b>'+short(value)+'</b><div class="ability-bar"><span style="width:'+Math.min(100,num(value)/max*100)+'%"></span></div></div>';
+const fast=(p.quickMoves||[]).map(id=>moveName(id));
+const charged=(p.chargedMoves||[]).map(id=>moveName(id));
+const elite=(p.eliteQuickMoves||[]).concat(p.eliteChargedMoves||[]).map(id=>moveName(id));
+const weak=weakTo(p.types).filter(t=>t.m>1).slice(0,5),res=weakTo(p.types).filter(t=>t.m<1).slice(-5).reverse();
+Q("#dexDetail").innerHTML='<div class="detail-heading"><img src="'+sprite(id)+'" alt=""><div><small>#'+id+'</small><h3>'+escaped(pokemonName(p))+'</h3><small>'+escaped(p.pokemonName)+'</small></div></div><div class="type-badges">'+typeBadges(p)+'</div><div class="detail-block"><h4>GO 基礎能力值</h4><div class="detail-grid">'+stat("攻擊",p.attack)+stat("防禦",p.defense)+stat("體力",p.stamina)+stat("等級 50 · 100 IV CP",cp(p,[15,15,15],50),6000)+'</div></div><div class="detail-block"><h4>屬性相剋</h4><small>弱點</small><div class="pill-list">'+weak.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div><small style="display:block;margin-top:10px">抗性</small><div class="pill-list">'+res.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div></div><div class="detail-block"><h4>可學一般招式</h4><p class="detail-list">'+escaped(fast.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>可學特殊招式</h4><p class="detail-list">'+escaped(charged.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>厲害學習器招式（來源資料）</h4><p class="detail-list">'+escaped(elite.join("、")||"未列出")+'</p></div><div class="detail-block"><h4>第二特殊招式</h4><p class="detail-list">星星沙子 '+short(p.thirdMoveStardust)+' ／ 糖果 '+short(p.thirdMoveCandy)+'</p></div><div class="detail-block"><button class="btn btn-primary btn-block" data-use-calc="'+id+'">計算這隻的 IV / CP →</button></div>';
 }
-if(kind==="mon"){
-const p=data.pokemon.find(x=>x.id===id)||{id:null,name:"",league:"master",types:[],cp:null,level:null,ivs:[null,null,null],candy:null,xlcandy:null,stardustCost:null,candyCost:null,quickMove:"",quickType:"",chargeMove1:"",charge1Type:"",chargeMove2:"",charge2Type:"",secondUnlocked:false,needsElite:false,fusion:"",status:"待培養",priority:3,notes:""};
-const typeOpts=[["","未選擇"],...TYPES.map(t=>[t,t])],type1=p.types[0]||"",type2=p.types[1]||"";
-let h=section("基本資料")+field("name","名稱",p.name)+field("league","適用聯盟",p.league,"select",[["master","大師聯盟"],["ultra","高級聯盟"]])+field("type1","屬性一",type1,"select",typeOpts)+field("type2","屬性二（可留空）",type2,"select",typeOpts)+field("cp","目前 CP",p.cp,"number")+field("level","目前等級",p.level,"number")+section("個體值與資源")+field("ivAtk","攻擊 IV (0–15)",p.ivs[0],"number")+field("ivDef","防禦 IV (0–15)",p.ivs[1],"number")+field("ivSta","體力 IV (0–15)",p.ivs[2],"number")+field("candy","目前該寶可夢糖果",p.candy,"number")+field("xlcandy","目前 XL 糖果",p.xlcandy,"number")+field("candyCost","預計培養所需糖果",p.candyCost,"number")+field("stardustCost","預計培養所需星星沙子",p.stardustCost,"number")+section("招式與形態")+field("quickMove","一般招式",p.quickMove)+field("quickType","一般招式屬性",p.quickType,"select",typeOpts)+field("chargeMove1","特殊招式一",p.chargeMove1)+field("charge1Type","特殊一屬性",p.charge1Type,"select",typeOpts)+field("chargeMove2","特殊招式二",p.chargeMove2)+field("charge2Type","特殊二屬性",p.charge2Type,"select",typeOpts)+field("secondUnlocked","已開啟第二招式",p.secondUnlocked,"checkbox")+field("needsElite","仍需厲害招式學習器",p.needsElite,"checkbox")+field("fusion","合體／形態狀態",p.fusion)+section("養成決策")+field("status","養成狀態",p.status,"select",["已完成","待培養","待測試","需替換"])+field("priority","優先級（1 最高）",p.priority,"number")+field("notes","養成備註",p.notes,"textarea",null,"費用請以遊戲實際數值為準",true);
-showDialog(p.id?"編輯寶可夢":"新增寶可夢",h,kind,id);return;
+function renderPvp(){
+const list=DATA["rank"+state.league]||[];
+QA("[data-league]").forEach(n=>n.classList.toggle("active",n.dataset.league===state.league));
+const labels={"1500":"超級聯盟","2500":"高級聯盟","10000":"大師聯盟"};
+Q("#pvpHeading").textContent=labels[state.league]+" · 模擬排名";
+if(!list.length){Q("#pvpList").innerHTML='<div class="empty-state">目前無法取得此聯盟排名。</div>';return;}
+const q=Q("#pvpSearch").value.toLowerCase().trim(),max=Number(Q("#pvpLimit").value);
+const filtered=list.map((r,i)=>({...r,rank:i+1})).filter(r=>!q||rankName(r).toLowerCase().includes(q)||r.speciesName.toLowerCase().includes(q)).slice(0,max);
+Q("#pvpList").innerHTML=filtered.map(r=>{const p=rankPokemon(r);return '<button class="ranking-item '+(state.selectedRank===r.speciesId?"selected":"")+'" data-rank="'+escaped(r.speciesId)+'"><span class="rank-number">#'+r.rank+'</span><img alt="" loading="lazy" src="'+(p?sprite(p.pokedexId):"data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=")+'"><span><b>'+escaped(rankName(r))+'</b><small>'+escaped(r.speciesName)+'</small></span><span class="rank-score">'+short(r.score)+'</span></button>';}).join("")||'<div class="empty-state">沒有符合條件的排名。</div>';
+Q("#pvpUpdated").textContent="資料 "+list.length+" 項 · "+(DATA.meta?.updated_at?.slice(0,10)||"公開來源");
+if(state.selectedRank)renderPvpDetail(state.selectedRank);
 }
-if(kind==="team"){
-const t=data.teams.find(x=>x.id===id)||{id:null,name:"",league:activeLeague,members:[],status:"待測試",notes:""};
-const choices=[["","未選擇"],...data.pokemon.map(p=>[p.id,p.name+"（"+league(p.league)+"）"])];
-let h=field("name","隊伍名稱",t.name,null,null,"",true)+field("league","聯盟",t.league,"select",[["master","大師聯盟"],["ultra","高級聯盟"]])+field("status","隊伍狀態",t.status,"select",["已完成","待培養","待測試","需替換"])+section("出戰順序")+field("mon1","首發",t.members[0],"select",choices)+field("mon2","第二隻",t.members[1],"select",choices)+field("mon3","第三隻",t.members[2],"select",choices)+field("notes","戰術備註",t.notes,"textarea",null,"最多三隻，成員不可重複",true);
-showDialog(t.id?"編輯隊伍":"新增隊伍",h,kind,id);return;
+function renderPvpDetail(id){
+const list=DATA["rank"+state.league]||[];const r=list.find(x=>x.speciesId===id);if(!r)return;state.selectedRank=id;
+const p=rankPokemon(r),moves=(r.moveset||[]).map(m=>{const match=DATA.moves?.find(x=>parsePvpId(x.proto)===parsePvpId(m));return match?moveName(match.moveId):m;});
+const matching=all=>all?.map(x=>{const rr=rankEntry(x.opponent,state.league);return rr?rankName(rr):x.opponent;}).join("、")||"未提供";
+Q("#pvpDetail").innerHTML='<div class="detail-heading">'+(p?'<img src="'+sprite(p.pokedexId)+'" alt="">':"")+'<div><small>PVP RANK #'+(list.indexOf(r)+1)+'</small><h3>'+escaped(rankName(r))+'</h3><small>模擬評分 '+show(r.score)+'</small></div></div><div class="detail-block"><h4>推薦招式</h4><p class="detail-list">'+escaped(moves.join(" ／ ")||"暫無推薦資料")+'</p></div><div class="detail-block"><h4>模擬中較有利的對局</h4><p class="detail-list">'+escaped(matching(r.matchups))+'</p></div><div class="detail-block"><h4>模擬中較不利的對局</h4><p class="detail-list">'+escaped(matching(r.counters))+'</p></div>'+(r.editorNotes?'<div class="detail-block"><h4>PvPoke 原文評語</h4><p class="detail-list">'+escaped(r.editorNotes)+'</p></div>':"")+'<div class="detail-block"><button class="btn btn-primary btn-block" data-use-team="'+(p?p.pokedexId:"")+'">加入隊伍分析 →</button></div>';
 }
-if(kind==="battle"){
-const b=data.battles.find(x=>x.id===id)||{id:null,date:today(),league:activeLeague,teamId:"",opponent:"",opponentTeam:"",outcome:"勝",issue:"",improvement:"",notes:""};
-const teamOpts=[["","未指定"],...data.teams.map(x=>[x.id,x.name])];
-let h=field("date","對戰日期",b.date,"date")+field("league","聯盟",b.league,"select",[["master","大師聯盟"],["ultra","高級聯盟"]])+field("teamId","使用隊伍",b.teamId,"select",teamOpts)+field("outcome","結果",b.outcome,"select",["勝","負","平"])+field("opponent","對手／主要威脅",b.opponent)+field("opponentTeam","對手三隻寶可夢",b.opponentTeam)+field("issue","遇到的問題",b.issue,"textarea",null,"例如：擋盾失誤、首發不利",true)+field("improvement","下一場改進方式",b.improvement,"textarea",null,"記錄一項可執行的行動",true)+field("notes","其他戰術筆記",b.notes,"textarea",null,"",true);
-showDialog(b.id?"編輯對戰":"記錄一場對戰",h,kind,id);return;
+function fillPokemonControls(){
+if(!allPokemon().length)return;const opts=makeSelectOptions();
+for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"]){const el=Q("#"+id),before=el.value;el.innerHTML=opts;el.value=before||"";}
+Q("#pokemonOptions").innerHTML=allPokemon().map(p=>'<option value="'+escaped(pokemonName(p))+'">'+escaped(p.pokemonName)+'</option>').join("");
 }
-if(kind==="note"){
-const n=data.notes.find(x=>x.id===id)||{id:null,title:"",category:"操作",content:"",status:"待測試"};
-let h=field("title","筆記標題",n.title,null,null,"",true)+field("category","分類",n.category,"select",["操作","隊伍","養成","對戰觀察","其他"])+field("status","狀態",n.status,"select",["已完成","待培養","待測試","需替換"])+field("content","筆記內容",n.content,"textarea",null,"",true);
-showDialog(n.id?"編輯筆記":"新增技術筆記",h,kind,id);
+function renderTeam(){
+QA("[data-team-league]").forEach(x=>x.classList.toggle("active",x.dataset.teamLeague===state.teamLeague));
+for(let i=0;i<3;i++){
+const p=getPokemon(state.teamIds[i]);Q("#team"+(i+1)).value=state.teamIds[i]||"";
+Q("#team"+(i+1)+"Card").innerHTML=p?'<img src="'+sprite(p.pokedexId)+'" alt=""><b>'+escaped(pokemonName(p))+'</b><br><span>'+pokemonTypes(p).join(" / ")+'</span><br><small>最高 CP '+cp(p,[15,15,15],50)+'</small>':"尚未選擇";
 }
 }
-function getForm(){const f=new FormData($("#editorForm"));const obj=Object.fromEntries(f.entries());for(const [k,v] of Object.entries(obj))if(typeof v==="string")obj[k]=v.trim();return obj;}
-function requireName(v,label){if(!v||!String(v).trim()){notify("請填寫"+label);return false;}return true;}
-function saveDialog(ev){
-ev.preventDefault();const x=getForm();const {kind,id}=editing||{};let newItem;
-if(kind==="rank"){
-data.rank={season:x.season,current:num(x.current),target:num(x.target)||19,currentWins:num(x.currentWins)||0,neededWins:num(x.neededWins),dailyLimit:num(x.dailyLimit)||25,extraToday:num(x.extraToday)||0,notes:x.notes};
-}else if(kind==="resources"){
-Object.keys(data.resources).forEach(k=>data.resources[k]=num(x[k]));
-}else if(kind==="mon"){
-if(!requireName(x.name,"寶可夢名稱"))return;
-const ivs=[num(x.ivAtk),num(x.ivDef),num(x.ivSta)];
-if(ivs.some(v=>v!==null&&(v>15||v<0))){notify("IV 必須介乎 0 至 15");return;}
-newItem={id:id||newid(),name:x.name,league:x.league,types:[x.type1,x.type2].filter((s,i,a)=>s&&a.indexOf(s)===i),cp:num(x.cp),level:num(x.level),ivs,candy:num(x.candy),xlcandy:num(x.xlcandy),stardustCost:num(x.stardustCost),candyCost:num(x.candyCost),quickMove:x.quickMove,quickType:x.quickType,chargeMove1:x.chargeMove1,charge1Type:x.charge1Type,chargeMove2:x.chargeMove2,charge2Type:x.charge2Type,secondUnlocked:!!x.secondUnlocked,needsElite:!!x.needsElite,fusion:x.fusion,status:x.status,priority:num(x.priority)||3,notes:x.notes};
-if(id)data.pokemon=data.pokemon.map(p=>p.id===id?newItem:p);else data.pokemon.push(newItem);
-}else if(kind==="team"){
-if(!requireName(x.name,"隊伍名稱"))return;
-const members=[x.mon1,x.mon2,x.mon3].filter(Boolean);
-if(new Set(members).size!==members.length){notify("同一隊伍不可重複使用同一隻寶可夢");return;}
-if(members.some(mid=>pkm(mid)?.league!==x.league)){notify("隊伍成員的聯盟欄位必須與隊伍相符");return;}
-newItem={id:id||newid(),name:x.name,league:x.league,members,status:x.status,notes:x.notes};
-if(id)data.teams=data.teams.map(t=>t.id===id?newItem:t);else data.teams.push(newItem);
-activeLeague=x.league;activeTeam=newItem.id;
-}else if(kind==="battle"){
-if(!safeDate(x.date)){notify("請填寫正確的對戰日期");return;}
-newItem={id:id||newid(),date:x.date,league:x.league,teamId:x.teamId,opponent:x.opponent,opponentTeam:x.opponentTeam,outcome:x.outcome,issue:x.issue,improvement:x.improvement,notes:x.notes};
-if(id)data.battles=data.battles.map(b=>b.id===id?newItem:b);else data.battles.push(newItem);
-}else if(kind==="note"){
-if(!requireName(x.title,"筆記標題"))return;
-newItem={id:id||newid(),title:x.title,category:x.category,content:x.content,status:x.status};
-if(id)data.notes=data.notes.map(n=>n.id===id?newItem:n);else data.notes.push(newItem);
+function teamIssues(ids,league){
+const mons=ids.map(getPokemon).filter(Boolean);
+const weak=Array.from({length:18},(_,i)=>i+1).map(t=>({t,weak:mons.filter(p=>typeEffect(t,p.types)>1.01),resist:mons.filter(p=>typeEffect(t,p.types)<.99)})).sort((a,b)=>b.weak.length-a.weak.length);
+const ranks=mons.map(p=>({p,r:(DATA["rank"+league]||[]).find(x=>parsePvpId(x.speciesName?.replace(/\s*\([^)]*\)/g,""))===parsePvpId(p.pokemonName))}));
+const coverage=new Set(mons.flatMap(p=>(p.quickMoves||[]).concat(p.chargedMoves||[])).map(x=>DATA.moveMap?.get(Number(x))?.type).filter(Number.isFinite));
+return {mons,weak,ranks,coverage};
 }
-persist();$("#editor").close();render();notify("資料已儲存");
+function analyzeTeam(){
+const {mons,weak,ranks,coverage}=teamIssues(state.teamIds,state.teamLeague);
+if(!mons.length){Q("#teamAnalysis").innerHTML='<div class="empty-state">請至少選擇一隻寶可夢。</div>';return;}
+const dangerous=weak.filter(x=>x.weak.length>=2),noResponse=weak.filter(x=>x.weak.length&&x.resist.length===0).slice(0,7);
+const proposed=[...coverage].sort((a,b)=>a-b).map(typeName);
+const ranked=ranks.map(x=>'<div class="matchup-item"><span>'+escaped(pokemonName(x.p))+'</span><small>'+(x.r?"模擬評分 "+x.r.score:"未找到直接對應的排名形態")+'</small></div>').join("");
+const suggestions=dangerous.length?dangerous.map(x=>typeName(x.t)+"：有 "+x.weak.length+" 隻成員怕此屬性，建議安排抗性替換位。"):[ "目前沒有兩隻以上成員共享的明顯屬性弱點，但招式與 PvP 對局仍可能構成風險。"];
+Q("#teamAnalysis").innerHTML='<div class="analysis-grid"><section class="panel"><h3>共同弱點</h3>'+(dangerous.map(x=>'<div class="matchup-item"><strong>'+typeName(x.t)+' · '+x.weak.length+' 隻弱點</strong><small>'+x.weak.map(pokemonName).join("、")+'</small></div>').join("")||'<p class="muted">沒有兩隻以上共享的弱點。</p>')+'</section><section class="panel"><h3>聯盟排名參考</h3>'+ranked+'<p class="muted" style="margin-top:12px;font-size:.78rem">排名以 PvPoke 模擬資料為準，形態不同時不強行匹配。</p></section><section class="panel"><h3>進攻屬性池（可學招式）</h3><div class="pill-list">'+(proposed.map(badge).join("")||"尚未有招式屬性資料")+'</div><p class="muted" style="margin-top:12px;font-size:.78rem">此處顯示全部可學招式的類型，並非目前配招；不能代替完整模擬。</p></section><section class="panel"><h3>改善方向</h3><ul class="tip-list">'+suggestions.map(x=>'<li>'+escaped(x)+'</li>').join("")+'</ul>'+(noResponse.length?'<p class="muted">需留意無抗性替補的屬性：'+noResponse.map(x=>typeName(x.t)).join("、")+'</p>':"")+'</section></div>';
 }
-function remove(kind,id){
-const types={mon:["pokemon","寶可夢"],battle:["battles","對戰紀錄"],note:["notes","技術筆記"],team:["teams","隊伍"]},def=types[kind];if(!def||!confirm("確定刪除這筆"+def[1]+"？"))return;
-data[def[0]]=data[def[0]].filter(x=>x.id!==id);
-if(kind==="mon")data.teams.forEach(t=>t.members=t.members.filter(x=>x!==id));
-persist();render();notify("已刪除");
+function cp(p,ivs,level){
+const cpm=DATA.cpm?.find(x=>Math.abs(Number(x.level)-Number(level))<.001)?.multiplier;
+if(!p||!cpm||![p.attack,p.defense,p.stamina].every(Number.isFinite))return null;
+const [a,d,s]=ivs.map(num);
+return Math.max(10,Math.floor((p.attack+a)*Math.sqrt(p.defense+d)*Math.sqrt(p.stamina+s)*cpm*cpm/10));
 }
-function exportData(){
-const file=new Blob([JSON.stringify(data,null,2)],{type:"application/json;charset=utf-8"}),url=URL.createObjectURL(file),a=document.createElement("a");a.href=url;a.download="go-battle-lab-"+today()+".json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify("備份已下載");
+function bestLevel(p,ivs,limit){
+const levels=DATA.cpm||[];let best=null;
+for(const l of levels){if(l.level>50)continue;const value=cp(p,ivs,l.level);if(value===null)continue;if(value<=limit&&(!best||l.level>best.level))best={level:l.level,cp:value,cpm:l.multiplier};}
+return best;
 }
-async function importData(file){
-if(!file)return;try{if(file.size>3000000)throw Error("檔案過大");const obj=JSON.parse(await file.text());if(!valid(obj))throw Error("無法識別格式");if(!confirm("匯入資料將覆蓋本機目前所有紀錄，繼續嗎？"))return;data=obj;persist();render();notify("匯入完成");}catch(e){notify("匯入失敗："+e.message);}$("#importFile").value="";
+function findCalcPokemon(){
+const q=Q("#calcPokemonSearch").value.trim().toLowerCase();
+const p=allPokemon().find(x=>pokemonName(x).toLowerCase()===q||x.pokemonName.toLowerCase()===q||String(x.pokedexId)===q);
+state.calcId=p?.pokedexId||null;return p;
 }
-document.addEventListener("click",ev=>{
-const tab=ev.target.closest("[data-tab],[data-link-tab]");
-if(tab){switchTab(tab.dataset.tab||tab.dataset.linkTab);return;}
-const l=ev.target.closest("[data-league]");
-if(l){activeLeague=l.dataset.league;activeTeam=null;renderTeams();return;}
-const b=ev.target.closest("[data-action]");
-if(!b)return;const a=b.dataset.action,id=b.dataset.id;
-if(a==="new-mon")showForm("mon");else if(a==="edit-mon")showForm("mon",id);
-else if(a==="new-team")showForm("team");else if(a==="edit-team")showForm("team",id);
-else if(a==="analyze-team"){activeTeam=id;renderTeams();$("#typeAnalysis").scrollIntoView({behavior:"smooth"});}
-else if(a==="add-battle")showForm("battle");else if(a==="edit-battle")showForm("battle",id);
-else if(a==="new-note")showForm("note");else if(a==="edit-note")showForm("note",id);
-else if(a==="edit-rank")showForm("rank");else if(a==="edit-resources")showForm("resources");
-else if(a==="delete-mon")remove("mon",id);else if(a==="delete-team")remove("team",id);
-else if(a==="delete-battle")remove("battle",id);else if(a==="delete-note")remove("note",id);
-else if(a==="export")exportData();else if(a==="import")$("#importFile").click();
-else if(a==="reset"){if(confirm("確定重設全部數據？先前修改將無法復原。")){data=deepClone(INITIAL);persist();render();notify("已重設初始資料");}}
+function calculate(){
+const p=findCalcPokemon();if(!p){Q("#calcResults").innerHTML='<div class="empty-state">請先選擇圖鑑中存在的寶可夢名稱。</div>';return;}
+const ivs=["ivAtk","ivDef","ivSta"].map(id=>Number(Q("#"+id).value));
+if(ivs.some(v=>!Number.isInteger(v)||v<0||v>15)){notify("IV 需是 0 至 15 的整數");return;}
+const level=Number(Q("#calcLevel").value),target=Number(Q("#targetLevel").value),limit=Number(Q("#calcLeague").value);
+const current=cp(p,ivs,level),end=cp(p,ivs,target),max40=cp(p,ivs,40),max50=cp(p,ivs,50);
+const best=limit===10000?{level:50,cp:max50}:bestLevel(p,ivs,limit);
+if(current===null){Q("#calcResults").innerHTML='<div class="empty-state">CP 倍率資料目前不可用，無法計算。</div>';return;}
+const raw=calcRank(p,ivs,limit);
+const costs=calcCost(level,target);
+const costMessage=costs?'<p class="result-small">資料來源估算：星星沙子 '+short(costs.dust)+'、一般糖果 '+short(costs.candy)+'、XL 糖果 '+short(costs.xl)+'。實際費用可能受活動／特殊條件影響。</p>':'<p class="result-small">尚未找到完整可信的強化成本表，請以遊戲畫面為準。</p>';
+Q("#calcResults").innerHTML='<div class="result-card"><small>當前 CP · '+escaped(pokemonName(p))+'</small><div class="result-big">'+current+'</div><div class="result-small">等級 '+level+' · IV '+ivs.join("/")+' · IV 完美程度 '+Math.round(100*ivs.reduce((a,b)=>a+b,0)/45)+'%</div></div><div class="result-card"><h3>升級與聯盟</h3><div class="result-grid"><div><small>目標等級 '+target+'</small><strong>CP '+show(end)+'</strong></div><div><small>等級 40 / 50</small><strong>'+show(max40)+' / '+show(max50)+'</strong></div><div><small>聯盟上限</small><strong>'+limit+'</strong></div><div><small>目前 IV 可達</small><strong>'+show(best?.cp)+' (Lv '+show(best?.level)+')</strong></div></div>'+costMessage+'</div><div class="result-card"><h3>PVP IV 評估</h3>'+(raw?'<div class="result-big">#'+raw.rank+' / '+raw.total+'</div><p class="result-small">相同物種 4,096 種 IV 組合的排名。依聯盟 CP 上限最大化等級後，以攻擊 × 防禦 × 體力的實戰能力值乘積估算；不代表實際對戰勝率。計算忽略好友／最佳夥伴加成及特殊形態。</p>':'<p class="muted">缺少計算所需的 CP 倍率或基礎資料。</p>')+'</div>';
+}
+function calcRank(p,ivs,limit){
+if(!DATA.cpm||!p)return null;
+const calculateEntry=arr=>{
+const item=limit===10000?{level:50,cp:cp(p,arr,50),cpm:DATA.cpm.find(x=>x.level===50)?.multiplier}:bestLevel(p,arr,limit);
+if(!item||item.cpm==null)return null;
+const [a,d,s]=arr;
+const atk=(p.attack+a)*item.cpm,def=(p.defense+d)*item.cpm,hp=Math.max(10,Math.floor((p.stamina+s)*item.cpm));
+return atk*def*hp;
+};
+const target=calculateEntry(ivs);if(target===null)return null;
+let rank=1,total=0;
+for(let a=0;a<16;a++)for(let d=0;d<16;d++)for(let s=0;s<16;s++){const value=calculateEntry([a,d,s]);if(value!==null){total++;if(value>target+1e-8)rank++;}}
+return {rank,total};
+}
+function calcCost(from,to){
+const raw=DATA.powerups;
+if(!raw||to<=from)return null;
+let entries=Array.isArray(raw)?raw:Object.entries(raw).map(([level,v])=>({level,...v}));
+let dust=0,candy=0,xl=0;
+for(let lv=from;lv<to;lv+=.5){const e=entries.find(x=>Number(x.level)===lv);if(!e)return null;
+const d=e.stardust||e.stardust_cost||e.stardustCost;
+const c=e.candy||e.candy_cost||e.candyCost||0;
+const xc=e.xl_candy||e.xlCandy||e.candy_xl||0;
+if(!Number.isFinite(Number(d)))return null;dust+=Number(d);candy+=Number(c);xl+=Number(xc);}
+return {dust,candy,xl};
+}
+function renderMoves(){
+const list=DATA.moves||[];if(!list.length){Q("#moveList").innerHTML='<div class="empty-state">招式資料無法載入。</div>';return;}
+const q=Q("#moveSearch").value.trim().toLowerCase(),kind=Q("#moveKind").value,type=Q("#moveType").value;
+const filtered=list.filter(m=>m.type&&(kind==="all"||(kind==="fast"?m.fast:!m.fast))&&(!type||Number(m.type)===Number(type))&&(!q||moveName(m.moveId).toLowerCase().includes(q)||m.moveName.toLowerCase().includes(q)));
+const html=filtered.slice(0,state.moveLimit).map(m=>{
+const energy=m.pvpEnergyDelta==null?"—":m.fast?"+"+m.pvpEnergyDelta:Math.abs(m.pvpEnergyDelta);
+return '<div class="move-row"><span><b>'+escaped(moveName(m.moveId))+'</b><small>'+escaped(m.moveName)+' · '+(m.fast?"一般":"特殊")+'</small></span><span>'+badge(typeName(m.type))+'</span><span>'+show(m.pvpPower)+'</span><span>'+energy+'</span><span>'+show(m.fast?Math.max(1,Math.round((m.pvpDurationTurns??m.durationMs/500)||0)):"—")+'</span></div>';
+}).join("");
+Q("#moveList").innerHTML=html||'<div class="empty-state">沒有符合條件的招式。</div>';
+Q("#moveCount").textContent="顯示 "+Math.min(filtered.length,state.moveLimit)+" / "+filtered.length+" 個招式";
+Q("#moveMore").hidden=filtered.length<=state.moveLimit;
+}
+function raidPokemon(r){
+const id=r.pokemon_id||r.pokemon_id_number||r.pokemonId||r.id;
+return getPokemon(id)||allPokemon().find(p=>parsePvpId(p.pokemonName)===parsePvpId(r.pokemon||r.pokemon_name||r.name));
+}
+function renderRaids(){
+const r=DATA.raids;
+if(!Array.isArray(r)||!r.length){Q("#raidBosses").innerHTML='<div class="empty-state">目前公開團體戰 Boss 清單無法取得或格式未被支援。你仍可在圖鑑選擇任何寶可夢查詢其弱點。</div>';return;}
+const selected=r.map((x,i)=>({i,x,p:raidPokemon(x)})).filter(v=>v.p).slice(0,40);
+if(!selected.length){Q("#raidBosses").innerHTML='<div class="empty-state">團體戰來源目前未提供可匹配的 Boss 清單，請使用圖鑑查詢克制。</div>';return;}
+Q("#raidBosses").innerHTML=selected.map(({i,x,p})=>'<button class="raid-card" data-raid="'+i+'"><img src="'+sprite(p.pokedexId)+'" alt=""><b>'+escaped(pokemonName(p))+'</b><small>團體戰 · '+escaped(x.raid_level||x.tier||"Boss")+'</small><div class="type-badges">'+typeBadges(p)+'</div></button>').join("");
+}
+function raidAdvice(p){
+const weak=weakTo(p.types).filter(x=>x.m>1.01);
+const candidates=allPokemon().map(a=>{
+if(a.pokedexId===p.pokedexId)return null;
+const moves=(a.quickMoves||[]).concat(a.chargedMoves||[]).map(id=>DATA.moveMap?.get(Number(id))).filter(m=>m?.type);
+const max=Math.max(...moves.map(m=>typeEffect(m.type,p.types)*(a.types?.includes(m.type)?1.2:1)),0);
+return {a,score:max*num(a.attack),max};
+}).filter(x=>x&&x.max>1).sort((a,b)=>b.score-a.score).slice(0,12);
+return {weak,candidates};
+}
+function showRaid(index){
+const raid=DATA.raids?.[index],p=raid&&raidPokemon(raid);if(!p)return;
+const {weak,candidates}=raidAdvice(p);
+Q("#raidDetail").innerHTML='<h3>團體戰 · '+escaped(pokemonName(p))+'</h3><div class="pill-list">'+weak.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div><h4 style="margin:22px 0 11px">簡易克制攻擊手（非 DPS 模擬）</h4><div class="ranking-list">'+candidates.map((x,i)=>'<div class="ranking-item"><span class="rank-number">#'+(i+1)+'</span><img src="'+sprite(x.a.pokedexId)+'" alt=""><span><b>'+escaped(pokemonName(x.a))+'</b><small>基礎攻擊 '+x.a.attack+' · 最大屬性加成 ×'+x.max.toFixed(2)+'</small></span></div>').join("")+'</div><p class="muted" style="font-size:.8rem;margin-top:15px">推介使用具克制屬性、同屬性加成及較高攻擊能力的寶可夢。實際有效傷害高度依賴招式、速度、耐久、隊伍及形態。</p>';
+Q("#raidDetail").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function advisorVisibility(){const which=Q("#advisorTarget").value;Q("#advisorPokemonField").hidden=which!=="pokemon";Q("#advisorOpponentField").hidden=which!=="counter";}
+function generateAdvice(){
+const mode=Q("#advisorTarget").value,league=Q("#advisorLeague").value,question=Q("#advisorQuestion").value.trim();
+const tips=[],evidence=[],heading={team:"隊伍組合建議",counter:"對手克制分析",pokemon:"寶可夢培養價值分析"}[mode];
+if(mode==="team"){
+const {mons,weak,ranks}=teamIssues(state.teamIds,league);
+if(!mons.length){notify("請先在「隊伍分析」選擇寶可夢");return;}
+const doubles=weak.filter(x=>x.weak.length>=2);
+tips.push("目前隊伍："+mons.map(pokemonName).join("、")+"。");
+if(doubles.length)tips.push("主要共同弱點："+doubles.slice(0,6).map(x=>typeName(x.t)+"（"+x.weak.length+" 隻）").join("、")+"。建議避免讓多隻成員同時無法應對這些屬性。");
+else tips.push("這支隊伍沒有明顯的雙重共同屬性弱點，但仍需確認招式和能量對局。");
+for(const x of ranks){if(x.r)tips.push(pokemonName(x.p)+" 在此聯盟 PvPoke 模擬評分 "+x.r.score+"。");}
+evidence.push("使用公開寶可夢屬性及 PvPoke 聯盟排名；這不是完整 1v1 或 3v3 戰鬥模擬。");
+}else if(mode==="counter"){
+const p=getPokemon(Q("#advisorOpponent").value);if(!p){notify("請先選擇對手寶可夢");return;}
+const r=weakTo(p.types).filter(x=>x.m>1).slice(0,8);
+tips.push(pokemonName(p)+" 的主要弱點："+r.map(x=>typeName(x.id)+" ×"+x.m.toFixed(2)).join("、")+"。");
+const ranked=(DATA["rank"+league]||[]).slice(0,250).map(rr=>({rr,p:rankPokemon(rr)})).filter(x=>x.p&&x.p.pokedexId!==p.pokedexId).map(x=>({...x,coverage:Math.max(...(x.p.quickMoves||[]).concat(x.p.chargedMoves||[]).map(id=>typeEffect(DATA.moveMap?.get(Number(id))?.type,p.types)),0)})).filter(x=>x.coverage>1).sort((a,b)=>b.coverage-a.coverage||b.rr.score-a.rr.score).slice(0,6);
+tips.push("優先考慮具有效克制招式且排名較高的候選："+(ranked.map(x=>rankName(x.rr)).join("、")||"目前無足夠排名資料")+"。");
+evidence.push("從 PvPoke 前 250 名中尋找具屬性克制招式的候選；未考慮雙方特定技能組和護盾，所以不能視為保證勝利。");
+}else{
+const p=getPokemon(Q("#advisorPokemon").value);if(!p){notify("請先選擇寶可夢");return;}
+const rr=(DATA["rank"+league]||[]).find(x=>parsePvpId(x.speciesName?.replace(/\s*\([^)]*\)/g,""))===parsePvpId(p.pokemonName));
+tips.push(pokemonName(p)+" 的基礎攻擊／防禦／體力為 "+p.attack+"／"+p.defense+"／"+p.stamina+"，屬性："+pokemonTypes(p).join("、")+"。");
+if(rr){const ix=DATA["rank"+league].indexOf(rr)+1;tips.push("PvPoke 此聯盟模擬排名第 "+ix+" 名、評分 "+rr.score+"。"+(ix<=50?"具競技潛力，值得評估技能與養成成本。":ix<=150?"屬於可考慮的候選，但需視隊伍配置。":"排名較後，建議先確認它是否能解決特定對局。"));}else tips.push("此形態未能直接匹配 PvPoke 排名；暫不能下培養優先級定論。");
+const elite=(p.eliteQuickMoves||[]).concat(p.eliteChargedMoves||[]).map(moveName);
+if(elite.length)tips.push("厲害學習器招式池包含："+elite.join("、")+"。使用前先核對目前實際可取得招式。");
+evidence.push("依據 GO 基礎能力值、招式池和 PvPoke 排名；個人 IV、現有星星沙子及糖果未知，無法直接判定你應否投入資源。");
+}
+if(question)evidence.push("你的補充問題：「"+question+"」。本機規則引擎不能真正理解所有自由文字；請以已計算的項目為主要依據。");
+evidence.push("分析方法：公開資料＋規則式推理，非雲端大型語言模型；不會自動讀取 Pokémon GO 帳戶。");
+const container=Q("#advisorReport");container.replaceChildren();const root=document.createElement("div");root.className="analysis-report";
+const h=document.createElement("h3");h.textContent=heading;root.append(h);
+const ul=document.createElement("ul");tips.forEach(t=>{const li=document.createElement("li");li.textContent=t;ul.append(li);});root.append(ul);
+const h2=document.createElement("h3");h2.textContent="資料依據與限制";root.append(h2);
+const ul2=document.createElement("ul");evidence.forEach(t=>{const li=document.createElement("li");li.textContent=t;ul2.append(li);});root.append(ul2);container.append(root);
+state.reportText=heading+"\n\n"+tips.map(x=>"• "+x).join("\n")+"\n\n資料依據與限制\n"+evidence.map(x=>"• "+x).join("\n");
+Q("#copyAdvisor").disabled=false;
+}
+document.addEventListener("click",e=>{
+const tab=e.target.closest("[data-tab],[data-jump]");if(tab){switchTab(tab.dataset.tab||tab.dataset.jump);return;}
+const dex=e.target.closest("[data-dex]");if(dex){state.selectedDex=Number(dex.dataset.dex);renderDex();if(innerWidth<620)Q("#dexDetail").scrollIntoView({behavior:"smooth"});return;}
+const rk=e.target.closest("[data-rank]");if(rk){state.selectedRank=rk.dataset.rank;renderPvp();if(innerWidth<620)Q("#pvpDetail").scrollIntoView({behavior:"smooth"});return;}
+const lg=e.target.closest("[data-league]");if(lg){state.league=lg.dataset.league;state.selectedRank=null;renderPvp();return;}
+const tl=e.target.closest("[data-team-league]");if(tl){state.teamLeague=tl.dataset.teamLeague;renderTeam();return;}
+const raid=e.target.closest("[data-raid]");if(raid){showRaid(Number(raid.dataset.raid));return;}
+const calc=e.target.closest("[data-use-calc]");if(calc){const p=getPokemon(calc.dataset.useCalc);if(p){Q("#calcPokemonSearch").value=pokemonName(p);state.calcId=p.pokedexId;switchTab("calculator");calculate();}return;}
+const tt=e.target.closest("[data-use-team]");if(tt){if(tt.dataset.useTeam){state.teamIds[0]=tt.dataset.useTeam;switchTab("team");renderTeam();}return;}
 });
-$("#dialogClose").addEventListener("click",()=>$("#editor").close());
-$("#dialogCancel").addEventListener("click",()=>$("#editor").close());
-$("#editorForm").addEventListener("submit",saveDialog);
-$("#importFile").addEventListener("change",ev=>importData(ev.target.files?.[0]));
-$("#rosterSearch").addEventListener("input",renderRoster);
-$("#rosterLeague").addEventListener("change",renderRoster);
-$("#rosterStatus").addEventListener("change",renderRoster);
-$("#battleLeague").addEventListener("change",renderBattles);
-window.addEventListener("hashchange",()=>{const hash=location.hash.slice(1);if(hash&&$("#"+hash)?.classList.contains("view"))switchTab(hash);});
-render();
-if(location.hash&&$("#"+location.hash.slice(1))?.classList.contains("view"))switchTab(location.hash.slice(1));
+for(const id of ["dexSearch","dexType","dexSort"]){Q("#"+id).addEventListener(id==="dexSearch"?"input":"change",()=>{state.dexLimit=42;renderDex();});}
+for(const id of ["pvpSearch","pvpLimit"]){Q("#"+id).addEventListener(id==="pvpSearch"?"input":"change",renderPvp);}
+for(let i=0;i<3;i++)Q("#team"+(i+1)).addEventListener("change",e=>{state.teamIds[i]=e.target.value;renderTeam();});
+for(const id of ["moveSearch","moveKind","moveType"])Q("#"+id).addEventListener(id==="moveSearch"?"input":"change",()=>{state.moveLimit=70;renderMoves();});
+Q("#dexMore").addEventListener("click",()=>{state.dexLimit+=42;renderDex();});
+Q("#moveMore").addEventListener("click",()=>{state.moveLimit+=70;renderMoves();});
+Q("#analyzeTeamBtn").addEventListener("click",analyzeTeam);
+Q("#calculateBtn").addEventListener("click",calculate);
+for(const id of ["calcLevel","targetLevel"])Q("#"+id).addEventListener("input",()=>{Q("#levelLabel").textContent=Q("#calcLevel").value;Q("#targetLevelLabel").textContent=Q("#targetLevel").value;});
+Q("#advisorTarget").addEventListener("change",advisorVisibility);
+Q("#advisorRun").addEventListener("click",generateAdvice);
+Q("#copyAdvisor").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(state.reportText);notify("分析報告已複製");}catch(e){notify("複製失敗，請手動選取報告");}});
+Q("#refreshBtn").addEventListener("click",()=>{location.reload();});
+window.addEventListener("hashchange",()=>{const tab=location.hash.slice(1);if(tab&&tab!==state.tab)switchTab(tab);});
+(function init(){const hash=location.hash.slice(1);if(hash&&Q("#"+hash)?.classList.contains("view"))switchTab(hash);advisorVisibility();getJSON("./data/meta.json").then(meta=>{DATA.meta=meta;sourceSummary();}).catch(()=>{});loadCore();})();
