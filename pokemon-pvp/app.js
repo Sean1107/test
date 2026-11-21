@@ -133,10 +133,125 @@ const stat=(label,value,max=320)=>'<div class="detail-stat"><small>'+label+'</sm
 const fast=(p.quickMoves||[]).map(id=>moveName(id));
 const charged=(p.chargedMoves||[]).map(id=>moveName(id));
 const elite=(p.eliteQuickMoves||[]).concat(p.eliteChargedMoves||[]).map(id=>moveName(id));
-const evolutions=p.formId?[]:(DATA.evolutions||[]).filter(row=>Number(row.pokemon_id)===Number(p.pokedexId)).flatMap(row=>row.evolutions||[]);
+
 const weak=weakTo(p.types).filter(t=>t.m>1).slice(0,5),res=weakTo(p.types).filter(t=>t.m<1).slice(-5).reverse();
-Q("#dexDetail").innerHTML='<div class="detail-heading"><img src="'+sprite(p.pokedexId)+'" alt=""><div><small>#'+p.pokedexId+(p.formLabel?" · "+escaped(p.formLabel):"")+'</small><h3>'+escaped(pokemonName(p))+'</h3><small>'+escaped(p.pokemonName)+'</small></div></div><div class="type-badges">'+typeBadges(p)+'</div><div class="detail-block"><h4>GO 基礎能力值</h4><div class="detail-grid">'+stat("攻擊",p.attack)+stat("防禦",p.defense)+stat("體力",p.stamina)+stat("等級 50 · 100 IV CP",cp(p,[15,15,15],50),6000)+'</div></div><div class="detail-block"><h4>屬性相剋</h4><small>弱點</small><div class="pill-list">'+weak.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div><small style="display:block;margin-top:10px">抗性</small><div class="pill-list">'+res.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div></div><div class="detail-block"><h4>可學一般招式</h4><p class="detail-list">'+escaped(fast.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>可學特殊招式</h4><p class="detail-list">'+escaped(charged.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>厲害學習器招式（來源資料）</h4><p class="detail-list">'+escaped(elite.join("、")||"未列出")+'</p></div><div class="detail-block"><h4>進化路線</h4><p class="detail-list">'+escaped(evolutions.length?evolutions.map(x=>(DATA.names?.["poke_"+x.pokemon_id]||x.pokemon_name)+"（"+show(x.candy_required,"? ")+" 糖果"+(x.item_required?"、"+x.item_required:"")+(x.no_candy_cost_if_traded?"，交換進化可免糖果":"")+"）").join("、"):"目前無後續進化資料")+'</p></div><div class="detail-block"><h4>第二特殊招式</h4><p class="detail-list">星星沙子 '+short(p.thirdMoveStardust)+' ／ 糖果 '+short(p.thirdMoveCandy)+'</p></div><div class="detail-block"><button class="btn btn-primary btn-block" data-use-calc="'+escaped(pokemonKey(p))+'">計算這隻的 IV / CP →</button></div>';
+Q("#dexDetail").innerHTML='<div class="detail-heading"><img src="'+sprite(p.pokedexId)+'" alt=""><div><small>#'+p.pokedexId+(p.formLabel?" · "+escaped(p.formLabel):"")+'</small><h3>'+escaped(pokemonName(p))+'</h3><small>'+escaped(p.pokemonName)+'</small></div></div><div class="type-badges">'+typeBadges(p)+'</div><div class="detail-block"><h4>GO 基礎能力值</h4><div class="detail-grid">'+stat("攻擊",p.attack)+stat("防禦",p.defense)+stat("體力",p.stamina)+stat("等級 50 · 100 IV CP",cp(p,[15,15,15],50),6000)+'</div></div><div class="detail-block"><h4>屬性相剋</h4><small>弱點</small><div class="pill-list">'+weak.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div><small style="display:block;margin-top:10px">抗性</small><div class="pill-list">'+res.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div></div><div class="detail-block"><h4>可學一般招式</h4><p class="detail-list">'+escaped(fast.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>可學特殊招式</h4><p class="detail-list">'+escaped(charged.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>厲害學習器招式（來源資料）</h4><p class="detail-list">'+escaped(elite.join("、")||"未列出")+'</p></div><div class="detail-block evolution-launch"><h4>進化鏈</h4><p class="detail-list">查看初始形態、目前形態、所有分支進化及所需條件。</p><button class="btn btn-outline btn-block" data-evo-toggle="'+escaped(pokemonKey(p))+'">顯示完整進化鏈 ↓</button><div id="evolutionPanel" class="evolution-panel" hidden></div></div><div class="detail-block"><h4>第二特殊招式</h4><p class="detail-list">星星沙子 '+short(p.thirdMoveStardust)+' ／ 糖果 '+short(p.thirdMoveCandy)+'</p></div><div class="detail-block"><button class="btn btn-primary btn-block" data-use-calc="'+escaped(pokemonKey(p))+'">計算這隻的 IV / CP →</button></div>';
 }
+
+const EVO_FORM_ZH={
+Normal:"一般形態",Alola:"阿羅拉形態",Galarian:"伽勒爾形態",Hisuian:"洗翠形態",Paldea:"帕底亞形態",
+Plant:"草木蓑衣",Sandy:"砂土蓑衣",Trash:"垃圾蓑衣",East_sea:"東海",West_sea:"西海",
+Female:"雌性",Male:"雄性",Dusk:"黃昏形態",2020:"2020形態",2021:"2021形態",2022:"2022形態",
+};
+function evolutionFormForPokemon(p){
+if(!p||!p.formId)return "Normal";
+const source=String(p.speciesId||p.formId||"").toLowerCase();
+const rows=DATA.evolutions||[];
+const forms=[...new Set(rows.map(x=>x.form).filter(Boolean))].sort((a,b)=>String(b).length-String(a).length);
+for(const form of forms){
+if(String(form).toLowerCase()==="normal")continue;
+const token=parsePvpId(form);
+if(token&&parsePvpId(source).endsWith(token))return form;
+}
+const raw=String(p.pokemonName||"").match(/\(([^)]+)\)/);
+if(raw){
+const part=parsePvpId(raw[1]);
+const match=forms.find(x=>parsePvpId(x)===part);
+if(match)return match;
+}
+return "Normal";
+}
+function evolutionNodeKey(id,form){return Number(id)+"|"+(form||"Normal");}
+function evolutionCondition(e){
+const out=[];
+if(Number(e.candy_required)>0)out.push(Number(e.candy_required)+" 顆糖果");
+const itemNames={"Sun Stone":"日之石","King's Rock":"王者之證","Metal Coat":"金屬膜","Dragon Scale":"龍之鱗片","Upgrade":"升級資料","Sinnoh Stone":"神奧之石","Unova Stone":"合眾之石","Prism Scale":"美麗鱗片"};
+if(e.item_required)out.push(itemNames[e.item_required]||e.item_required);
+if(e.lure_required)out.push("需要 "+String(e.lure_required).replace("Lure Module","誘餌模組"));
+if(e.buddy_distance_required)out.push("夥伴步行 "+e.buddy_distance_required+" km");
+if(e.must_be_buddy_to_evolve&&!e.buddy_distance_required)out.push("需設為夥伴");
+if(e.only_evolves_in_daytime)out.push("白天進化");
+if(e.only_evolves_in_nighttime)out.push("夜晚進化");
+if(e.gender_required)out.push(e.gender_required==="Male"?"雄性限定":e.gender_required==="Female"?"雌性限定":String(e.gender_required));
+if(e.no_candy_cost_if_traded)out.push("交換後可免糖果");
+if(e.upside_down)out.push("倒轉手機進化");
+return out.join(" · ")||"進化條件未提供";
+}
+function evolutionPokemonForNode(node){
+const matches=allPokemon().filter(p=>Number(p.pokedexId)===Number(node.id));
+if(node.form&&node.form!=="Normal"){
+const exact=matches.find(p=>evolutionFormForPokemon(p)===node.form);
+if(exact)return exact;
+}
+return matches.find(p=>!p.formId)||matches[0]||null;
+}
+function evolutionNodeName(node,p){
+if(p&&evolutionFormForPokemon(p)===node.form)return pokemonName(p);
+const base=DATA.names?.["poke_"+node.id]||node.name||("圖鑑 #"+node.id);
+return node.form&&node.form!=="Normal"?base+"（"+(EVO_FORM_ZH[node.form]||String(node.form).replace(/_/g," "))+"）":base;
+}
+function renderEvolutionChain(pokemonId){
+const selected=getPokemon(pokemonId);
+const panel=Q("#evolutionPanel");
+if(!selected||!panel)return;
+const rows=DATA.evolutions||[];
+const nodes=new Map(),parents=new Map();
+const ensure=(id,form,name)=>{
+const key=evolutionNodeKey(id,form);
+if(!nodes.has(key))nodes.set(key,{key,id:Number(id),form:form||"Normal",name:name||"",edges:[],incoming:[]});
+const n=nodes.get(key);if(name&&!n.name)n.name=name;
+return n;
+};
+rows.forEach(row=>{
+const source=ensure(row.pokemon_id,row.form||"Normal",row.pokemon_name);
+(row.evolutions||[]).forEach(e=>{
+const form=e.form||row.form||"Normal";
+const target=ensure(e.pokemon_id,form,e.pokemon_name);
+const condition=evolutionCondition(e);
+if(!source.edges.some(x=>x.to===target.key))source.edges.push({to:target.key,condition});
+if(!target.incoming.some(x=>x.from===source.key))target.incoming.push({from:source.key,condition});
+});
+});
+let currentKey=evolutionNodeKey(selected.pokedexId,evolutionFormForPokemon(selected));
+if(!nodes.has(currentKey)){
+const normalKey=evolutionNodeKey(selected.pokedexId,"Normal");
+if(nodes.has(normalKey))currentKey=normalKey;
+else ensure(selected.pokedexId,"Normal",selected.pokemonName);
+}
+function roots(key,seen=new Set()){
+if(seen.has(key))return [];
+seen.add(key);
+const incoming=nodes.get(key)?.incoming||[];
+if(!incoming.length)return [key];
+return [...new Set(incoming.flatMap(x=>roots(x.from,new Set(seen))))];
+}
+const rootKeys=roots(currentKey);
+const levels=[];let frontier=rootKeys.slice(),visited=new Set();
+while(frontier.length&&levels.length<8){
+const level=frontier.filter(k=>!visited.has(k));
+if(!level.length)break;
+level.forEach(k=>visited.add(k));levels.push(level);
+frontier=[...new Set(level.flatMap(k=>(nodes.get(k)?.edges||[]).map(x=>x.to)))].filter(k=>!visited.has(k));
+}
+const hasLinks=levels.some((level,i)=>i>0||level.some(k=>(nodes.get(k)?.edges||[]).length));
+if(!hasLinks){
+const name=evolutionNodeName(nodes.get(currentKey),selected);
+panel.innerHTML='<div class="evo-empty"><b>'+escaped(name)+'</b><span>目前資料沒有記錄這隻寶可夢的初始形態或進化分支。</span></div>';
+return;
+}
+panel.innerHTML='<div class="evo-chain-intro">完整進化路線 · '+nodes.size+' 個形態節點</div>'+levels.map((level,i)=>{
+return '<div class="evo-level"><div class="evo-level-title">'+(i===0?"初始形態":("進化階段 "+i))+'</div><div class="evo-level-nodes">'+level.map(key=>{
+const node=nodes.get(key),p=evolutionPokemonForNode(node);
+const name=evolutionNodeName(node,p);
+const target=p?pokemonKey(p):String(node.id);
+const isCurrent=key===currentKey;
+const incoming=node.incoming.map(x=>x.condition).filter(Boolean);
+const conditions=[...new Set(incoming)];
+return '<button type="button" class="evo-node '+(isCurrent?"current":"")+'" data-evo-select="'+escaped(target)+'"><img src="'+sprite(node.id)+'" alt=""><span class="evo-node-name">'+escaped(name)+'</span><small>#'+node.id+(node.form!=="Normal"?" · "+escaped(EVO_FORM_ZH[node.form]||node.form):"")+'</small><span class="evo-node-tag">'+(isCurrent?"目前選擇":i===0?"初始形態":"進化形態")+'</span>'+(conditions.length?'<span class="evo-conditions">'+conditions.map(x=>'<small>'+escaped(x)+'</small>').join("")+'</span>':"")+'</button>';
+}).join("")+'</div></div>';
+}).join('<div class="evo-level-connector">↓</div>');
+}
+
 function renderPvp(){
 const list=DATA["rank"+state.league]||[];
 QA("[data-league]").forEach(n=>n.classList.toggle("active",n.dataset.league===state.league));
@@ -419,6 +534,8 @@ Q("#copyAdvisor").disabled=false;
 }
 document.addEventListener("click",e=>{
 const tab=e.target.closest("[data-tab],[data-jump]");if(tab){switchTab(tab.dataset.tab||tab.dataset.jump);return;}
+const evoToggle=e.target.closest("[data-evo-toggle]");if(evoToggle){const panel=Q("#evolutionPanel");if(panel){const opening=panel.hidden;panel.hidden=!opening;evoToggle.textContent=opening?"隱藏完整進化鏈 ↑":"顯示完整進化鏈 ↓";if(opening)renderEvolutionChain(evoToggle.dataset.evoToggle);}return;}
+const evoPick=e.target.closest("[data-evo-select]");if(evoPick){state.selectedDex=evoPick.dataset.evoSelect;Q("#dexSearch").value="";Q("#dexType").value="";state.dexLimit=42;renderDex();if(innerWidth<620)Q("#dexDetail").scrollIntoView({behavior:"smooth"});return;}
 const dex=e.target.closest("[data-dex]");if(dex){state.selectedDex=dex.dataset.dex;renderDex();if(innerWidth<620)Q("#dexDetail").scrollIntoView({behavior:"smooth"});return;}
 const rk=e.target.closest("[data-rank]");if(rk){state.selectedRank=rk.dataset.rank;renderPvp();if(innerWidth<620)Q("#pvpDetail").scrollIntoView({behavior:"smooth"});return;}
 const lg=e.target.closest("[data-league]");if(lg){state.league=lg.dataset.league;state.selectedRank=null;renderPvp();return;}
