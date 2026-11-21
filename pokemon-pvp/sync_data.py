@@ -352,7 +352,7 @@ def get_argos_zh_translation():
     return _ARGOS_ZH_TRANSLATION
 
 def google_translate_zh(text, pokemon_names):
-    """Translate public English game text to Traditional Chinese; protect official Pokémon names."""
+    """Translate public English game text to Traditional Chinese with the cached local Argos model."""
     protected = text
     placeholders = {}
     for index, (english, chinese) in enumerate(sorted(pokemon_names.items(), key=lambda item: len(item[0]), reverse=True)):
@@ -364,51 +364,12 @@ def google_translate_zh(text, pokemon_names):
         if count:
             placeholders[token] = chinese
 
-    translated = None
-    # Prefer the local Argos en -> Traditional Chinese model; it works offline and needs no API key.
     try:
         candidate = get_argos_zh_translation().translate(protected)
-        if candidate and candidate.strip() and candidate.strip() != protected.strip():
-            translated = candidate.strip()
+        translated = candidate.strip() if candidate and candidate.strip() else protected
     except Exception as exc:
-        print(f"INFO local Argos translation unavailable: {exc}", file=sys.stderr)
-
-    if translated:
-        for token, chinese in placeholders.items():
-            translated = translated.replace(token, chinese)
-        return translated.strip()
-
-    # Lingva instances expose a no-key Google Translate-compatible REST API.
-    lingva_hosts = (
-        "https://lingva.ml",
-        "https://translate.alefvanoon.xyz",
-        "https://lingva.garudalinux.org",
-        "https://translate.dr460nf1r3.org",
-        "https://translate.jae.fi",
-    )
-    for host in lingva_hosts:
-        try:
-            url = host + "/api/v1/en/zh-TW/" + quote(protected, safe="")
-            request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 GO-Battle-Lab/3.0"})
-            with urllib.request.urlopen(request, timeout=8) as response:
-                payload = json.load(response)
-            candidate = payload.get("translation") if isinstance(payload, dict) else None
-            if candidate and not payload.get("error"):
-                translated = candidate
-                break
-        except Exception:
-            continue
-
-    # Last-resort direct endpoint; it may rate-limit shared GitHub runner IPs.
-    if not translated:
-        query = urlencode({"client": "gtx", "sl": "en", "tl": "zh-TW", "dt": "t", "q": protected})
-        url = "https://translate.googleapis.com/translate_a/single?" + query
-        request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 GO-Battle-Lab/3.0"})
-        with urllib.request.urlopen(request, timeout=8) as response:
-            payload = json.load(response)
-        translated = "".join(part[0] for part in (payload[0] or []) if part and part[0])
-    if not translated:
-        raise ValueError("all translation endpoints returned an empty result")
+        print(f"WARN local Argos translation failed; keeping original English: {exc}", file=sys.stderr)
+        translated = protected
     for token, chinese in placeholders.items():
         translated = translated.replace(token, chinese)
     return translated.strip()
@@ -480,19 +441,15 @@ def build_zh_translation_cache():
             continue
         try:
             result = google_translate_zh(value, pokemon_names)
-            if result and result != value:
+            if result:
                 translations[value] = result
-                success += 1
-                consecutive_failures = 0
+                if result != value:
+                    success += 1
         except Exception as exc:
-            consecutive_failures += 1
             print(f"WARN zh translation ({index}/{len(pending)}): {value[:70]}: {exc}", file=sys.stderr)
-            if consecutive_failures >= 5:
-                print("WARN translation service unavailable; stopping new requests and retaining cached translations", file=sys.stderr)
-                break
+            translations[value] = value
         if index % 25 == 0:
             print(f"INFO zh translation progress: {index}/{len(pending)}")
-        time.sleep(0.08)
     translations.update(MANUAL_ZH)
     write_json(cache_path, translations)
     print(f"OK zhTranslations: {len(translations)} cached strings; {success} new translations; {len(pending)-success} untranslated or cached")
