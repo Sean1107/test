@@ -61,6 +61,11 @@ jobs:
           import argostranslate.translate
           print("Argos en -> Traditional Chinese ready:", argostranslate.translate.translate("Upcoming Pokémon GO events", "en", "zt"))
           PY
+      - name: Save Argos model cache before data sync
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.local/share/argos-translate/packages
+          key: argos-en-zt-v1.9-ubuntu-latest
       - name: Validate application syntax
         run: |
           node --check pokemon-pvp/app.js
