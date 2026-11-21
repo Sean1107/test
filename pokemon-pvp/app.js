@@ -144,16 +144,77 @@ const p=rankPokemon(r),moves=(r.moveset||[]).map(m=>{const match=DATA.moves?.fin
 const matching=all=>all?.map(x=>{const rr=rankEntry(x.opponent,state.league);return rr?rankName(rr):x.opponent;}).join("、")||"未提供";
 Q("#pvpDetail").innerHTML='<div class="detail-heading">'+(p?'<img src="'+sprite(p.pokedexId)+'" alt="">':"")+'<div><small>PVP RANK #'+(list.indexOf(r)+1)+'</small><h3>'+escaped(rankName(r))+'</h3><small>模擬評分 '+show(r.score)+'</small></div></div><div class="detail-block"><h4>推薦招式</h4><p class="detail-list">'+escaped(moves.join(" ／ ")||"暫無推薦資料")+'</p></div><div class="detail-block"><h4>模擬中較有利的對局</h4><p class="detail-list">'+escaped(matching(r.matchups))+'</p></div><div class="detail-block"><h4>模擬中較不利的對局</h4><p class="detail-list">'+escaped(matching(r.counters))+'</p></div>'+(r.editorNotes?'<div class="detail-block"><h4>PvPoke 原文評語</h4><p class="detail-list">'+escaped(r.editorNotes)+'</p></div>':"")+'<div class="detail-block"><button class="btn btn-primary btn-block" data-use-team="'+(p?p.pokedexId:"")+'">加入隊伍分析 →</button></div>';
 }
+const pickerState={};
+function searchPokemon(query){
+const q=String(query||"").trim().toLocaleLowerCase();
+if(!q)return [];
+const clean=q.replace(/^#/,"").replace(/\s+/g,"");
+return allPokemon().map(p=>{
+const zh=String(pokemonName(p)||"").toLocaleLowerCase();
+const en=String(p.pokemonName||"").toLocaleLowerCase();
+const id=String(p.pokedexId);
+const fields=[zh,en,id,"#"+id].map(x=>x.toLocaleLowerCase());
+let score=0;
+if(fields.includes(q)||fields.includes(clean))score=100;
+else if(zh.startsWith(q)||en.startsWith(q)||id===clean)score=80;
+else if(zh.includes(q)||en.includes(q)||id.includes(clean))score=50;
+return {p,score};
+}).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.p.pokedexId-b.p.pokedexId).slice(0,9).map(x=>x.p);
+}
+function closePicker(id){
+const results=Q("#"+id+"Results"),input=Q("#"+id+"Search");
+if(results)results.hidden=true;
+if(input)input.setAttribute("aria-expanded","false");
+if(pickerState[id])pickerState[id].active=-1;
+}
+function renderPickerResults(id){
+const input=Q("#"+id+"Search"),results=Q("#"+id+"Results");
+if(!input||!results)return;
+const query=input.value.trim(),matches=searchPokemon(query),selected=Number(Q("#"+id).value);
+const st=pickerState[id]||(pickerState[id]={active:-1,matches:[]});
+st.matches=matches;st.active=matches.length?Math.min(Math.max(st.active,0),matches.length-1):-1;
+if(!query){results.innerHTML='<div class="picker-hint">輸入中文或英文名稱開始搜尋</div>';results.hidden=false;input.setAttribute("aria-expanded","true");return;}
+if(!matches.length){results.innerHTML='<div class="picker-empty">找不到符合「'+escaped(query)+'」的寶可夢</div>';results.hidden=false;input.setAttribute("aria-expanded","true");return;}
+results.innerHTML=matches.map((p,i)=>'<button type="button" class="pokemon-suggestion '+(i===st.active?"active":"")+'" role="option" aria-selected="'+(selected===p.pokedexId)+'" data-picker-choice="'+id+'" data-pokemon-id="'+p.pokedexId+'"><img src="'+sprite(p.pokedexId)+'" alt=""><span class="suggestion-name"><b>'+escaped(pokemonName(p))+'</b><small>'+escaped(p.pokemonName)+' · #'+p.pokedexId+'</small></span><span class="suggestion-id">#'+p.pokedexId+'</span></button>').join("");
+results.hidden=false;input.setAttribute("aria-expanded","true");
+}
+function choosePokemon(id,pokemonId){
+const p=getPokemon(pokemonId);if(!p)return;
+Q("#"+id).value=String(p.pokedexId);Q("#"+id+"Search").value=pokemonName(p);closePicker(id);
+if(/^team[123]$/.test(id)){state.teamIds[Number(id.slice(-1))-1]=String(p.pokedexId);renderTeam();}
+}
+function setupPokemonPicker(id){
+const input=Q("#"+id+"Search"),results=Q("#"+id+"Results");
+if(!input||!results||input.dataset.pickerReady==="true")return;
+input.dataset.pickerReady="true";pickerState[id]={active:-1,matches:[]};
+input.addEventListener("focus",()=>renderPickerResults(id));
+input.addEventListener("input",()=>{pickerState[id].active=0;renderPickerResults(id);});
+input.addEventListener("keydown",e=>{
+const st=pickerState[id];
+if(e.key==="ArrowDown"&&st.matches.length){e.preventDefault();st.active=Math.min(st.active+1,st.matches.length-1);renderPickerResults(id);}
+else if(e.key==="ArrowUp"&&st.matches.length){e.preventDefault();st.active=Math.max(st.active-1,0);renderPickerResults(id);}
+else if(e.key==="Enter"&&!results.hidden&&st.matches.length){e.preventDefault();choosePokemon(id,st.matches[Math.max(st.active,0)].pokedexId);}
+else if(e.key==="Escape")closePicker(id);
+});
+results.addEventListener("pointerdown",e=>{if(e.target.closest("[data-picker-choice]"))e.preventDefault();});
+results.addEventListener("click",e=>{const option=e.target.closest("[data-picker-choice]");if(option)choosePokemon(id,Number(option.dataset.pokemonId));});
+}
+function clearPokemonPicker(id){
+Q("#"+id).value="";Q("#"+id+"Search").value="";closePicker(id);
+if(/^team[123]$/.test(id)){state.teamIds[Number(id.slice(-1))-1]="";renderTeam();}
+}
 function fillPokemonControls(){
-if(!allPokemon().length)return;const opts=makeSelectOptions();
-for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"]){const el=Q("#"+id),before=el.value;el.innerHTML=opts;el.value=before||"";}
+if(!allPokemon().length)return;
+for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"])setupPokemonPicker(id);
 Q("#pokemonOptions").innerHTML=allPokemon().map(p=>'<option value="'+escaped(pokemonName(p))+'">'+escaped(p.pokemonName)+'</option>').join("");
 }
 function renderTeam(){
 QA("[data-team-league]").forEach(x=>x.classList.toggle("active",x.dataset.teamLeague===state.teamLeague));
 for(let i=0;i<3;i++){
-const p=getPokemon(state.teamIds[i]);Q("#team"+(i+1)).value=state.teamIds[i]||"";
-Q("#team"+(i+1)+"Card").innerHTML=p?'<img src="'+sprite(p.pokedexId)+'" alt=""><b>'+escaped(pokemonName(p))+'</b><br><span>'+pokemonTypes(p).join(" / ")+'</span><br><small>最高 CP '+cp(p,[15,15,15],50)+'</small>':"尚未選擇";
+const id="team"+(i+1),p=getPokemon(state.teamIds[i]),input=Q("#"+id+"Search");
+Q("#"+id).value=state.teamIds[i]||"";
+if(input&&document.activeElement!==input)input.value=p?pokemonName(p):"";
+Q("#"+id+"Card").innerHTML=p?'<img src="'+sprite(p.pokedexId)+'" alt=""><b>'+escaped(pokemonName(p))+'</b><br><span>'+pokemonTypes(p).join(" / ")+'</span><br><small>最高 CP '+cp(p,[15,15,15],50)+'</small>':"尚未選擇";
 }
 }
 function teamIssues(ids,league){
@@ -318,7 +379,9 @@ const tt=e.target.closest("[data-use-team]");if(tt){if(tt.dataset.useTeam){state
 });
 for(const id of ["dexSearch","dexType","dexSort"]){Q("#"+id).addEventListener(id==="dexSearch"?"input":"change",()=>{state.dexLimit=42;renderDex();});}
 for(const id of ["pvpSearch","pvpLimit"]){Q("#"+id).addEventListener(id==="pvpSearch"?"input":"change",renderPvp);}
-for(let i=0;i<3;i++)Q("#team"+(i+1)).addEventListener("change",e=>{state.teamIds[i]=e.target.value;renderTeam();});
+for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"])setupPokemonPicker(id);
+for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"])Q("[data-clear-picker='"+id+"']").addEventListener("click",()=>clearPokemonPicker(id));
+document.addEventListener("click",e=>{if(!e.target.closest(".pokemon-picker"))for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"])closePicker(id);});
 for(const id of ["moveSearch","moveKind","moveType"])Q("#"+id).addEventListener(id==="moveSearch"?"input":"change",()=>{state.moveLimit=70;renderMoves();});
 Q("#dexMore").addEventListener("click",()=>{state.dexLimit+=42;renderDex();});
 Q("#moveMore").addEventListener("click",()=>{state.moveLimit+=70;renderMoves();});
