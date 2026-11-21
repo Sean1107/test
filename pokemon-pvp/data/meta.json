@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-21T14:44+00:00",
+  "updated_at": "2026-11-21T14:57+00:00",
   "datasets": [
     "pokemon",
     "moves",
@@ -42,6 +42,9 @@
   "egg_pokemon_count": 78,
   "official_news_count": 30,
   "community_news_count": 30,
+  "zh_translation_count": 29,
+  "zh_translations_added_this_run": 0,
+  "translation_source": "Google Translate public endpoint (cached; English originals retained)",
   "pokemon_base_count": 1025,
   "pokemon_form_count": 769,
   "note": "Includes PvPoke battle forms; unreleased entries are labelled. CPM 45.5–50 extrapolated if absent upstream."
