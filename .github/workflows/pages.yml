@@ -24,6 +24,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Validate application syntax
+        run: |
+          node --check pokemon-pvp/app.js
+          python3 -m py_compile pokemon-pvp/sync_data.py
       - name: Sync public game data
         run: python3 pokemon-pvp/sync_data.py
       - name: Commit refreshed dataset
