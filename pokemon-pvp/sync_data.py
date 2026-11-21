@@ -9,6 +9,10 @@ import pathlib
 import re
 import sys
 import urllib.request
+import xml.etree.ElementTree as ET
+from html import unescape
+from html.parser import HTMLParser
+from urllib.parse import urljoin
 from datetime import datetime, timezone
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -18,8 +22,11 @@ BASE = "https://raw.githubusercontent.com/WatWowMap/pogo-data-api/main/data/v1/"
 PVP = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-"
 GAMEMASTER = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/gamemaster.json"
 API = "https://pogoapi.net/api/v1/"
-LEEKDUCK_RAIDS = "https://raw.githubusercontent.com/pokelitee/leak-duck/data/raid_bosses.json"
-LEEKDUCK_MANIFEST = "https://raw.githubusercontent.com/pokelitee/leak-duck/data/manifest.json"
+LEEKDUCK_BASE = "https://raw.githubusercontent.com/pokelitee/leak-duck/data/"
+LEEKDUCK_RAIDS = LEEKDUCK_BASE + "raid_bosses.json"
+LEEKDUCK_MANIFEST = LEEKDUCK_BASE + "manifest.json"
+OFFICIAL_NEWS_URL = "https://pokemongo.com/news?hl=en"
+COMMUNITY_NEWS_RSS = "https://pokemongohub.net/feed/"
 SOURCES = {
     "pokemon": BASE + "pokemon.json",
     "moves": BASE + "moves.json",
@@ -33,10 +40,14 @@ SOURCES = {
     "cpm": API + "cp_multiplier.json",
     "powerups": API + "pokemon_powerup_requirements.json",
     "raids": LEEKDUCK_RAIDS,
+    "events": LEEKDUCK_BASE + "events.json",
+    "researchTasks": LEEKDUCK_BASE + "research_tasks.json",
+    "rocketLineups": LEEKDUCK_BASE + "rocket_lineups.json",
+    "eggPool": LEEKDUCK_BASE + "egg_pool.json",
     "evolutions": API + "pokemon_evolutions.json",
     "gamemaster": GAMEMASTER,
 }
-REQUIRED = {"pokemon", "moves", "types", "names", "moveNames", "rank1500", "rank2500", "rank10000", "cpm", "gamemaster", "raids"}
+REQUIRED = {"pokemon", "moves", "types", "names", "moveNames", "rank1500", "rank2500", "rank10000", "cpm", "gamemaster", "raids", "events", "researchTasks", "rocketLineups", "eggPool"}
 TYPE_IDS = {
     "normal": 1, "fighting": 2, "flying": 3, "poison": 4, "ground": 5,
     "rock": 6, "bug": 7, "ghost": 8, "steel": 9, "fire": 10, "water": 11,
@@ -80,6 +91,20 @@ def check(name, obj):
         raise ValueError(f"{name}: incomplete localization")
     if name == "cpm" and (not isinstance(obj, list) or len(obj) < 70):
         raise ValueError("incomplete CP multipliers")
+    if name == "events":
+        if not isinstance(obj, dict) or sum(len(v) for v in obj.values() if isinstance(v, list)) < 5:
+            raise ValueError("events feed is incomplete")
+        if not any(isinstance(e, dict) and e.get("title") and e.get("start_time") and e.get("end_time") for v in obj.values() if isinstance(v, list) for e in v):
+            raise ValueError("events feed has no valid timed events")
+    if name == "researchTasks":
+        if not isinstance(obj, dict) or sum(len(v) for v in obj.values() if isinstance(v, list)) < 10:
+            raise ValueError("research tasks feed is incomplete")
+    if name == "rocketLineups":
+        if not isinstance(obj, dict) or not all(k in obj for k in ("Giovanni", "Cliff", "Arlo", "Sierra")):
+            raise ValueError("Rocket lineup feed is incomplete")
+    if name == "eggPool":
+        if not isinstance(obj, dict) or sum(len(v) for v in obj.values() if isinstance(v, list)) < 10:
+            raise ValueError("egg pool feed is incomplete")
     if name == "raids":
         if not isinstance(obj, dict):
             raise ValueError("raid feed is not an object")
@@ -90,6 +115,8 @@ def check(name, obj):
         raise ValueError("PvPoke gamemaster is incomplete")
 
 def normalize(name, obj):
+    if name in {"events", "researchTasks", "rocketLineups", "eggPool"}:
+        return obj
     if name == "raids":
         tier_map = {"1-Star Raids": "1", "3-Star Raids": "3", "5-Star Raids": "5", "Mega Raids": "mega"}
         current = {}
@@ -220,6 +247,73 @@ def build_form_data(gm, base_pokemon, base_moves, names):
         })
     return forms, gm_moves
 
+class OfficialNewsParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.current = None
+        self.items = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag != "a":
+            return
+        attrs = dict(attrs)
+        href = attrs.get("href", "")
+        if "/news/" in href and not href.rstrip("/").endswith("/news"):
+            self.current = {"url": urljoin("https://pokemongo.com", href), "title_parts": []}
+
+    def handle_data(self, data):
+        if self.current is not None:
+            self.current["title_parts"].append(data)
+
+    def handle_endtag(self, tag):
+        if tag == "a" and self.current is not None:
+            title = " ".join(" ".join(self.current["title_parts"]).split())
+            url = self.current["url"]
+            if len(title) > 8 and not any(x["url"] == url for x in self.items):
+                self.items.append({"title": unescape(title), "url": url, "source": "Pokémon GO 官方網站"})
+            self.current = None
+
+def fetch_text(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "GO-Battle-Lab/3.0 (public game data viewer)"})
+    with urllib.request.urlopen(req, timeout=60) as response:
+        return response.read().decode("utf-8", errors="replace")
+
+def strip_html(value):
+    class TextParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.parts = []
+        def handle_data(self, data):
+            self.parts.append(data)
+    parser = TextParser()
+    parser.feed(value or "")
+    return " ".join(" ".join(parser.parts).split())
+
+def fetch_official_news():
+    parser = OfficialNewsParser()
+    parser.feed(fetch_text(OFFICIAL_NEWS_URL))
+    if len(parser.items) < 3:
+        raise ValueError("official news page did not expose enough article links")
+    return parser.items[:40]
+
+def fetch_community_news():
+    root = ET.fromstring(fetch_text(COMMUNITY_NEWS_RSS))
+    items = []
+    for item in root.findall(".//item")[:40]:
+        title = (item.findtext("title") or "").strip()
+        link = (item.findtext("link") or "").strip()
+        if not title or not link:
+            continue
+        items.append({
+            "title": unescape(title), "url": link,
+            "published_at": (item.findtext("pubDate") or "").strip(),
+            "description": strip_html(item.findtext("description") or ""),
+            "source": "Pokémon GO Hub（第三方攻略）",
+        })
+    if not items:
+        raise ValueError("community news RSS feed is empty")
+    return items
+
 def write_json(path, obj):
     path.write_text(json.dumps(obj, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
 
@@ -227,10 +321,11 @@ def main():
     failures, updated = [], []
     gamemaster = None
     raid_updated_at = None
+    manifest = {}
     try:
         manifest = fetch_json(LEEKDUCK_MANIFEST)
         raid_updated_at = (manifest.get("files", {}).get("raid_bosses.json", {}) or {}).get("updated_at")
-        print(f"OK raid manifest: last changed {raid_updated_at or 'unknown'}")
+        print(f"OK Leak Duck manifest: {len(manifest.get('files', {}))} feeds")
     except Exception as exc:
         print(f"WARN raid manifest: {exc}", file=sys.stderr)
     for name, url in SOURCES.items():
@@ -253,6 +348,20 @@ def main():
             fallback = OUT / ("forms.json" if name == "gamemaster" else name + ".json")
             if name in REQUIRED and not fallback.exists():
                 raise RuntimeError(f"Required dataset unavailable: {name}") from exc
+
+    for name, fetcher in (("officialNews", fetch_official_news), ("communityNews", fetch_community_news)):
+        try:
+            items = fetcher()
+            if not items:
+                raise ValueError("empty news feed")
+            write_json(OUT / (name + ".json"), items)
+            updated.append(name)
+            print(f"OK {name}: {len(items)} articles")
+        except Exception as exc:
+            print(f"WARN {name}: {exc}", file=sys.stderr)
+            failures.append(name)
+            if not (OUT / (name + ".json")).exists():
+                write_json(OUT / (name + ".json"), [])
 
     if gamemaster is not None:
         required_files = [OUT / "pokemon.json", OUT / "moves.json", OUT / "names.json"]
@@ -279,7 +388,17 @@ def main():
             "source": "WatWowMap / PvPoke / PoGO API / Leek Duck",
             "raid_source": "Leek Duck via Leak Duck API",
             "raid_updated_at": raid_updated_at,
+            "feed_updated_at": {name: (manifest.get("files", {}).get(filename, {}) or {}).get("updated_at") for name, filename in {
+                "raids": "raid_bosses.json", "events": "events.json",
+                "researchTasks": "research_tasks.json", "rocketLineups": "rocket_lineups.json", "eggPool": "egg_pool.json",
+            }.items()},
             "raid_boss_count": sum(len(v) for v in json.loads((OUT / "raids.json").read_text(encoding="utf-8")).get("current", {}).values()),
+            "event_count": sum(len(v) for v in json.loads((OUT / "events.json").read_text(encoding="utf-8")).values()),
+            "research_task_count": sum(len(v) for v in json.loads((OUT / "researchTasks.json").read_text(encoding="utf-8")).values()),
+            "rocket_lineup_count": len(json.loads((OUT / "rocketLineups.json").read_text(encoding="utf-8"))),
+            "egg_pokemon_count": sum(len(v) for v in json.loads((OUT / "eggPool.json").read_text(encoding="utf-8")).values()),
+            "official_news_count": len(json.loads((OUT / "officialNews.json").read_text(encoding="utf-8"))),
+            "community_news_count": len(json.loads((OUT / "communityNews.json").read_text(encoding="utf-8"))),
             "pokemon_base_count": len(json.loads((OUT / "pokemon.json").read_text(encoding="utf-8"))),
             "pokemon_form_count": len(json.loads((OUT / "forms.json").read_text(encoding="utf-8"))),
             "note": "Includes PvPoke battle forms; unreleased entries are labelled. CPM 45.5–50 extrapolated if absent upstream.",
