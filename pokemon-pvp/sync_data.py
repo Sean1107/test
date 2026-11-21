@@ -29,6 +29,7 @@ SOURCES = {
     "cpm": API + "cp_multiplier.json",
     "powerups": API + "pokemon_powerup_requirements.json",
     "raids": API + "raid_bosses.json",
+    "evolutions": API + "pokemon_evolutions.json",
 }
 REQUIRED = {"pokemon", "moves", "types", "names", "moveNames", "rank1500", "rank2500", "rank10000", "cpm"}
 
