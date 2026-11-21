@@ -129,7 +129,7 @@ return '<div class="field '+(wide?"wide":"")+'"><label for="f-'+esc(name)+'">'+e
 }
 function section(title){return '<div class="form-section field wide">'+esc(title)+'</div>';}
 function showDialog(title,html,kind,id=null){
-editing={kind,id};$("#dialogTitle").textContent=title;$("#dialogFields").innerHTML='<div class="form-grid">'+html+'</div>';$("#editorForm").reset(); // Restore selected/current values with innerHTML instead of native reset
+editing={kind,id};$("#dialogTitle").textContent=title;$("#dialogFields").innerHTML='<div class="form-grid">'+html+'</div>';// Values are prefilled in the generated controls; do not reset them.
 $("#editor").showModal();
 }
 function showForm(kind,id=null){
