@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-21T14:09+00:00",
+  "updated_at": "2026-11-21T14:42+00:00",
   "datasets": [
     "pokemon",
     "moves",
@@ -13,8 +13,14 @@
     "cpm",
     "powerups",
     "raids",
+    "events",
+    "researchTasks",
+    "rocketLineups",
+    "eggPool",
     "evolutions",
     "gamemaster",
+    "officialNews",
+    "communityNews",
     "forms",
     "gmMoves"
   ],
@@ -22,7 +28,20 @@
   "source": "WatWowMap / PvPoke / PoGO API / Leek Duck",
   "raid_source": "Leek Duck via Leak Duck API",
   "raid_updated_at": "2026-11-16T11:26:26Z",
+  "feed_updated_at": {
+    "raids": "2026-11-16T11:26:26Z",
+    "events": "2026-11-20T21:08:58Z",
+    "researchTasks": "2026-11-17T14:28:37Z",
+    "rocketLineups": "2026-10-12T17:30:07Z",
+    "eggPool": "2026-11-16T02:45:51Z"
+  },
   "raid_boss_count": 18,
+  "event_count": 41,
+  "research_task_count": 64,
+  "rocket_lineup_count": 26,
+  "egg_pokemon_count": 78,
+  "official_news_count": 30,
+  "community_news_count": 30,
   "pokemon_base_count": 1025,
   "pokemon_form_count": 769,
   "note": "Includes PvPoke battle forms; unreleased entries are labelled. CPM 45.5–50 extrapolated if absent upstream."
