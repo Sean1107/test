@@ -312,17 +312,55 @@ Q("#moveList").innerHTML=html||'<div class="empty-state">沒有符合條件的�
 Q("#moveCount").textContent="顯示 "+Math.min(filtered.length,state.moveLimit)+" / "+filtered.length+" 個招式";
 Q("#moveMore").hidden=filtered.length<=state.moveLimit;
 }
-function currentRaids(){const r=DATA.raids;if(Array.isArray(r))return r;if(r&&r.current&&typeof r.current==="object")return Object.entries(r.current).flatMap(([tier,arr])=>Array.isArray(arr)?arr.map(x=>({...x,raid_level:tier})):[]);return [];}
+function currentRaids(){
+const r=DATA.raids;
+if(Array.isArray(r))return r;
+if(r&&r.current&&typeof r.current==="object")return Object.entries(r.current).flatMap(([tier,arr])=>Array.isArray(arr)?arr.map(x=>({...x,raid_level:tier})):[]);
+return [];
+}
 function raidPokemon(r){
 const id=r.pokemon_id||r.pokemon_id_number||r.pokemonId||r.id;
-return getPokemon(id)||allPokemon().find(p=>parsePvpId(p.pokemonName)===parsePvpId(r.pokemon||r.pokemon_name||r.name));
+if(id){const found=getPokemon(id);if(found)return found;}
+const raw=String(r.name||r.pokemon||r.pokemon_name||"").trim();
+const norm=parsePvpId(raw);
+const forms=allPokemon().filter(p=>p.formId);
+const base=allPokemon().filter(p=>!p.formId);
+const direct=forms.find(p=>parsePvpId(p.pokemonName)===norm||parsePvpId(p.localizedName)===norm||parsePvpId(p.speciesId)===norm);
+if(direct)return direct;
+const findForm=name=>forms.find(p=>parsePvpId(p.pokemonName)===parsePvpId(name)||parsePvpId(p.speciesId)===parsePvpId(name)||parsePvpId(p.localizedName)===parsePvpId(name));
+if(/^shadow\s+/i.test(raw)){
+const name=raw.replace(/^shadow\s+/i,"");
+const p=findForm(name+" (Shadow)")||findForm(name+" (Incarnate) (Shadow)");
+if(p)return p;
 }
+if(/^mega\s+/i.test(raw)){const p=findForm(raw.replace(/^mega\s+/i,"")+" (Mega)");if(p)return p;}
+if(/^(alolan|galarian|hisuian|paldean)\s+/i.test(raw)){
+const match=raw.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/i);
+const p=findForm(match[2]+" ("+match[1]+")");if(p)return p;
+}
+const variants=[raw.replace(/\s*\((shadow|mega)\)/i,""),raw.replace(/\s*\((alolan|galarian|hisuian|paldean)\)/i,"")];
+for(const v of variants){const p=findForm(v);if(p)return p;}
+return base.find(p=>parsePvpId(p.pokemonName)===norm||parsePvpId(DATA.names?.["poke_"+p.pokedexId])===norm)
+||base.find(p=>parsePvpId(p.pokemonName)===parsePvpId(raw.replace(/^(shadow|mega|alolan|galarian|hisuian|paldean)\s+/i,"")));
+}
+function raidTierLabel(t){return ({"1":"1 星","3":"3 星","5":"5 星","6":"精英","mega":"Mega","mega_legendary":"Mega 傳說"})[String(t)]||String(t||"團體戰");}
 function renderRaids(){
 const r=currentRaids();
-if(!r.length){Q("#raidBosses").innerHTML='<div class="empty-state">目前公開團體戰 Boss 清單無法取得或格式未被支援。你仍可在圖鑑選擇任何寶可夢查詢其弱點。</div>';return;}
-const selected=r.map((x,i)=>({i,x,p:raidPokemon(x)})).filter(v=>v.p).slice(0,40);
-if(!selected.length){Q("#raidBosses").innerHTML='<div class="empty-state">團體戰來源目前未提供可匹配的 Boss 清單，請使用圖鑑查詢克制。</div>';return;}
-Q("#raidBosses").innerHTML=selected.map(({i,x,p})=>'<button class="raid-card" data-raid="'+i+'"><img src="'+sprite(p.pokedexId)+'" alt=""><b>'+escaped(pokemonName(p))+'</b><small>團體戰 · '+escaped(x.raid_level||x.tier||"Boss")+'</small><div class="type-badges">'+typeBadges(p)+'</div></button>').join("");
+if(!r.length){Q("#raidBosses").innerHTML='<div class="empty-state">目前團體戰公開資料無法取得。請稍後重新整理。</div>';return;}
+const selected=r.map((x,i)=>({i,x,p:raidPokemon(x)})).filter(v=>v.p);
+if(!selected.length){Q("#raidBosses").innerHTML='<div class="empty-state">團體戰資料已載入，但寶可夢形態尚未匹配成功。</div>';return;}
+const order={"1":0,"3":1,"5":2,"6":3,"mega":4,"mega_legendary":5};
+selected.sort((a,b)=>(order[String(a.x.raid_level||a.x.tier)]??9)-(order[String(b.x.raid_level||b.x.tier)]??9)||Number(!!a.x.is_shadow)-Number(!!b.x.is_shadow));
+const meta=DATA.meta||{};
+const groups=[...new Set(selected.map(v=>String(v.x.raid_level||v.x.tier||"其他")))];
+const heading='<div class="raid-source-note">資料來源：Leek Duck · 最近更新：'+escaped(meta.raid_updated_at||"來源未提供時間")+' · 共 '+selected.length+' 個 Boss</div>';
+Q("#raidBosses").innerHTML=heading+groups.map(tier=>'<section class="raid-tier-group"><h3>'+escaped(raidTierLabel(tier))+'</h3><div class="raid-grid-inner">'+selected.filter(v=>String(v.x.raid_level||v.x.tier||"其他")===tier).map(({i,x,p})=>{
+const cpRange=x.cp_range||{},boost=x.boosted_cp_range||{};
+const cpText=cpRange.min&&cpRange.max?'捕捉 CP '+cpRange.min+'–'+cpRange.max+(boost.min&&boost.max?' · 天氣加成 '+boost.min+'–'+boost.max:""):"";
+const shadow=x.is_shadow?'<span class="raid-tag shadow">暗影</span>':"";
+const form=p.formLabel?'<span class="raid-tag">'+escaped(p.formLabel)+'</span>':"";
+return '<button class="raid-card" data-raid="'+i+'"><img src="'+escaped(x.asset_url||sprite(p.pokedexId))+'" alt=""><b>'+escaped(pokemonName(p))+'</b><small>'+escaped(x.name||p.pokemonName)+'</small><div class="raid-tags">'+shadow+form+'</div><small>'+escaped(cpText)+'</small><div class="type-badges">'+typeBadges(p)+'</div></button>';
+}).join("")+'</div></section>').join("");
 }
 function raidAdvice(p){
 const weak=weakTo(p.types).filter(x=>x.m>1.01);
