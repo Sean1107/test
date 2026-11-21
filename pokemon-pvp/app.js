@@ -183,7 +183,7 @@ if(pickerState[id])pickerState[id].active=-1;
 function renderPickerResults(id){
 const input=Q("#"+id+"Search"),results=Q("#"+id+"Results");
 if(!input||!results)return;
-const query=input.value.trim(),matches=searchPokemon(query),selected=Number(Q("#"+id).value);
+const query=input.value.trim(),matches=searchPokemon(query);
 const st=pickerState[id]||(pickerState[id]={active:-1,matches:[]});
 st.matches=matches;st.active=matches.length?Math.min(Math.max(st.active,0),matches.length-1):-1;
 if(!query){results.innerHTML='<div class="picker-hint">輸入中文或英文名稱開始搜尋</div>';results.hidden=false;input.setAttribute("aria-expanded","true");return;}
@@ -206,11 +206,10 @@ input.addEventListener("keydown",e=>{
 const st=pickerState[id];
 if(e.key==="ArrowDown"&&st.matches.length){e.preventDefault();st.active=Math.min(st.active+1,st.matches.length-1);renderPickerResults(id);}
 else if(e.key==="ArrowUp"&&st.matches.length){e.preventDefault();st.active=Math.max(st.active-1,0);renderPickerResults(id);}
-else if(e.key==="Enter"&&!results.hidden&&st.matches.length){e.preventDefault();choosePokemon(id,st.matches[Math.max(st.active,0)].pokedexId);}
+else if(e.key==="Enter"&&!results.hidden&&st.matches.length){e.preventDefault();choosePokemon(id,pokemonKey(st.matches[Math.max(st.active,0)]));}
 else if(e.key==="Escape")closePicker(id);
 });
-results.addEventListener("pointerdown",e=>{if(e.target.closest("[data-picker-choice]"))e.preventDefault();});
-results.addEventListener("click",e=>{const option=e.target.closest("[data-picker-choice]");if(option)choosePokemon(id,Number(option.dataset.pokemonId));});
+results.addEventListener("click",e=>{const option=e.target.closest("[data-picker-choice]");if(option){e.preventDefault();choosePokemon(id,option.dataset.pokemonId);}});
 }
 function clearPokemonPicker(id){
 Q("#"+id).value="";Q("#"+id+"Search").value="";closePicker(id);
