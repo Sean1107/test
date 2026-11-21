@@ -52,7 +52,7 @@ SOURCES[key]="讀取失敗";throw err||Error("資料來源無法連線");
 try{return await CACHE[key];}finally{delete CACHE[key];}
 }
 async function loadCore(){
-const keys=["pokemon","forms","gmMoves","moves","types","names","moveNames","typeNames","cpm","rank1500","rank2500","rank10000","raids","evolutions"];
+const keys=["pokemon","forms","gmMoves","moves","types","names","moveNames","typeNames","cpm","rank1500","rank2500","rank10000","raids","evolutions","events","researchTasks","rocketLineups","eggPool","officialNews","communityNews"];
 await Promise.all(keys.map(k=>loadResource(k).catch(e=>console.warn("Resource",k,e))));
 buildIndexes();renderEverything();
 }
@@ -93,7 +93,7 @@ return m;
 }
 function weakTo(types){const all=[...Array(18)].map((_,i)=>i+1);return all.map(t=>({id:t,m:typeEffect(t,types)})).sort((a,b)=>b.m-a.m);}
 function switchTab(tab){const node=Q("#"+tab);if(!node||!node.classList.contains("view"))return;state.tab=tab;QA(".view").forEach(n=>n.classList.toggle("active",n.id===tab));QA("[data-tab]").forEach(n=>n.classList.toggle("active",n.dataset.tab===tab));
-Q("#pageTitle").textContent=({overview:"訓練家總覽",pokedex:"寶可夢圖鑑",pvp:"PVP 排名",team:"隊伍分析",calculator:"IV / CP 計算器",moves:"招式圖鑑",raids:"團體戰助手",advisor:"AI 智能分析"})[tab];if(location.hash.slice(1)!==tab)history.replaceState(null,"","#"+tab);scrollTo({top:0,behavior:"instant"});}
+Q("#pageTitle").textContent=({overview:"訓練家總覽",pokedex:"寶可夢圖鑑",pvp:"PVP 排名",team:"隊伍分析",calculator:"IV / CP 計算器",moves:"招式圖鑑",raids:"團體戰助手",news:"活動與最新資訊",advisor:"AI 智能分析"})[tab];if(location.hash.slice(1)!==tab)history.replaceState(null,"","#"+tab);scrollTo({top:0,behavior:"instant"});}
 function sourceSummary(){
 const meta=DATA.meta||{};
 Q("#dataPill").innerHTML='<i></i> '+(DATA.pokemon?"已載入公開資料":"部分資料未載入");
@@ -108,7 +108,7 @@ const stats=[
 Q("#overviewStats").innerHTML=stats.map(([a,b,c])=>'<div class="stat-card"><small>'+a+'</small><strong>'+short(b)+'</strong><span>'+c+'</span></div>').join("");
 }
 function renderEverything(){
-sourceSummary();fillFilterTypes();renderDex();renderPvp();fillPokemonControls();renderTeam();renderMoves();renderRaids();
+sourceSummary();fillFilterTypes();renderDex();renderPvp();fillPokemonControls();renderTeam();renderMoves();renderRaids();renderNews();
 }
 function fillFilterTypes(){for(const id of ["dexType","moveType"]){const q=Q("#"+id);if(q.options.length>1)continue;Object.entries(LANG).forEach(([k,v])=>q.insertAdjacentHTML("beforeend",'<option value="'+k+'">'+v+'</option>'));}}
 function sortPokedex(list){
@@ -459,6 +459,71 @@ return base.find(p=>parsePvpId(p.pokemonName)===norm||parsePvpId(DATA.names?.["p
 ||base.find(p=>parsePvpId(p.pokemonName)===parsePvpId(raw.replace(/^(shadow|mega|alolan|galarian|hisuian|paldean)\s+/i,"")));
 }
 function raidTierLabel(t){return ({"1":"1 星","3":"3 星","5":"5 星","6":"精英","mega":"Mega","mega_legendary":"Mega 傳說"})[String(t)]||String(t||"團體戰");}
+
+function infoDate(value){
+if(value===undefined||value===null)return "時間未公布";
+let d;
+if(typeof value==="number")d=new Date(value*1000);
+else d=new Date(value);
+if(Number.isNaN(d.getTime()))return String(value);
+return new Intl.DateTimeFormat("zh-Hant",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).format(d);
+}
+function eventStatus(e){
+const now=Date.now(),start=typeof e.start_time==="number"?e.start_time*1000:new Date(e.start_time).getTime(),end=typeof e.end_time==="number"?e.end_time*1000:new Date(e.end_time).getTime();
+if(Number.isFinite(start)&&now<start)return "即將開始";
+if(Number.isFinite(end)&&now<=end)return "進行中";
+return "已結束";
+}
+function flattenEvents(){
+return Object.entries(DATA.events||{}).flatMap(([category,items])=>(Array.isArray(items)?items:[]).map(e=>({...e,category:e.category||category})));
+}
+function renderEvents(){
+const box=Q("#eventList");if(!box)return;
+const filter=Q("#infoCategory").value,all=flattenEvents();
+const list=all.filter(e=>{
+const status=eventStatus(e);
+if(filter==="upcoming")return status==="即將開始";
+if(filter==="active")return status==="進行中";
+return filter==="all"||e.category===filter;
+}).sort((x,y)=>{
+const sx=eventStatus(x),sy=eventStatus(y);
+const order={"進行中":0,"即將開始":1,"已結束":2};
+return order[sx]-order[sy]||new Date(typeof x.start_time==="number"?x.start_time*1000:x.start_time)-new Date(typeof y.start_time==="number"?y.start_time*1000:y.start_time);
+});
+if(!list.length){box.innerHTML='<div class="empty-state">目前沒有符合條件的活動資料。</div>';return;}
+box.innerHTML=list.slice(0,50).map(e=>{
+const status=eventStatus(e),start=infoDate(e.start_time),end=infoDate(e.end_time),desc=String(e.description||"").slice(0,420);
+return '<article class="info-event-card">'+(e.banner_url?'<img class="info-banner" loading="lazy" src="'+escaped(e.banner_url)+'" alt="">':"")+'<div class="info-event-body"><div class="info-chip-row"><span class="info-chip">'+escaped(e.category||"活動")+'</span><span class="info-status '+(status==="進行中"?"active":status==="即將開始"?"upcoming":"ended")+'">'+status+'</span></div><h4>'+escaped(e.title||"未命名活動")+'</h4><small>'+escaped(start)+' – '+escaped(end)+'</small><p>'+escaped(desc)+'</p>'+(e.article_url?'<a class="text-link" href="'+escaped(e.article_url)+'" target="_blank" rel="noopener">查看活動詳情 ↗</a>':"")+'</div></article>';
+}).join("");
+}
+function renderResearch(){
+const root=Q("#researchList");if(!root)return;
+const groups=DATA.researchTasks||{};
+root.innerHTML=Object.entries(groups).map(([group,tasks])=>'<details class="info-details"><summary>'+escaped(group)+' <span>'+tasks.length+' 項</span></summary>'+tasks.map(t=>'<div class="info-task"><b>'+escaped(t.task)+'</b><div class="info-rewards">'+(t.rewards||[]).map(r=>'<span class="info-reward">'+(r.type==="encounter"?"捕捉：":"")+escaped(r.name)+(r.quantity?" ×"+r.quantity:"")+(r.shiny_available?" ✨":"")+'</span>').join("")+'</div></div>').join("")+'</details>').join("")||'<p class="muted">目前沒有調查資料。</p>';
+}
+function renderRocket(){
+const root=Q("#rocketList");if(!root)return;
+const data=DATA.rocketLineups||{};
+root.innerHTML=Object.entries(data).map(([leader,slots])=>'<details class="info-details"><summary>'+escaped(leader)+'</summary>'+slots.map(slot=>'<div class="info-task"><b>第 '+slot.slot+' 隊'+(slot.is_encounter?' · 遭遇獎勵':"")+'</b><div class="info-rewards">'+(slot.pokemons||[]).map(p=>'<span class="info-reward">'+escaped(p.name)+(p.shiny_available?" ✨":"")+'</span>').join("")+'</div></div>').join("")+'</details>').join("")||'<p class="muted">目前沒有火箭隊資料。</p>';
+}
+function renderEggs(){
+const root=Q("#eggList");if(!root)return;
+const data=DATA.eggPool||{};
+root.innerHTML=Object.entries(data).map(([group,items])=>'<details class="info-details"><summary>'+escaped(group)+' <span>'+items.length+' 種</span></summary><div class="info-egg-grid">'+items.map(p=>'<div class="info-egg-item">'+(p.asset_url?'<img loading="lazy" src="'+escaped(p.asset_url)+'" alt="">':"")+'<span>'+escaped(p.name)+'</span><small>稀有度 '+escaped(p.rarity_tier??"—")+(p.shiny_available?" · ✨可色違":"")+'</small></div>').join("")+'</div></details>').join("")||'<p class="muted">目前沒有蛋池資料。</p>';
+}
+function renderNewsList(id,items,official){
+const root=Q("#"+id);if(!root)return;
+if(!Array.isArray(items)||!items.length){root.innerHTML='<p class="muted">暫時沒有可顯示的新聞；資料來源無法連線時會保留上一份快照。</p>';return;}
+root.innerHTML=items.slice(0,20).map(n=>'<article class="info-news-item"><b>'+escaped(n.title)+'</b>'+(n.published_at?'<small>'+escaped(n.published_at)+'</small>':"")+(n.description?'<p>'+escaped(n.description.slice(0,260))+'</p>':"")+'<a class="text-link" href="'+escaped(n.url||n.article_url||"#")+'" target="_blank" rel="noopener">'+(official?"官方公告":"閱讀報導")+' ↗</a></article>').join("");
+}
+function renderNews(){
+renderEvents();renderResearch();renderRocket();renderEggs();
+renderNewsList("officialNewsList",DATA.officialNews,true);
+renderNewsList("communityNewsList",DATA.communityNews,false);
+const meta=DATA.meta||{},feeds=meta.feed_updated_at||{};
+Q("#infoMeta").textContent="資料快照："+(meta.updated_at||"時間未提供")+" · 活動 "+(meta.event_count??DATA.events&&Object.values(DATA.events).reduce((n,x)=>n+(x||[]).length,0)??"—")+" 項 · 最近來源更新："+(feeds.events||"未知")+" · 每小時自動同步";
+}
+
 function renderRaids(){
 const r=currentRaids();
 if(!r.length){Q("#raidBosses").innerHTML='<div class="empty-state">目前團體戰公開資料無法取得。請稍後重新整理。</div>';return;}
@@ -541,6 +606,7 @@ const rk=e.target.closest("[data-rank]");if(rk){state.selectedRank=rk.dataset.ra
 const lg=e.target.closest("[data-league]");if(lg){state.league=lg.dataset.league;state.selectedRank=null;renderPvp();return;}
 const tl=e.target.closest("[data-team-league]");if(tl){state.teamLeague=tl.dataset.teamLeague;renderTeam();return;}
 const raid=e.target.closest("[data-raid]");if(raid){showRaid(Number(raid.dataset.raid));return;}
+const infoLink=e.target.closest("[data-info-link]");if(infoLink){window.open(infoLink.dataset.infoLink,"_blank","noopener");return;}
 const calc=e.target.closest("[data-use-calc]");if(calc){const p=getPokemon(calc.dataset.useCalc);if(p){Q("#calcPokemonSearch").value=pokemonName(p);state.calcId=pokemonKey(p);switchTab("calculator");calculate();}return;}
 const tt=e.target.closest("[data-use-team]");if(tt){if(tt.dataset.useTeam){state.teamIds[0]=tt.dataset.useTeam;switchTab("team");renderTeam();}return;}
 });
@@ -549,6 +615,7 @@ for(const id of ["pvpSearch","pvpLimit"]){Q("#"+id).addEventListener(id==="pvpSe
 for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"])setupPokemonPicker(id);
 for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"])Q("[data-clear-picker='"+id+"']").addEventListener("click",()=>clearPokemonPicker(id));
 document.addEventListener("click",e=>{if(!e.target.closest(".pokemon-picker"))for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"])closePicker(id);});
+Q("#infoCategory").addEventListener("change",renderEvents);
 for(const id of ["moveSearch","moveKind","moveType"])Q("#"+id).addEventListener(id==="moveSearch"?"input":"change",()=>{state.moveLimit=70;renderMoves();});
 Q("#dexMore").addEventListener("click",()=>{state.dexLimit+=42;renderDex();});
 Q("#moveMore").addEventListener("click",()=>{state.moveLimit+=70;renderMoves();});
