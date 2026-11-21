@@ -8,11 +8,12 @@ import json
 import pathlib
 import re
 import sys
+import time
 import urllib.request
 import xml.etree.ElementTree as ET
 from html import unescape
 from html.parser import HTMLParser
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlencode
 from datetime import datetime, timezone
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -314,6 +315,133 @@ def fetch_community_news():
         raise ValueError("community news RSS feed is empty")
     return items
 
+
+MANUAL_ZH = {
+    "Pokémon Spotlight Hour": "焦點時刻",
+    "Event": "活動",
+    "Max Battles": "極巨化對戰",
+    "Community Day": "社群日",
+    "Twitch Drops": "Twitch 掉寶獎勵",
+    "Max Mondays": "極巨化星期一",
+    "Raid Battles": "團體戰",
+    "GO Battle League": "GO 對戰聯盟",
+    "Raid Hour": "團體戰時段",
+    "Raid Day": "團體戰日",
+    "Season": "賽季",
+    "GO Pass": "GO Pass",
+    "Timed Research": "限時調查",
+    "Research": "調查",
+    "Pokémon GO Tour": "Pokémon GO 巡迴賽",
+    "Giovanni": "喬瓦尼",
+    "Cliff": "克里夫",
+    "Arlo": "亞洛",
+    "Sierra": "席拉",
+    "Pokémon GO Hub（第三方攻略）": "Pokémon GO Hub（第三方攻略）",
+}
+
+def google_translate_zh(text, pokemon_names):
+    """Translate public English game text to Traditional Chinese; protect official Pokémon names."""
+    protected = text
+    placeholders = {}
+    for index, (english, chinese) in enumerate(sorted(pokemon_names.items(), key=lambda item: len(item[0]), reverse=True)):
+        if not english or not chinese or len(english) < 3:
+            continue
+        token = f"ZXQPKM{index:05d}QXZ"
+        pattern = re.compile(r"(?<![A-Za-z])" + re.escape(english) + r"(?![A-Za-z])", re.IGNORECASE)
+        protected, count = pattern.subn(token, protected)
+        if count:
+            placeholders[token] = chinese
+    query = urlencode({"client": "gtx", "sl": "en", "tl": "zh-TW", "dt": "t", "q": protected})
+    url = "https://translate.googleapis.com/translate_a/single?" + query
+    request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 GO-Battle-Lab/3.0"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        payload = json.load(response)
+    translated = "".join(part[0] for part in (payload[0] or []) if part and part[0])
+    if not translated:
+        raise ValueError("translation service returned an empty result")
+    for token, chinese in placeholders.items():
+        translated = translated.replace(token, chinese)
+    return translated.strip()
+
+def build_zh_translation_cache():
+    """Create a persistent English -> Traditional Chinese cache for every visible live-info string."""
+    cache_path = OUT / "zhTranslations.json"
+    try:
+        translations = json.loads(cache_path.read_text(encoding="utf-8")) if cache_path.exists() else {}
+    except Exception:
+        translations = {}
+    translations.update(MANUAL_ZH)
+
+    def read_data(name, default):
+        path = OUT / (name + ".json")
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return default
+
+    pokemon = read_data("pokemon", [])
+    forms = read_data("forms", [])
+    names = read_data("names", {})
+    pokemon_names = {}
+    for item in pokemon + forms:
+        english = item.get("pokemonName")
+        chinese = item.get("localizedName") or names.get("poke_" + str(item.get("pokedexId")), "")
+        if english and chinese and english != chinese:
+            pokemon_names[english] = chinese
+
+    strings = set()
+    def add(value):
+        if isinstance(value, str) and value.strip():
+            strings.add(value.strip())
+
+    events = read_data("events", {})
+    for group, items in events.items():
+        add(group)
+        for event in items if isinstance(items, list) else []:
+            add(event.get("title")); add(event.get("description")); add(event.get("category"))
+    research = read_data("researchTasks", {})
+    for group, tasks in research.items():
+        add(group)
+        for task in tasks if isinstance(tasks, list) else []:
+            add(task.get("task"))
+            for reward in task.get("rewards", []):
+                add(reward.get("name"))
+    rockets = read_data("rocketLineups", {})
+    for leader, slots in rockets.items():
+        add(leader)
+        for slot in slots if isinstance(slots, list) else []:
+            for pokemon_item in slot.get("pokemons", []):
+                add(pokemon_item.get("name"))
+    eggs = read_data("eggPool", {})
+    for group, items in eggs.items():
+        add(group)
+        for pokemon_item in items if isinstance(items, list) else []:
+            add(pokemon_item.get("name"))
+    for filename in ("officialNews", "communityNews"):
+        for item in read_data(filename, []):
+            add(item.get("title")); add(item.get("description")); add(item.get("source"))
+
+    pending = [value for value in sorted(strings) if value not in translations and value not in pokemon_names]
+    success = 0
+    for index, value in enumerate(pending, 1):
+        # Do not send strings that are already Traditional Chinese or contain no English letters.
+        if re.search(r"[\u4e00-\u9fff]", value) or not re.search(r"[A-Za-z]", value):
+            continue
+        try:
+            result = google_translate_zh(value, pokemon_names)
+            if result and result != value:
+                translations[value] = result
+                success += 1
+        except Exception as exc:
+            print(f"WARN zh translation ({index}/{len(pending)}): {value[:70]}: {exc}", file=sys.stderr)
+        if index % 25 == 0:
+            print(f"INFO zh translation progress: {index}/{len(pending)}")
+        time.sleep(0.08)
+    translations.update(MANUAL_ZH)
+    write_json(cache_path, translations)
+    print(f"OK zhTranslations: {len(translations)} cached strings; {success} new translations; {len(pending)-success} untranslated or cached")
+    return len(translations), success
+
 def write_json(path, obj):
     path.write_text(json.dumps(obj, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
 
@@ -381,6 +509,8 @@ def main():
     elif not (OUT / "forms.json").exists():
         raise RuntimeError("PvPoke gamemaster unavailable and no previous forms snapshot exists")
 
+    translation_count, new_translations = build_zh_translation_cache()
+
     (OUT / "meta.json").write_text(
         json.dumps({
             "updated_at": datetime.now(timezone.utc).isoformat(timespec="minutes"),
@@ -399,6 +529,9 @@ def main():
             "egg_pokemon_count": sum(len(v) for v in json.loads((OUT / "eggPool.json").read_text(encoding="utf-8")).values()),
             "official_news_count": len(json.loads((OUT / "officialNews.json").read_text(encoding="utf-8"))),
             "community_news_count": len(json.loads((OUT / "communityNews.json").read_text(encoding="utf-8"))),
+            "zh_translation_count": translation_count,
+            "zh_translations_added_this_run": new_translations,
+            "translation_source": "Google Translate public endpoint (cached; English originals retained)",
             "pokemon_base_count": len(json.loads((OUT / "pokemon.json").read_text(encoding="utf-8"))),
             "pokemon_form_count": len(json.loads((OUT / "forms.json").read_text(encoding="utf-8"))),
             "note": "Includes PvPoke battle forms; unreleased entries are labelled. CPM 45.5–50 extrapolated if absent upstream.",
