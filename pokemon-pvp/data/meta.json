@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-21T10:20+00:00",
+  "updated_at": "2026-11-21T10:35+00:00",
   "datasets": [
     "pokemon",
     "moves",
@@ -13,9 +13,14 @@
     "cpm",
     "powerups",
     "raids",
-    "evolutions"
+    "evolutions",
+    "gamemaster",
+    "forms",
+    "gmMoves"
   ],
   "stale_datasets": [],
   "source": "WatWowMap / PvPoke / PoGO API",
-  "note": "Not official Niantic account data. CPM 45.5–50 extrapolated."
+  "pokemon_base_count": 1025,
+  "pokemon_form_count": 769,
+  "note": "Includes PvPoke battle forms; unreleased entries are labelled. CPM 45.5–50 extrapolated if absent upstream."
 }
