@@ -91,18 +91,25 @@
   <div id="raidDetail" class="panel raid-detail"><div class="detail-empty"><span>◈</span><b>選擇團體戰 Boss</b><small>查看弱點及推薦攻擊手</small></div></div>
 </section>
 <section id="news" class="view">
-  <div class="page-intro"><div><div class="eyebrow">POKÉMON GO LIVE INTELLIGENCE</div><h2>活動與最新資訊</h2><p>整合即將開始及進行中的活動、團體戰輪替、田野調查、火箭隊陣容、蛋池與官方公告。</p></div><span class="tag tag-live">自動同步</span></div>
+  <div class="page-intro"><div><div class="eyebrow">POKÉMON GO LIVE INTELLIGENCE</div><h2 id="newsTitle">活動與最新資訊</h2><p id="newsDescription">集中查看目前及未來活動、團體戰、極巨化、田野調查、火箭隊、蛋池與最新公告。</p></div><span class="tag tag-live" id="newsAutoSync">自動同步</span></div>
+  <div class="news-language-row">
+    <div class="news-language-copy"><b id="newsLanguageLabel">顯示語言</b><small id="newsMissingNote">若資料來源未提供中文翻譯，系統會保留英文原文並標示，避免錯誤翻譯。</small></div>
+    <div class="news-language-toggle" id="newsLangToggle" role="group" aria-label="Information language">
+      <button type="button" data-news-lang="zh" class="active" aria-pressed="true">繁體中文</button>
+      <button type="button" data-news-lang="en" aria-pressed="false">English</button>
+    </div>
+  </div>
   <div class="info-meta" id="infoMeta">正在載入資訊來源…</div>
-  <div class="info-section"><div class="panel-heading"><div><div class="eyebrow">EVENT CALENDAR</div><h3>活動日曆</h3></div><select id="infoCategory"><option value="all">所有活動</option><option value="upcoming">即將開始</option><option value="active">進行中</option><option value="Community Day">社群日</option><option value="Raid Battles">團體戰活動</option><option value="Raid Hour">團體戰時段</option><option value="Raid Day">團體戰日</option><option value="Max Battles">極巨化活動</option><option value="GO Battle League">PVP 活動</option><option value="Pokémon Spotlight Hour">焦點時刻</option></select></div><div id="eventList" class="info-event-grid"><div class="loading-card">載入活動中…</div></div></div>
+  <div class="info-section"><div class="panel-heading"><div><div class="eyebrow" id="eventEyebrow">活動日曆</div><h3 id="eventSectionTitle">活動日曆</h3></div><select id="infoCategory"><option value="all">所有活動</option></select></div><div id="eventList" class="info-event-grid"><div class="loading-card">載入活動中…</div></div></div>
   <div class="info-two-col">
-    <section class="panel info-section"><div class="panel-heading"><div><div class="eyebrow">FIELD RESEARCH</div><h3>田野調查與任務獎勵</h3></div></div><div id="researchList" class="info-list">載入中…</div></section>
-    <section class="panel info-section"><div class="panel-heading"><div><div class="eyebrow">TEAM GO ROCKET</div><h3>火箭隊陣容</h3></div></div><div id="rocketList" class="info-list">載入中…</div></section>
+    <section class="panel info-section"><div class="panel-heading"><div><div class="eyebrow" id="researchEyebrow">田野調查</div><h3 id="researchSectionTitle">田野調查與任務獎勵</h3></div></div><div id="researchList" class="info-list">載入中…</div></section>
+    <section class="panel info-section"><div class="panel-heading"><div><div class="eyebrow" id="rocketEyebrow">火箭隊</div><h3 id="rocketSectionTitle">火箭隊陣容</h3></div></div><div id="rocketList" class="info-list">載入中…</div></section>
   </div>
   <div class="info-two-col">
-    <section class="panel info-section"><div class="panel-heading"><div><div class="eyebrow">EGG POOLS</div><h3>目前蛋池</h3></div></div><div id="eggList" class="info-list">載入中…</div></section>
-    <section class="panel info-section"><div class="panel-heading"><div><div class="eyebrow">OFFICIAL UPDATES</div><h3>官方公告</h3></div></div><div id="officialNewsList" class="info-list">載入中…</div><div class="panel-heading info-subhead"><div><div class="eyebrow">COMMUNITY COVERAGE</div><h3>社群攻略新聞</h3></div></div><div id="communityNewsList" class="info-list">載入中…</div></section>
+    <section class="panel info-section"><div class="panel-heading"><div><div class="eyebrow" id="eggEyebrow">孵蛋資料</div><h3 id="eggSectionTitle">目前蛋池</h3></div></div><div id="eggList" class="info-list">載入中…</div></section>
+    <section class="panel info-section"><div class="panel-heading"><div><div class="eyebrow" id="officialNewsEyebrow">官方資訊</div><h3 id="officialNewsTitle">官方公告</h3></div></div><div id="officialNewsList" class="info-list">載入中…</div><div class="panel-heading info-subhead"><div><div class="eyebrow" id="communityNewsEyebrow">社群資訊</div><h3 id="communityNewsTitle">社群攻略新聞</h3></div></div><div id="communityNewsList" class="info-list">載入中…</div></section>
   </div>
-  <div class="info-footnote">活動時間依公開來源提供的當地時間或官方公告顯示；實際地區、時區及遊戲內安排可能不同。官方公告與第三方攻略已分開標示，重要資訊請以遊戲內公告為準。</div>
+  <div class="info-footnote" id="newsFootnote">活動時間依公開來源提供的當地時間或官方公告顯示；實際地區、時區及遊戲內安排可能不同。官方公告與第三方攻略分開顯示，重要資訊請以遊戲內公告為準。</div>
 </section>
 <section id="advisor" class="view">
   <div class="page-intro"><div><div class="eyebrow">LOCAL INTELLIGENCE ENGINE</div><h2>AI 智能分析</h2><p>以 PVPoke 模擬排名、遊戲能力值、招式資料和屬性相剋為依據，生成可解釋的建議。</p></div><span class="tag tag-live">免 API Key</span></div>
