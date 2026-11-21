@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-21T13:42+00:00",
+  "updated_at": "2026-11-21T13:50+00:00",
   "datasets": [
     "pokemon",
     "moves",
@@ -19,7 +19,10 @@
     "gmMoves"
   ],
   "stale_datasets": [],
-  "source": "WatWowMap / PvPoke / PoGO API",
+  "source": "WatWowMap / PvPoke / PoGO API / Leek Duck",
+  "raid_source": "Leek Duck via Leak Duck API",
+  "raid_updated_at": "2026-11-16T11:26:26Z",
+  "raid_boss_count": 18,
   "pokemon_base_count": 1025,
   "pokemon_form_count": 769,
   "note": "Includes PvPoke battle forms; unreleased entries are labelled. CPM 45.5–50 extrapolated if absent upstream."
