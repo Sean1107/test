@@ -33,25 +33,31 @@ jobs:
         with:
           path: ~/.local/share/argos-translate/packages
           key: argos-en-zt-v1.9-ubuntu-latest
-      - name: Prepare offline Traditional Chinese translator
+      - name: Install Argos translation runtime
+        run: python -m pip install --disable-pip-version-check argostranslate
+      - name: Prepare offline Traditional Chinese model
+        timeout-minutes: 10
         run: |
-          python -m pip install --disable-pip-version-check argostranslate
           python - <<'PY'
+          import argostranslate.translate
+          languages = argostranslate.translate.get_installed_languages()
+          ready = any(language.code == "en" and any(t.to_lang.code == "zt" for t in language.translations) for language in languages)
+          raise SystemExit(0 if ready else 1)
+          PY
+          if [ $? -ne 0 ]; then
+            curl -L --fail --retry 3 --connect-timeout 20 --max-time 240 \
+              "https://data.argosopentech.com/argospm/v1/translate-en_zt-1_9.argosmodel" \
+              -o "$RUNNER_TEMP/translate-en_zt-1_9.argosmodel"
+            python - <<'PY'
+          import os
           import argostranslate.package
           import argostranslate.translate
-
-          installed = argostranslate.translate.get_installed_languages()
-          has_pair = any(
-              language.code == "en" and any(t.to_lang.code == "zt" for t in language.translations)
-              for language in installed
-          )
-          if not has_pair:
-              packages = argostranslate.package.get_available_packages()
-              package = next((p for p in packages if p.from_code == "en" and p.to_code == "zt"), None)
-              if package is None:
-                  raise SystemExit("Argos en -> Traditional Chinese model was not found")
-              package_path = package.download()
-              argostranslate.package.install_from_path(package_path)
+          model = os.path.join(os.environ["RUNNER_TEMP"], "translate-en_zt-1_9.argosmodel")
+          argostranslate.package.install_from_path(model)
+          PY
+          fi
+          python - <<'PY'
+          import argostranslate.translate
           print("Argos en -> Traditional Chinese ready:", argostranslate.translate.translate("Upcoming Pokémon GO events", "en", "zt"))
           PY
       - name: Validate application syntax
