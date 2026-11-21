@@ -22,6 +22,7 @@
     <button data-tab="calculator"><i>∑</i> IV / CP 計算器</button>
     <button data-tab="moves"><i>✦</i> 招式圖鑑</button>
     <button data-tab="raids"><i>◈</i> 團體戰</button>
+    <button data-tab="news"><i>▤</i> 活動與最新資訊</button>
     <button data-tab="advisor"><i>✧</i> AI 智能分析</button>
   </nav>
   <div class="side-bottom"><span class="live-dot"></span><span>公開資料模式</span><small id="sideDataStatus">正在載入資料…</small></div>
@@ -89,6 +90,20 @@
   <div id="raidBosses" class="raid-grid"><div class="loading-card">正在載入目前團體戰…</div></div>
   <div id="raidDetail" class="panel raid-detail"><div class="detail-empty"><span>◈</span><b>選擇團體戰 Boss</b><small>查看弱點及推薦攻擊手</small></div></div>
 </section>
+<section id="news" class="view">
+  <div class="page-intro"><div><div class="eyebrow">POKÉMON GO LIVE INTELLIGENCE</div><h2>活動與最新資訊</h2><p>整合即將開始及進行中的活動、團體戰輪替、田野調查、火箭隊陣容、蛋池與官方公告。</p></div><span class="tag tag-live">自動同步</span></div>
+  <div class="info-meta" id="infoMeta">正在載入資訊來源…</div>
+  <div class="info-section"><div class="panel-heading"><div><div class="eyebrow">EVENT CALENDAR</div><h3>活動日曆</h3></div><select id="infoCategory"><option value="all">所有活動</option><option value="upcoming">即將開始</option><option value="active">進行中</option><option value="Community Day">社群日</option><option value="Raid Battles">團體戰活動</option><option value="Raid Hour">團體戰時段</option><option value="Raid Day">團體戰日</option><option value="Max Battles">極巨化活動</option><option value="GO Battle League">PVP 活動</option><option value="Pokémon Spotlight Hour">焦點時刻</option></select></div><div id="eventList" class="info-event-grid"><div class="loading-card">載入活動中…</div></div></div>
+  <div class="info-two-col">
+    <section class="panel info-section"><div class="panel-heading"><div><div class="eyebrow">FIELD RESEARCH</div><h3>田野調查與任務獎勵</h3></div></div><div id="researchList" class="info-list">載入中…</div></section>
+    <section class="panel info-section"><div class="panel-heading"><div><div class="eyebrow">TEAM GO ROCKET</div><h3>火箭隊陣容</h3></div></div><div id="rocketList" class="info-list">載入中…</div></section>
+  </div>
+  <div class="info-two-col">
+    <section class="panel info-section"><div class="panel-heading"><div><div class="eyebrow">EGG POOLS</div><h3>目前蛋池</h3></div></div><div id="eggList" class="info-list">載入中…</div></section>
+    <section class="panel info-section"><div class="panel-heading"><div><div class="eyebrow">OFFICIAL UPDATES</div><h3>官方公告</h3></div></div><div id="officialNewsList" class="info-list">載入中…</div><div class="panel-heading info-subhead"><div><div class="eyebrow">COMMUNITY COVERAGE</div><h3>社群攻略新聞</h3></div></div><div id="communityNewsList" class="info-list">載入中…</div></section>
+  </div>
+  <div class="info-footnote">活動時間依公開來源提供的當地時間或官方公告顯示；實際地區、時區及遊戲內安排可能不同。官方公告與第三方攻略已分開標示，重要資訊請以遊戲內公告為準。</div>
+</section>
 <section id="advisor" class="view">
   <div class="page-intro"><div><div class="eyebrow">LOCAL INTELLIGENCE ENGINE</div><h2>AI 智能分析</h2><p>以 PVPoke 模擬排名、遊戲能力值、招式資料和屬性相剋為依據，生成可解釋的建議。</p></div><span class="tag tag-live">免 API Key</span></div>
   <div class="advisor-layout"><section class="panel advisor-input"><div class="advisor-mark">✧</div><h3>你想分析甚麼？</h3><p class="muted">選擇聯盟及分析目標，系統會自動查詢公開資料，不需要上傳你的寶可夢盒子。</p><div class="field"><label for="advisorLeague">對戰聯盟</label><select id="advisorLeague"><option value="1500">超級聯盟</option><option value="2500" selected>高級聯盟</option><option value="10000">大師聯盟</option></select></div><div class="field"><label for="advisorTarget">分析對象</label><select id="advisorTarget"><option value="team">分析隊伍（使用隊伍分析器的選擇）</option><option value="counter">尋找指定對手的克制方案</option><option value="pokemon">分析一隻寶可夢的聯盟價值</option></select></div><div class="field" id="advisorPokemonField" hidden><label for="advisorPokemonSearch">選擇寶可夢</label><div class="pokemon-picker" data-picker="advisorPokemon"><div class="picker-input-wrap"><input id="advisorPokemonSearch" class="pokemon-search" type="search" placeholder="輸入寶可夢名稱，例如：蒼響 / Zacian" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="advisorPokemonResults"><button class="picker-clear" type="button" data-clear-picker="advisorPokemon" aria-label="清除選擇">×</button></div><input id="advisorPokemon" class="picker-value" type="hidden" value=""><div id="advisorPokemonResults" class="pokemon-suggestions" role="listbox" hidden></div></div></div><div class="field" id="advisorOpponentField" hidden><label for="advisorOpponentSearch">對手寶可夢</label><div class="pokemon-picker" data-picker="advisorOpponent"><div class="picker-input-wrap"><input id="advisorOpponentSearch" class="pokemon-search" type="search" placeholder="輸入寶可夢名稱，例如：蒼響 / Zacian" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="advisorOpponentResults"><button class="picker-clear" type="button" data-clear-picker="advisorOpponent" aria-label="清除選擇">×</button></div><input id="advisorOpponent" class="picker-value" type="hidden" value=""><div id="advisorOpponentResults" class="pokemon-suggestions" role="listbox" hidden></div></div></div><div class="field"><label for="advisorQuestion">補充問題（可選）</label><textarea id="advisorQuestion" rows="3" placeholder="例如：我應該優先練哪隻？隊伍最怕甚麼？"></textarea></div><button id="advisorRun" class="btn btn-primary btn-block">生成智能分析 ✧</button><div class="advisor-note">本機分析引擎不會把資料傳送給第三方 AI。它會根據可核實的數據和規則生成建議，並標示估算限制。</div></section><section class="panel advisor-output"><div class="panel-heading"><div><div class="eyebrow">ANALYSIS REPORT</div><h3>分析結果</h3></div><button id="copyAdvisor" class="btn btn-outline btn-sm" disabled>複製報告</button></div><div id="advisorReport" class="report-placeholder"><span>✧</span><b>等待你的分析指令</b><small>結果會顯示在這裡，並附上判斷依據。</small></div></section></div>
@@ -98,7 +113,7 @@
 </div>
 </div>
 <nav class="mobile-nav" aria-label="手機導覽">
-<button class="active" data-tab="overview"><span>⌂</span>總覽</button><button data-tab="pokedex"><span>◉</span>圖鑑</button><button data-tab="pvp"><span>⚔</span>PVP</button><button data-tab="team"><span>⬡</span>隊伍</button><button data-tab="advisor"><span>✧</span>AI</button>
+<button class="active" data-tab="overview"><span>⌂</span>總覽</button><button data-tab="pokedex"><span>◉</span>圖鑑</button><button data-tab="pvp"><span>⚔</span>PVP</button><button data-tab="news"><span>▤</span>資訊</button><button data-tab="advisor"><span>✧</span>AI</button>
 </nav>
 <div id="toast" role="status" aria-live="polite"></div>
 <script defer src="./app.js"></script>
