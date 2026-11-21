@@ -38,20 +38,21 @@ jobs:
       - name: Prepare offline Traditional Chinese model
         timeout-minutes: 10
         run: |
-          python - <<'PY'
+          if python - <<'PY'
           import argostranslate.translate
           languages = argostranslate.translate.get_installed_languages()
           ready = any(language.code == "en" and any(t.to_lang.code == "zt" for t in language.translations) for language in languages)
           raise SystemExit(0 if ready else 1)
           PY
-          if [ $? -ne 0 ]; then
+          then
+            echo "Traditional Chinese model restored from cache"
+          else
             curl -L --fail --retry 3 --connect-timeout 20 --max-time 240 \
               "https://data.argosopentech.com/argospm/v1/translate-en_zt-1_9.argosmodel" \
               -o "$RUNNER_TEMP/translate-en_zt-1_9.argosmodel"
             python - <<'PY'
           import os
           import argostranslate.package
-          import argostranslate.translate
           model = os.path.join(os.environ["RUNNER_TEMP"], "translate-en_zt-1_9.argosmodel")
           argostranslate.package.install_from_path(model)
           PY
