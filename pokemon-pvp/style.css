@@ -3,3 +3,28 @@
 @media(max-width:850px){.sidebar{display:none}.topbar{padding:17px 15px}.topbar h1{font-size:1.25rem}.top-tools .btn{font-size:.77rem;padding:8px 10px}main{padding:19px 15px 75px}.hero{padding:26px;min-height:240px}.hero h2{font-size:2rem}.hero-orbit{width:140px;height:140px}.orbit-core{width:80px;height:80px;font-size:1.5rem}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bottom-grid,.calculator-layout,.advisor-layout{grid-template-columns:1fr}.team-select-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.raid-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:40;background:#111c2fec;backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:9px 2px calc(9px + env(safe-area-inset-bottom))}.mobile-nav button{border:0;background:none;color:#99aec8;flex:1;display:grid;justify-items:center;gap:2px;font-size:.7rem}.mobile-nav button span{font-size:1.3rem}.mobile-nav button.active{color:var(--mint)}footer{padding:15px 20px 100px}#toast{bottom:85px;right:12px;left:12px}}
 @media(max-width:620px){.topbar .eyebrow{font-size:.55rem}.data-pill{font-size:.68rem;padding:6px}.hero{padding:24px 19px}.hero h2{font-size:1.65rem}.hero p{font-size:.84rem}.hero-orbit{display:none}.hero-actions{margin-top:18px}.tool-grid,.dex-layout,.pvp-layout,.analysis-grid{grid-template-columns:1fr}.dex-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.detail-panel{position:static}.tool-card{min-height:155px}.team-select-grid{grid-template-columns:1fr}.slot-summary{min-height:60px}.team-actions{flex-direction:column;align-items:stretch}.raid-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.search-box{min-width:100%;max-width:none}.toolbar select{flex:1}.page-intro{align-items:flex-start}.page-intro h2{font-size:1.4rem}.page-intro .text-link{font-size:.69rem}.table-head,.move-row{grid-template-columns:minmax(90px,2fr) .9fr .6fr .75fr .55fr;gap:4px;font-size:.72rem}.panel,.detail-panel{padding:17px}.stat-card{padding:15px}.stat-card strong{font-size:1.48rem}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Searchable Pokémon picker */
+.pokemon-picker{position:relative;width:100%;min-width:0}
+.picker-input-wrap{display:flex;align-items:center;gap:6px;border:1px solid #3c5067;background:#1a2b41;border-radius:11px;padding:0 9px 0 12px;transition:border-color .15s,box-shadow .15s}
+.picker-input-wrap:focus-within{border-color:var(--mint);box-shadow:0 0 0 2px #70e7c826}
+.pokemon-search{width:100%;min-width:0;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;padding:12px 0;color:var(--text)}
+.pokemon-search::placeholder{color:#8fa5bf}
+.picker-clear{flex:0 0 28px;width:28px;height:28px;padding:0;border:0;border-radius:8px;background:#2b4057;color:#c5d5e7;font-size:1.2rem;line-height:1}
+.picker-clear:hover{background:#3c526c;color:white}
+.picker-value{display:none}
+.pokemon-suggestions{position:absolute;z-index:60;top:calc(100% + 7px);left:0;right:0;max-height:310px;overflow-y:auto;background:#17263a;border:1px solid #48627c;border-radius:13px;padding:6px;box-shadow:0 16px 38px #0009}
+.pokemon-suggestions[hidden]{display:none}
+.pokemon-suggestion{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;text-align:left;border:0;border-radius:9px;background:transparent;color:var(--text)}
+.pokemon-suggestion:hover,.pokemon-suggestion.active{background:#29445b}
+.pokemon-suggestion img{width:42px;height:42px;object-fit:contain;flex:0 0 42px}
+.suggestion-name{min-width:0;display:flex;flex-direction:column;gap:3px;flex:1}
+.suggestion-name b{font-size:.87rem}
+.suggestion-name small{font-size:.72rem;overflow-wrap:anywhere}
+.suggestion-id{font-size:.72rem;color:var(--mint);font-weight:800}
+.picker-hint,.picker-empty{padding:16px 12px;text-align:center;color:var(--muted);font-size:.8rem}
+.team-slot .pokemon-picker{z-index:5}
+.team-slot:focus-within{position:relative;z-index:8}
+.advisor-input .pokemon-picker{z-index:5}
+.advisor-input .field:focus-within{position:relative;z-index:8}
+@media(max-width:620px){.pokemon-suggestions{max-height:260px}.pokemon-suggestion{padding:7px 8px}.pokemon-suggestion img{width:38px;height:38px;flex-basis:38px}}
