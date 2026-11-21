@@ -353,6 +353,20 @@ def google_translate_zh(text, pokemon_names):
             placeholders[token] = chinese
 
     translated = None
+    # Prefer the local Argos en -> Traditional Chinese model; it works offline and needs no API key.
+    try:
+        import argostranslate.translate as argos_translate
+        candidate = argos_translate.translate(protected, "en", "zt")
+        if candidate and candidate.strip() and candidate.strip() != protected.strip():
+            translated = candidate.strip()
+    except Exception as exc:
+        print(f"INFO local Argos translation unavailable: {exc}", file=sys.stderr)
+
+    if translated:
+        for token, chinese in placeholders.items():
+            translated = translated.replace(token, chinese)
+        return translated.strip()
+
     # Lingva instances expose a no-key Google Translate-compatible REST API.
     lingva_hosts = (
         "https://lingva.ml",
