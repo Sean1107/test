@@ -502,7 +502,7 @@ if(NEWS_MANUAL_ZH[raw])return NEWS_MANUAL_ZH[raw];
 const pokemon=allPokemon().find(p=>String(p.pokemonName||"").toLowerCase()===raw.toLowerCase());
 if(pokemon)return pokemonName(pokemon);
 const translated=DATA.zhTranslations?.[raw];
-return translated||raw+"（原文）";
+return translated&&translated!==raw?translated:raw+"（原文）";
 }
 function newsUi(){return NEWS_UI[state.newsLang]||NEWS_UI.zh;}
 function infoDate(value){
