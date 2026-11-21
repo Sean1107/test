@@ -188,7 +188,7 @@ const st=pickerState[id]||(pickerState[id]={active:-1,matches:[]});
 st.matches=matches;st.active=matches.length?Math.min(Math.max(st.active,0),matches.length-1):-1;
 if(!query){results.innerHTML='<div class="picker-hint">輸入中文或英文名稱開始搜尋</div>';results.hidden=false;input.setAttribute("aria-expanded","true");return;}
 if(!matches.length){results.innerHTML='<div class="picker-empty">找不到符合「'+escaped(query)+'」的寶可夢</div>';results.hidden=false;input.setAttribute("aria-expanded","true");return;}
-results.innerHTML=matches.map((p,i)=>'<button type="button" class="pokemon-suggestion '+(i===st.active?"active":"")+'" role="option" aria-selected="'+(selected===p.pokedexId)+'" data-picker-choice="'+id+'" data-pokemon-id="'+p.pokedexId+'"><img src="'+sprite(p.pokedexId)+'" alt=""><span class="suggestion-name"><b>'+escaped(pokemonName(p))+'</b><small>'+escaped(p.pokemonName)+' · #'+p.pokedexId+'</small></span><span class="suggestion-id">#'+p.pokedexId+'</span></button>').join("");
+results.innerHTML=matches.map((p,i)=>'<button type="button" class="pokemon-suggestion '+(i===st.active?"active":"")+'" role="option" aria-selected="'+(String(Q("#"+id).value)===pokemonKey(p))+'" data-picker-choice="'+id+'" data-pokemon-id="'+escaped(pokemonKey(p))+'"><img src="'+sprite(p.pokedexId)+'" alt=""><span class="suggestion-name"><b>'+escaped(pokemonName(p))+'</b><small>'+escaped(p.pokemonName)+' · #'+p.pokedexId+'</small></span><span class="suggestion-id">#'+p.pokedexId+'</span></button>').join("");
 results.hidden=false;input.setAttribute("aria-expanded","true");
 }
 function choosePokemon(id,pokemonId){
@@ -233,7 +233,7 @@ Q("#"+id+"Card").innerHTML=p?'<img src="'+sprite(p.pokedexId)+'" alt=""><b>'+esc
 function teamIssues(ids,league){
 const mons=ids.map(getPokemon).filter(Boolean);
 const weak=Array.from({length:18},(_,i)=>i+1).map(t=>({t,weak:mons.filter(p=>typeEffect(t,p.types)>1.01),resist:mons.filter(p=>typeEffect(t,p.types)<.99)})).sort((a,b)=>b.weak.length-a.weak.length);
-const ranks=mons.map(p=>({p,r:(DATA["rank"+league]||[]).find(x=>parsePvpId(x.speciesName?.replace(/\s*\([^)]*\)/g,""))===parsePvpId(p.pokemonName))}));
+const ranks=mons.map(p=>({p,r:(DATA["rank"+league]||[]).find(x=>x.speciesId===p.speciesId||x.speciesId===pokemonKey(p))||(DATA["rank"+league]||[]).find(x=>!p.formId&&parsePvpId(x.speciesName?.replace(/\s*\([^)]*\)/g,""))===parsePvpId(p.pokemonName))}));
 const coverage=new Set(mons.flatMap(p=>(p.quickMoves||[]).concat(p.chargedMoves||[])).map(moveType).filter(Number.isFinite));
 return {mons,weak,ranks,coverage};
 }
