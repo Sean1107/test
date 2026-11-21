@@ -11,7 +11,7 @@ const short=n=>typeof n==="string"?escaped(n):Number.isFinite(n)?n.toLocaleStrin
 const BASE="https://raw.githubusercontent.com/WatWowMap/pogo-data-api/main/data/v1/";
 const PVP="https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-";
 const POGO="https://pogoapi.net/api/v1/";
-let state={tab:"overview",dexLimit:42,moveLimit:70,selectedDex:null,selectedRank:null,league:"1500",teamLeague:"1500",teamIds:["","",""],calcId:null,rankData:{},reportText:"",selectedRaid:null};
+let state={tab:"overview",dexLimit:42,moveLimit:70,selectedDex:null,selectedRank:null,league:"1500",teamLeague:"1500",teamIds:["","",""],calcId:null,rankData:{},reportText:"",selectedRaid:null,newsLang:"zh"};
 function notify(s){const t=Q("#toast");t.textContent=s;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3000);}
 function badge(t){return '<span class="type-badge">'+escaped(t)+'</span>';}
 function typeName(t){return LANG[Number(t)]||String(t||"未知");}
@@ -52,7 +52,7 @@ SOURCES[key]="讀取失敗";throw err||Error("資料來源無法連線");
 try{return await CACHE[key];}finally{delete CACHE[key];}
 }
 async function loadCore(){
-const keys=["pokemon","forms","gmMoves","moves","types","names","moveNames","typeNames","cpm","rank1500","rank2500","rank10000","raids","evolutions","events","researchTasks","rocketLineups","eggPool","officialNews","communityNews"];
+const keys=["pokemon","forms","gmMoves","moves","types","names","moveNames","typeNames","cpm","rank1500","rank2500","rank10000","raids","evolutions","events","researchTasks","rocketLineups","eggPool","officialNews","communityNews","zhTranslations"];
 await Promise.all(keys.map(k=>loadResource(k).catch(e=>console.warn("Resource",k,e))));
 buildIndexes();renderEverything();
 }
@@ -460,68 +460,141 @@ return base.find(p=>parsePvpId(p.pokemonName)===norm||parsePvpId(DATA.names?.["p
 }
 function raidTierLabel(t){return ({"1":"1 星","3":"3 星","5":"5 星","6":"精英","mega":"Mega","mega_legendary":"Mega 傳說"})[String(t)]||String(t||"團體戰");}
 
-function infoDate(value){
-if(value===undefined||value===null)return "時間未公布";
-let d;
-if(typeof value==="number")d=new Date(value*1000);
-else d=new Date(value);
-if(Number.isNaN(d.getTime()))return String(value);
-return new Intl.DateTimeFormat("zh-Hant",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).format(d);
+const NEWS_UI={
+zh:{
+title:"活動與最新資訊",description:"集中查看目前及未來活動、團體戰、極巨化、田野調查、火箭隊、蛋池與最新公告。",
+language:"顯示語言",autoSync:"自動同步",eventEyebrow:"活動日曆",eventTitle:"活動日曆",
+allEvents:"所有活動",upcoming:"即將開始",activeFilter:"進行中",ended:"已結束",active:"進行中",
+researchEyebrow:"FIELD RESEARCH",researchTitle:"田野調查與任務獎勵",rocketEyebrow:"TEAM GO ROCKET",rocketTitle:"火箭隊陣容",
+eggEyebrow:"EGG POOLS",eggTitle:"目前蛋池",officialEyebrow:"OFFICIAL UPDATES",officialTitle:"官方公告",
+communityEyebrow:"COMMUNITY COVERAGE",communityTitle:"社群攻略新聞",footnote:"活動時間依公開來源提供的當地時間或官方公告顯示；實際地區、時區及遊戲內安排可能不同。官方公告與第三方攻略分開顯示，重要資訊請以遊戲內公告為準。",
+missingNote:"若資料來源未提供中文翻譯，系統會保留英文原文並標示，避免錯誤翻譯。",
+noEvents:"目前沒有符合條件的活動資料。",noData:"目前沒有可顯示的資料。",noNews:"暫時沒有可顯示的新聞；資料來源無法連線時會保留上一份快照。",
+readEvent:"查看活動詳情",encounter:"遭遇",rarity:"稀有度",shiny:"可色違",team:"第 {n} 隊",encounterReward:"遭遇獎勵",
+officialLink:"查看官方公告",communityLink:"閱讀報導",snapshot:"資料快照",eventCount:"活動",lastUpdate:"最近來源更新",hourly:"每小時自動同步"
+},
+en:{
+title:"Events & Latest Information",description:"Explore current and upcoming events, raids, Max Battles, Field Research, Team GO Rocket lineups, Egg Pools and the latest news.",
+language:"Language",autoSync:"Auto-sync",eventEyebrow:"EVENT CALENDAR",eventTitle:"Event Calendar",
+allEvents:"All Events",upcoming:"Upcoming",activeFilter:"Active Now",ended:"Ended",active:"Active",
+researchEyebrow:"FIELD RESEARCH",researchTitle:"Field Research & Rewards",rocketEyebrow:"TEAM GO ROCKET",rocketTitle:"Team GO Rocket Lineups",
+eggEyebrow:"EGG POOLS",eggTitle:"Current Egg Pools",officialEyebrow:"OFFICIAL UPDATES",officialTitle:"Official News",
+communityEyebrow:"COMMUNITY COVERAGE",communityTitle:"Community News & Guides",footnote:"Event times follow the local times or announcements provided by public sources. Actual availability may vary by region and in-game schedule. Official announcements and third-party guides are shown separately; always check in-game notices for important details.",
+missingNote:"If a source has no Traditional Chinese translation, its original English text is retained and marked.",
+noEvents:"No events match the selected filter.",noData:"No data is currently available.",noNews:"No news is currently available. The previous snapshot is retained when a source is unreachable.",
+readEvent:"View event details",encounter:"Encounter",rarity:"Rarity",shiny:"Shiny eligible",team:"Team {n}",encounterReward:"Encounter reward",
+officialLink:"Read official update",communityLink:"Read article",snapshot:"Snapshot",eventCount:"Events",lastUpdate:"Latest source update",hourly:"Syncs every hour"
 }
-function eventStatus(e){
+};
+const NEWS_MANUAL_ZH={
+"Pokémon Spotlight Hour":"焦點時刻","Event":"活動","Max Battles":"極巨化對戰","Community Day":"社群日",
+"Twitch Drops":"Twitch 掉寶獎勵","Max Mondays":"極巨化星期一","Raid Battles":"團體戰","GO Battle League":"GO 對戰聯盟",
+"Raid Hour":"團體戰時段","Raid Day":"團體戰日","Season":"賽季","GO Pass":"GO Pass","Timed Research":"限時調查",
+"Research":"調查","Pokémon GO Tour":"Pokémon GO 巡迴賽","Giovanni":"喬瓦尼","Cliff":"克里夫","Arlo":"亞洛","Sierra":"席拉",
+"1 km Eggs":"1 公里蛋","2 km Eggs":"2 公里蛋","5 km Eggs":"5 公里蛋","7 km Eggs (From Friend Gifts)":"好友禮物 7 公里蛋",
+"7 km Eggs (From Route Gift)":"路線禮物 7 公里蛋","10 km Eggs":"10 公里蛋","12 km Eggs":"12 公里蛋",
+"5 km Eggs (Adventure Sync Rewards)":"冒險同步獎勵 5 公里蛋","10 km Eggs (Adventure Sync Rewards)":"冒險同步獎勵 10 公里蛋"
+};
+function infoText(value){
+const raw=String(value??"");
+if(state.newsLang==="en"||!raw)return raw;
+if(NEWS_MANUAL_ZH[raw])return NEWS_MANUAL_ZH[raw];
+const pokemon=allPokemon().find(p=>String(p.pokemonName||"").toLowerCase()===raw.toLowerCase());
+if(pokemon)return pokemonName(pokemon);
+const translated=DATA.zhTranslations?.[raw];
+return translated||raw+"（原文）";
+}
+function newsUi(){return NEWS_UI[state.newsLang]||NEWS_UI.zh;}
+function infoDate(value){
+if(value===undefined||value===null)return state.newsLang==="en"?"Time TBA":"時間未公布";
+let d;
+if(typeof value==="number")d=new Date(value*1000);else d=new Date(value);
+if(Number.isNaN(d.getTime()))return String(value);
+return new Intl.DateTimeFormat(state.newsLang==="en"?"en-US":"zh-TW",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).format(d);
+}
+function eventStatusKey(e){
 const now=Date.now(),start=typeof e.start_time==="number"?e.start_time*1000:new Date(e.start_time).getTime(),end=typeof e.end_time==="number"?e.end_time*1000:new Date(e.end_time).getTime();
-if(Number.isFinite(start)&&now<start)return "即將開始";
-if(Number.isFinite(end)&&now<=end)return "進行中";
-return "已結束";
+if(Number.isFinite(start)&&now<start)return "upcoming";
+if(Number.isFinite(end)&&now<=end)return "active";
+return "ended";
 }
 function flattenEvents(){
 return Object.entries(DATA.events||{}).flatMap(([category,items])=>(Array.isArray(items)?items:[]).map(e=>({...e,category:e.category||category})));
 }
+function updateNewsLanguageUI(){
+const ui=newsUi();
+const textMap={
+newsTitle:ui.title,newsDescription:ui.description,newsLanguageLabel:ui.language,newsAutoSync:ui.autoSync,
+eventEyebrow:ui.eventEyebrow,eventSectionTitle:ui.eventTitle,researchEyebrow:ui.researchEyebrow,
+researchSectionTitle:ui.researchTitle,rocketEyebrow:ui.rocketEyebrow,rocketSectionTitle:ui.rocketTitle,
+eggEyebrow:ui.eggEyebrow,eggSectionTitle:ui.eggTitle,officialNewsEyebrow:ui.officialEyebrow,
+officialNewsTitle:ui.officialTitle,communityNewsEyebrow:ui.communityEyebrow,communityNewsTitle:ui.communityTitle,
+newsFootnote:ui.footnote,newsMissingNote:ui.missingNote
+};
+for(const [id,value] of Object.entries(textMap)){const node=Q("#"+id);if(node)node.textContent=value;}
+QA("[data-news-lang]").forEach(button=>{
+const active=button.dataset.newsLang===state.newsLang;
+button.classList.toggle("active",active);button.setAttribute("aria-pressed",active?"true":"false");
+});
+const select=Q("#infoCategory");
+if(select){
+const previous=select.value||"all";
+const options=[["all",ui.allEvents],["upcoming",ui.upcoming],["active",ui.activeFilter],...Object.keys(DATA.events||{}).sort().map(category=>[category,infoText(category)])];
+select.innerHTML=options.map(([value,label])=>'<option value="'+escaped(value)+'">'+escaped(label)+'</option>').join("");
+select.value=options.some(([value])=>value===previous)?previous:"all";
+}
+}
 function renderEvents(){
 const box=Q("#eventList");if(!box)return;
-const filter=Q("#infoCategory").value,all=flattenEvents();
+const ui=newsUi(),filter=Q("#infoCategory").value,all=flattenEvents();
 const list=all.filter(e=>{
-const status=eventStatus(e);
-if(filter==="upcoming")return status==="即將開始";
-if(filter==="active")return status==="進行中";
+const status=eventStatusKey(e);
+if(filter==="upcoming")return status==="upcoming";
+if(filter==="active")return status==="active";
 return filter==="all"||e.category===filter;
 }).sort((x,y)=>{
-const sx=eventStatus(x),sy=eventStatus(y);
-const order={"進行中":0,"即將開始":1,"已結束":2};
-return order[sx]-order[sy]||new Date(typeof x.start_time==="number"?x.start_time*1000:x.start_time)-new Date(typeof y.start_time==="number"?y.start_time*1000:y.start_time);
+const order={active:0,upcoming:1,ended:2};
+return order[eventStatusKey(x)]-order[eventStatusKey(y)]||new Date(typeof x.start_time==="number"?x.start_time*1000:x.start_time)-new Date(typeof y.start_time==="number"?y.start_time*1000:y.start_time);
 });
-if(!list.length){box.innerHTML='<div class="empty-state">目前沒有符合條件的活動資料。</div>';return;}
+if(!list.length){box.innerHTML='<div class="empty-state">'+escaped(ui.noEvents)+'</div>';return;}
 box.innerHTML=list.slice(0,50).map(e=>{
-const status=eventStatus(e),start=infoDate(e.start_time),end=infoDate(e.end_time),desc=String(e.description||"").slice(0,420);
-return '<article class="info-event-card">'+(e.banner_url?'<img class="info-banner" loading="lazy" src="'+escaped(e.banner_url)+'" alt="">':"")+'<div class="info-event-body"><div class="info-chip-row"><span class="info-chip">'+escaped(e.category||"活動")+'</span><span class="info-status '+(status==="進行中"?"active":status==="即將開始"?"upcoming":"ended")+'">'+status+'</span></div><h4>'+escaped(e.title||"未命名活動")+'</h4><small>'+escaped(start)+' – '+escaped(end)+'</small><p>'+escaped(desc)+'</p>'+(e.article_url?'<a class="text-link" href="'+escaped(e.article_url)+'" target="_blank" rel="noopener">查看活動詳情 ↗</a>':"")+'</div></article>';
+const status=eventStatusKey(e),statusLabel=status==="active"?ui.active:status==="upcoming"?ui.upcoming:ui.ended;
+const start=infoDate(e.start_time),end=infoDate(e.end_time),desc=infoText(String(e.description||"").slice(0,900));
+return '<article class="info-event-card">'+(e.banner_url?'<img class="info-banner" loading="lazy" src="'+escaped(e.banner_url)+'" alt="">':"")+'<div class="info-event-body"><div class="info-chip-row"><span class="info-chip">'+escaped(infoText(e.category||"Event"))+'</span><span class="info-status '+(status==="active"?"active":status==="upcoming"?"upcoming":"ended")+'">'+escaped(statusLabel)+'</span></div><h4>'+escaped(infoText(e.title||"Untitled event"))+'</h4><small>'+escaped(start)+' – '+escaped(end)+'</small><p>'+escaped(desc)+'</p>'+(e.article_url?'<a class="text-link" href="'+escaped(e.article_url)+'" target="_blank" rel="noopener">'+escaped(ui.readEvent)+' ↗</a>':"")+'</div></article>';
 }).join("");
 }
 function renderResearch(){
 const root=Q("#researchList");if(!root)return;
-const groups=DATA.researchTasks||{};
-root.innerHTML=Object.entries(groups).map(([group,tasks])=>'<details class="info-details"><summary>'+escaped(group)+' <span>'+tasks.length+' 項</span></summary>'+tasks.map(t=>'<div class="info-task"><b>'+escaped(t.task)+'</b><div class="info-rewards">'+(t.rewards||[]).map(r=>'<span class="info-reward">'+(r.type==="encounter"?"捕捉：":"")+escaped(r.name)+(r.quantity?" ×"+r.quantity:"")+(r.shiny_available?" ✨":"")+'</span>').join("")+'</div></div>').join("")+'</details>').join("")||'<p class="muted">目前沒有調查資料。</p>';
+const ui=newsUi(),groups=DATA.researchTasks||{};
+root.innerHTML=Object.entries(groups).map(([group,tasks])=>'<details class="info-details"><summary>'+escaped(infoText(group))+' <span>'+tasks.length+(state.newsLang==="en"?" tasks":" 項")+'</span></summary>'+tasks.map(t=>'<div class="info-task"><b>'+escaped(infoText(t.task))+'</b><div class="info-rewards">'+(t.rewards||[]).map(r=>'<span class="info-reward">'+(r.type==="encounter"?escaped(ui.encounter)+"：":"")+escaped(infoText(r.name))+(r.quantity?" ×"+r.quantity:"")+(r.shiny_available?" ✨ "+escaped(ui.shiny):"")+'</span>').join("")+'</div></div>').join("")+'</details>').join("")||'<p class="muted">'+escaped(ui.noData)+'</p>';
 }
 function renderRocket(){
 const root=Q("#rocketList");if(!root)return;
-const data=DATA.rocketLineups||{};
-root.innerHTML=Object.entries(data).map(([leader,slots])=>'<details class="info-details"><summary>'+escaped(leader)+'</summary>'+slots.map(slot=>'<div class="info-task"><b>第 '+slot.slot+' 隊'+(slot.is_encounter?' · 遭遇獎勵':"")+'</b><div class="info-rewards">'+(slot.pokemons||[]).map(p=>'<span class="info-reward">'+escaped(p.name)+(p.shiny_available?" ✨":"")+'</span>').join("")+'</div></div>').join("")+'</details>').join("")||'<p class="muted">目前沒有火箭隊資料。</p>';
+const ui=newsUi(),data=DATA.rocketLineups||{};
+root.innerHTML=Object.entries(data).map(([leader,slots])=>'<details class="info-details"><summary>'+escaped(infoText(leader))+'</summary>'+slots.map(slot=>'<div class="info-task"><b>'+escaped(ui.team.replace("{n}",slot.slot))+(slot.is_encounter?" · "+escaped(ui.encounterReward):"")+'</b><div class="info-rewards">'+(slot.pokemons||[]).map(p=>'<span class="info-reward">'+escaped(infoText(p.name))+(p.shiny_available?" ✨":"")+'</span>').join("")+'</div></div>').join("")+'</details>').join("")||'<p class="muted">'+escaped(ui.noData)+'</p>';
 }
 function renderEggs(){
 const root=Q("#eggList");if(!root)return;
-const data=DATA.eggPool||{};
-root.innerHTML=Object.entries(data).map(([group,items])=>'<details class="info-details"><summary>'+escaped(group)+' <span>'+items.length+' 種</span></summary><div class="info-egg-grid">'+items.map(p=>'<div class="info-egg-item">'+(p.asset_url?'<img loading="lazy" src="'+escaped(p.asset_url)+'" alt="">':"")+'<span>'+escaped(p.name)+'</span><small>稀有度 '+escaped(p.rarity_tier??"—")+(p.shiny_available?" · ✨可色違":"")+'</small></div>').join("")+'</div></details>').join("")||'<p class="muted">目前沒有蛋池資料。</p>';
+const ui=newsUi(),data=DATA.eggPool||{};
+root.innerHTML=Object.entries(data).map(([group,items])=>'<details class="info-details"><summary>'+escaped(infoText(group))+' <span>'+items.length+(state.newsLang==="en"?" species":" 種")+'</span></summary><div class="info-egg-grid">'+items.map(p=>'<div class="info-egg-item">'+(p.asset_url?'<img loading="lazy" src="'+escaped(p.asset_url)+'" alt="">':"")+'<span>'+escaped(infoText(p.name))+'</span><small>'+escaped(ui.rarity)+" "+escaped(p.rarity_tier??"—")+(p.shiny_available?" · "+escaped(ui.shiny):"")+'</small></div>').join("")+'</div></details>').join("")||'<p class="muted">'+escaped(ui.noData)+'</p>';
 }
 function renderNewsList(id,items,official){
 const root=Q("#"+id);if(!root)return;
-if(!Array.isArray(items)||!items.length){root.innerHTML='<p class="muted">暫時沒有可顯示的新聞；資料來源無法連線時會保留上一份快照。</p>';return;}
-root.innerHTML=items.slice(0,20).map(n=>'<article class="info-news-item"><b>'+escaped(n.title)+'</b>'+(n.published_at?'<small>'+escaped(n.published_at)+'</small>':"")+(n.description?'<p>'+escaped(n.description.slice(0,260))+'</p>':"")+'<a class="text-link" href="'+escaped(n.url||n.article_url||"#")+'" target="_blank" rel="noopener">'+(official?"官方公告":"閱讀報導")+' ↗</a></article>').join("");
+const ui=newsUi();
+if(!Array.isArray(items)||!items.length){root.innerHTML='<p class="muted">'+escaped(ui.noNews)+'</p>';return;}
+root.innerHTML=items.slice(0,20).map(n=>{
+const date=n.published_at?infoDate(n.published_at):"";
+return '<article class="info-news-item"><b>'+escaped(infoText(n.title))+'</b>'+(date?'<small>'+escaped(date)+'</small>':"")+(n.description?'<p>'+escaped(infoText(n.description.slice(0,600)))+'</p>':"")+'<a class="text-link" href="'+escaped(n.url||n.article_url||"#")+'" target="_blank" rel="noopener">'+escaped(official?ui.officialLink:ui.communityLink)+' ↗</a></article>';
+}).join("");
 }
 function renderNews(){
+updateNewsLanguageUI();
 renderEvents();renderResearch();renderRocket();renderEggs();
 renderNewsList("officialNewsList",DATA.officialNews,true);
 renderNewsList("communityNewsList",DATA.communityNews,false);
-const meta=DATA.meta||{},feeds=meta.feed_updated_at||{};
-Q("#infoMeta").textContent="資料快照："+(meta.updated_at||"時間未提供")+" · 活動 "+(meta.event_count??(DATA.events?Object.values(DATA.events).reduce((n,x)=>n+(x||[]).length,0):"—"))+" 項 · 最近來源更新："+(feeds.events||"未知")+" · 每小時自動同步";
+const ui=newsUi(),meta=DATA.meta||{},feeds=meta.feed_updated_at||{};
+const eventCount=meta.event_count??(DATA.events?Object.values(DATA.events).reduce((n,x)=>n+(x||[]).length,0):"—");
+Q("#infoMeta").textContent=ui.snapshot+": "+(meta.updated_at||"—")+" · "+ui.eventCount+": "+eventCount+" · "+ui.lastUpdate+": "+(feeds.events||"—")+" · "+ui.hourly;
 }
 
 function renderRaids(){
@@ -616,6 +689,7 @@ for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"])set
 for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"])Q("[data-clear-picker='"+id+"']").addEventListener("click",()=>clearPokemonPicker(id));
 document.addEventListener("click",e=>{if(!e.target.closest(".pokemon-picker"))for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"])closePicker(id);});
 Q("#infoCategory").addEventListener("change",renderEvents);
+Q("#newsLangToggle").addEventListener("click",e=>{const button=e.target.closest("[data-news-lang]");if(!button)return;state.newsLang=button.dataset.newsLang==="en"?"en":"zh";try{localStorage.setItem("goNewsLang",state.newsLang);}catch(err){}renderNews();});
 for(const id of ["moveSearch","moveKind","moveType"])Q("#"+id).addEventListener(id==="moveSearch"?"input":"change",()=>{state.moveLimit=70;renderMoves();});
 Q("#dexMore").addEventListener("click",()=>{state.dexLimit+=42;renderDex();});
 Q("#moveMore").addEventListener("click",()=>{state.moveLimit+=70;renderMoves();});
@@ -627,4 +701,4 @@ Q("#advisorRun").addEventListener("click",generateAdvice);
 Q("#copyAdvisor").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(state.reportText);notify("分析報告已複製");}catch(e){notify("複製失敗，請手動選取報告");}});
 Q("#refreshBtn").addEventListener("click",()=>{location.reload();});
 window.addEventListener("hashchange",()=>{const tab=location.hash.slice(1);if(tab&&tab!==state.tab)switchTab(tab);});
-(function init(){const hash=location.hash.slice(1);if(hash&&Q("#"+hash)?.classList.contains("view"))switchTab(hash);advisorVisibility();getJSON("./data/meta.json").then(meta=>{DATA.meta=meta;sourceSummary();}).catch(()=>{});loadCore();})();
+(function init(){try{state.newsLang=localStorage.getItem("goNewsLang")==="en"?"en":"zh";}catch(err){}const hash=location.hash.slice(1);if(hash&&Q("#"+hash)?.classList.contains("view"))switchTab(hash);advisorVisibility();getJSON("./data/meta.json").then(meta=>{DATA.meta=meta;sourceSummary();}).catch(()=>{});loadCore();})();
