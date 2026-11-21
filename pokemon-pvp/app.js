@@ -7,7 +7,7 @@ const ENTYPE={normal:1,fighting:2,flying:3,poison:4,ground:5,rock:6,bug:7,ghost:
 const escaped=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const show=(v,f="—")=>v===null||v===undefined||v===""?f:v;
 const num=v=>Number.isFinite(Number(v))?Number(v):0;
-const short=n=>Number.isFinite(n)?n.toLocaleString("zh-Hant"):"—";
+const short=n=>typeof n==="string"?escaped(n):Number.isFinite(n)?n.toLocaleString("zh-Hant"):"—";
 const BASE="https://raw.githubusercontent.com/WatWowMap/pogo-data-api/main/data/v1/";
 const PVP="https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-";
 const POGO="https://pogoapi.net/api/v1/";
@@ -99,7 +99,7 @@ Q("#overviewStats").innerHTML=stats.map(([a,b,c])=>'<div class="stat-card"><smal
 function renderEverything(){
 sourceSummary();fillFilterTypes();renderDex();renderPvp();fillPokemonControls();renderTeam();renderMoves();renderRaids();
 }
-function fillFilterTypes(){for(const id of ["dexType","moveType"]){const q=Q("#"+id);if(q.options.length>1)return;Object.entries(LANG).forEach(([k,v])=>q.insertAdjacentHTML("beforeend",'<option value="'+k+'">'+v+'</option>'));}}
+function fillFilterTypes(){for(const id of ["dexType","moveType"]){const q=Q("#"+id);if(q.options.length>1)continue;Object.entries(LANG).forEach(([k,v])=>q.insertAdjacentHTML("beforeend",'<option value="'+k+'">'+v+'</option>'));}}
 function sortPokedex(list){
 const sort=Q("#dexSort").value;
 if(sort==="attack")return list.sort((a,b)=>num(b.attack)-num(a.attack));
@@ -172,7 +172,7 @@ const suggestions=dangerous.length?dangerous.map(x=>typeName(x.t)+"：有 "+x.we
 Q("#teamAnalysis").innerHTML='<div class="analysis-grid"><section class="panel"><h3>共同弱點</h3>'+(dangerous.map(x=>'<div class="matchup-item"><strong>'+typeName(x.t)+' · '+x.weak.length+' 隻弱點</strong><small>'+x.weak.map(pokemonName).join("、")+'</small></div>').join("")||'<p class="muted">沒有兩隻以上共享的弱點。</p>')+'</section><section class="panel"><h3>聯盟排名參考</h3>'+ranked+'<p class="muted" style="margin-top:12px;font-size:.78rem">排名以 PvPoke 模擬資料為準，形態不同時不強行匹配。</p></section><section class="panel"><h3>進攻屬性池（可學招式）</h3><div class="pill-list">'+(proposed.map(badge).join("")||"尚未有招式屬性資料")+'</div><p class="muted" style="margin-top:12px;font-size:.78rem">此處顯示全部可學招式的類型，並非目前配招；不能代替完整模擬。</p></section><section class="panel"><h3>改善方向</h3><ul class="tip-list">'+suggestions.map(x=>'<li>'+escaped(x)+'</li>').join("")+'</ul>'+(noResponse.length?'<p class="muted">需留意無抗性替補的屬性：'+noResponse.map(x=>typeName(x.t)).join("、")+'</p>':"")+'</section></div>';
 }
 function cp(p,ivs,level){
-const cpm=DATA.cpm?.find(x=>Math.abs(Number(x.level)-Number(level))<.001)?.multiplier;
+const cpm=DATA.cpm?.find(x=>Math.abs(Number(x.level)-Number(level))<.001)?.multiplier ?? (Number(level)>45&&Number(level)<=50?0.8153+0.005*(Number(level)-45):null);
 if(!p||!cpm||![p.attack,p.defense,p.stamina].every(Number.isFinite))return null;
 const [a,d,s]=ivs.map(num);
 return Math.max(10,Math.floor((p.attack+a)*Math.sqrt(p.defense+d)*Math.sqrt(p.stamina+s)*cpm*cpm/10));
@@ -220,9 +220,9 @@ if(!raw||to<=from)return null;
 let entries=Array.isArray(raw)?raw:Object.entries(raw).map(([level,v])=>({level,...v}));
 let dust=0,candy=0,xl=0;
 for(let lv=from;lv<to;lv+=.5){const e=entries.find(x=>Number(x.level)===lv);if(!e)return null;
-const d=e.stardust||e.stardust_cost||e.stardustCost;
-const c=e.candy||e.candy_cost||e.candyCost||0;
-const xc=e.xl_candy||e.xlCandy||e.candy_xl||0;
+const d=e.stardust??e.stardust_to_upgrade??e.stardust_cost??e.stardustCost;
+const c=e.candy??e.candy_to_upgrade??e.candy_cost??e.candyCost??0;
+const xc=e.xl_candy??e.xl_candy_to_upgrade??e.xlCandy??e.candy_xl??0;
 if(!Number.isFinite(Number(d)))return null;dust+=Number(d);candy+=Number(c);xl+=Number(xc);}
 return {dust,candy,xl};
 }
