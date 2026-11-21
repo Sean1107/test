@@ -25,7 +25,7 @@ function typeBadges(p){return (p.types||[]).map(t=>badge(typeName(t))).join("");
 function makeSelectOptions(){const all=allPokemon().slice().sort((a,b)=>a.pokedexId-b.pokedexId);return '<option value="">選擇寶可夢</option>'+all.map(p=>'<option value="'+p.pokedexId+'">'+escaped(pokemonName(p))+' (#'+p.pokedexId+')</option>').join("");}
 function urlData(key){return {
 pokemon:BASE+"pokemon.json",moves:BASE+"moves.json",types:BASE+"types.json",names:BASE+"translations/zh-tw/pokemon.json",moveNames:BASE+"translations/zh-tw/moves.json",typeNames:BASE+"translations/zh-tw/types.json",
-cpm:POGO+"cp_multiplier.json",powerups:POGO+"pokemon_powerup_requirements.json",raids:POGO+"raid_bosses.json",
+cpm:POGO+"cp_multiplier.json",powerups:POGO+"pokemon_powerup_requirements.json",raids:POGO+"raid_bosses.json",evolutions:POGO+"pokemon_evolutions.json",
 rank1500:PVP+"1500.json",rank2500:PVP+"2500.json",rank10000:PVP+"10000.json"
 }[key];}
 const REMOTE={
@@ -50,7 +50,7 @@ SOURCES[key]="讀取失敗";throw err||Error("資料來源無法連線");
 try{return await CACHE[key];}finally{delete CACHE[key];}
 }
 async function loadCore(){
-const keys=["pokemon","moves","types","names","moveNames","typeNames","cpm","rank1500","rank2500","rank10000","raids"];
+const keys=["pokemon","moves","types","names","moveNames","typeNames","cpm","rank1500","rank2500","rank10000","raids","evolutions"];
 await Promise.all(keys.map(k=>loadResource(k).catch(e=>console.warn("Resource",k,e))));
 buildIndexes();renderEverything();
 }
@@ -122,8 +122,9 @@ const stat=(label,value,max=320)=>'<div class="detail-stat"><small>'+label+'</sm
 const fast=(p.quickMoves||[]).map(id=>moveName(id));
 const charged=(p.chargedMoves||[]).map(id=>moveName(id));
 const elite=(p.eliteQuickMoves||[]).concat(p.eliteChargedMoves||[]).map(id=>moveName(id));
+const evolutions=(DATA.evolutions||[]).filter(row=>Number(row.pokemon_id)===Number(id)).flatMap(row=>row.evolutions||[]);
 const weak=weakTo(p.types).filter(t=>t.m>1).slice(0,5),res=weakTo(p.types).filter(t=>t.m<1).slice(-5).reverse();
-Q("#dexDetail").innerHTML='<div class="detail-heading"><img src="'+sprite(id)+'" alt=""><div><small>#'+id+'</small><h3>'+escaped(pokemonName(p))+'</h3><small>'+escaped(p.pokemonName)+'</small></div></div><div class="type-badges">'+typeBadges(p)+'</div><div class="detail-block"><h4>GO 基礎能力值</h4><div class="detail-grid">'+stat("攻擊",p.attack)+stat("防禦",p.defense)+stat("體力",p.stamina)+stat("等級 50 · 100 IV CP",cp(p,[15,15,15],50),6000)+'</div></div><div class="detail-block"><h4>屬性相剋</h4><small>弱點</small><div class="pill-list">'+weak.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div><small style="display:block;margin-top:10px">抗性</small><div class="pill-list">'+res.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div></div><div class="detail-block"><h4>可學一般招式</h4><p class="detail-list">'+escaped(fast.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>可學特殊招式</h4><p class="detail-list">'+escaped(charged.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>厲害學習器招式（來源資料）</h4><p class="detail-list">'+escaped(elite.join("、")||"未列出")+'</p></div><div class="detail-block"><h4>第二特殊招式</h4><p class="detail-list">星星沙子 '+short(p.thirdMoveStardust)+' ／ 糖果 '+short(p.thirdMoveCandy)+'</p></div><div class="detail-block"><button class="btn btn-primary btn-block" data-use-calc="'+id+'">計算這隻的 IV / CP →</button></div>';
+Q("#dexDetail").innerHTML='<div class="detail-heading"><img src="'+sprite(id)+'" alt=""><div><small>#'+id+'</small><h3>'+escaped(pokemonName(p))+'</h3><small>'+escaped(p.pokemonName)+'</small></div></div><div class="type-badges">'+typeBadges(p)+'</div><div class="detail-block"><h4>GO 基礎能力值</h4><div class="detail-grid">'+stat("攻擊",p.attack)+stat("防禦",p.defense)+stat("體力",p.stamina)+stat("等級 50 · 100 IV CP",cp(p,[15,15,15],50),6000)+'</div></div><div class="detail-block"><h4>屬性相剋</h4><small>弱點</small><div class="pill-list">'+weak.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div><small style="display:block;margin-top:10px">抗性</small><div class="pill-list">'+res.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div></div><div class="detail-block"><h4>可學一般招式</h4><p class="detail-list">'+escaped(fast.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>可學特殊招式</h4><p class="detail-list">'+escaped(charged.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>厲害學習器招式（來源資料）</h4><p class="detail-list">'+escaped(elite.join("、")||"未列出")+'</p></div><div class="detail-block"><h4>進化路線</h4><p class="detail-list">'+escaped(evolutions.length?evolutions.map(x=>(DATA.names?.["poke_"+x.pokemon_id]||x.pokemon_name)+"（"+show(x.candy_required,"? ")+" 糖果"+(x.item_required?"、"+x.item_required:"")+(x.no_candy_cost_if_traded?"，交換進化可免糖果":"")+"）").join("、"):"目前無後續進化資料")+'</p></div><div class="detail-block"><h4>第二特殊招式</h4><p class="detail-list">星星沙子 '+short(p.thirdMoveStardust)+' ／ 糖果 '+short(p.thirdMoveCandy)+'</p></div><div class="detail-block"><button class="btn btn-primary btn-block" data-use-calc="'+id+'">計算這隻的 IV / CP →</button></div>';
 }
 function renderPvp(){
 const list=DATA["rank"+state.league]||[];
