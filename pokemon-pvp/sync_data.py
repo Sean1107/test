@@ -13,7 +13,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from html import unescape
 from html.parser import HTMLParser
-from urllib.parse import urljoin, urlencode
+from urllib.parse import urljoin, urlencode, quote
 from datetime import datetime, timezone
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -351,14 +351,39 @@ def google_translate_zh(text, pokemon_names):
         protected, count = pattern.subn(token, protected)
         if count:
             placeholders[token] = chinese
-    query = urlencode({"client": "gtx", "sl": "en", "tl": "zh-TW", "dt": "t", "q": protected})
-    url = "https://translate.googleapis.com/translate_a/single?" + query
-    request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 GO-Battle-Lab/3.0"})
-    with urllib.request.urlopen(request, timeout=12) as response:
-        payload = json.load(response)
-    translated = "".join(part[0] for part in (payload[0] or []) if part and part[0])
+
+    translated = None
+    # Lingva instances expose a no-key Google Translate-compatible REST API.
+    lingva_hosts = (
+        "https://lingva.ml",
+        "https://translate.alefvanoon.xyz",
+        "https://lingva.garudalinux.org",
+        "https://translate.dr460nf1r3.org",
+        "https://translate.jae.fi",
+    )
+    for host in lingva_hosts:
+        try:
+            url = host + "/api/v1/en/zh-TW/" + quote(protected, safe="")
+            request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 GO-Battle-Lab/3.0"})
+            with urllib.request.urlopen(request, timeout=8) as response:
+                payload = json.load(response)
+            candidate = payload.get("translation") if isinstance(payload, dict) else None
+            if candidate and not payload.get("error"):
+                translated = candidate
+                break
+        except Exception:
+            continue
+
+    # Last-resort direct endpoint; it may rate-limit shared GitHub runner IPs.
     if not translated:
-        raise ValueError("translation service returned an empty result")
+        query = urlencode({"client": "gtx", "sl": "en", "tl": "zh-TW", "dt": "t", "q": protected})
+        url = "https://translate.googleapis.com/translate_a/single?" + query
+        request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 GO-Battle-Lab/3.0"})
+        with urllib.request.urlopen(request, timeout=8) as response:
+            payload = json.load(response)
+        translated = "".join(part[0] for part in (payload[0] or []) if part and part[0])
+    if not translated:
+        raise ValueError("all translation endpoints returned an empty result")
     for token, chinese in placeholders.items():
         translated = translated.replace(token, chinese)
     return translated.strip()
@@ -537,7 +562,7 @@ def main():
             "community_news_count": len(json.loads((OUT / "communityNews.json").read_text(encoding="utf-8"))),
             "zh_translation_count": translation_count,
             "zh_translations_added_this_run": new_translations,
-            "translation_source": "Google Translate public endpoint (cached; English originals retained)",
+            "translation_source": "Lingva public translation API with Google Translate fallback (cached; English originals retained)",
             "pokemon_base_count": len(json.loads((OUT / "pokemon.json").read_text(encoding="utf-8"))),
             "pokemon_form_count": len(json.loads((OUT / "forms.json").read_text(encoding="utf-8"))),
             "note": "Includes PvPoke battle forms; unreleased entries are labelled. CPM 45.5–50 extrapolated if absent upstream.",
