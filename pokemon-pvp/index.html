@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101627">
+<meta name="description" content="Pokémon GO PvP 個人控制台：隊伍、寶可夢、資源、Rank 及逐場對戰追蹤。">
+<title>GO Battle Lab｜Pokémon GO PvP 控制台</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<a class="skip" href="#main">跳到主要內容</a>
+<div class="shell">
+<aside class="sidebar">
+  <a class="brand" href="#overview" aria-label="GO Battle Lab 首頁"><span class="brand-symbol">GO<span class="brand-dot"></span></span><span><strong>BATTLE LAB</strong><small>個人 PVP 控制台</small></span></a>
+  <div class="side-label">工作空間</div>
+  <nav class="side-nav" aria-label="主要選單">
+    <button data-tab="overview" class="active"><span>◈</span> 總覽</button>
+    <button data-tab="teams"><span>⬡</span> 隊伍分析</button>
+    <button data-tab="roster"><span>◉</span> 寶可夢倉庫</button>
+    <button data-tab="battles"><span>⚔</span> 對戰日誌</button>
+    <button data-tab="notes"><span>▤</span> 技術筆記</button>
+    <button data-tab="settings"><span>⚙</span> 設定與備份</button>
+  </nav>
+  <div class="side-bottom"><span class="online-dot"></span>本機儲存模式 <small>不連接遊戲帳戶</small></div>
+</aside>
+<div class="main-wrap">
+<header class="topbar"><div><div class="eyebrow">TRAINER COMMAND CENTER</div><h1 id="pageTitle">戰鬥總覽</h1></div><div class="top-actions"><span id="snapshotBadge" class="snapshot">資料快照 · 2026/11/20</span><button class="btn btn-accent" data-action="add-battle">＋ 記錄對戰</button></div></header>
+<main id="main">
+<section id="overview" class="view active" aria-labelledby="overviewH">
+ <div class="welcome"><div><div class="mini-label">CURRENT OBJECTIVE</div><h2 id="overviewH">衝擊 Rank 19 <span class="spark">✦</span></h2><p>把每一場對戰，變成下一場進步的依據。</p><div class="welcome-tags"><span>大師聯盟</span><span>高級聯盟</span><span>培養追蹤</span></div></div><div class="goal-emblem"><span>GO</span><strong>19</strong><small>TARGET RANK</small></div></div>
+ <div id="stats" class="stats"></div>
+ <div class="dashboard-columns"><section class="panel"><div class="panel-heading"><div><div class="eyebrow">RANK PROGRESSION</div><h3>排位進度</h3></div><button class="link-button" data-action="edit-rank">修改資料 ↗</button></div><div id="rankCard"></div></section><section class="panel"><div class="panel-heading"><div><div class="eyebrow">TODAY'S ACTIVITY</div><h3>今日對戰</h3></div><a href="#battles" class="link-button" data-link-tab="battles">查看紀錄 ↗</a></div><div id="dailyCard"></div></section></div>
+ <div class="section-header"><div><div class="eyebrow">YOUR LINEUPS</div><h2>目前主力隊伍</h2></div><button class="btn btn-outline" data-tab="teams">查看分析 →</button></div><div id="quickTeams" class="team-grid"></div>
+ <div class="dashboard-columns bottom-row"><section class="panel"><div class="panel-heading"><div><div class="eyebrow">UPGRADE QUEUE</div><h3>培養優先清單</h3></div><button class="link-button" data-tab="roster">管理 →</button></div><div id="priorityCard"></div></section><section class="panel"><div class="panel-heading"><div><div class="eyebrow">RESOURCE TRACKER</div><h3>可用資源</h3></div><button class="link-button" data-action="edit-resources">更新 →</button></div><div id="resourcesCard"></div></section></div>
+</section>
+<section id="teams" class="view"><div class="section-header"><div><div class="eyebrow">TEAM BUILDER</div><h2>隊伍配置與屬性分析</h2><p class="muted">防守弱點及招式打點是屬性估算，不代表完整對戰模擬。</p></div><button class="btn btn-accent" data-action="new-team">＋ 新增隊伍</button></div><div class="filters"><button class="chip active" data-league="master">大師聯盟</button><button class="chip" data-league="ultra">高級聯盟</button></div><div id="teamsList" class="team-grid"></div><section class="panel analysis-panel"><div class="panel-heading"><div><div class="eyebrow">TYPE MATCHUP</div><h3>屬性弱點與進攻覆蓋</h3></div></div><div id="typeAnalysis"></div></section></section>
+<section id="roster" class="view"><div class="section-header"><div><div class="eyebrow">POKÉMON INDEX</div><h2>寶可夢與培養管理</h2><p class="muted">IV、CP、招式、第二招式、合體及培養成本均可修改。</p></div><button class="btn btn-accent" data-action="new-mon">＋ 新增寶可夢</button></div><div class="toolbar"><label class="field-search"><span>⌕</span><input id="rosterSearch" placeholder="搜尋名稱、招式…" aria-label="搜尋寶可夢"></label><select id="rosterLeague" aria-label="篩選聯盟"><option value="all">全部聯盟</option><option value="master">大師聯盟</option><option value="ultra">高級聯盟</option></select><select id="rosterStatus" aria-label="篩選進度"><option value="all">全部狀態</option><option>已完成</option><option>待培養</option><option>待測試</option><option>需替換</option></select></div><div id="rosterGrid" class="roster-grid"></div></section>
+<section id="battles" class="view"><div class="section-header"><div><div class="eyebrow">MATCH JOURNAL</div><h2>逐場對戰紀錄</h2><p class="muted">記錄對手、勝敗、失誤及下一場的改進方案。</p></div><button class="btn btn-accent" data-action="add-battle">＋ 記錄一場</button></div><div id="battleMetrics" class="stats battle-stats"></div><div class="panel"><div class="panel-heading"><h3>對戰歷史</h3><select id="battleLeague" aria-label="對戰紀錄聯盟"><option value="all">全部聯盟</option><option value="master">大師聯盟</option><option value="ultra">高級聯盟</option></select></div><div id="battleList"></div></div></section>
+<section id="notes" class="view"><div class="section-header"><div><div class="eyebrow">FIELD NOTES</div><h2>戰術與改進筆記</h2><p class="muted">把常見問題轉化為可重複練習的行動。</p></div><button class="btn btn-accent" data-action="new-note">＋ 新增筆記</button></div><div id="noteList" class="notes-grid"></div></section>
+<section id="settings" class="view"><div class="section-header"><div><div class="eyebrow">DATA CONTROL</div><h2>設定與資料安全</h2><p class="muted">網站免費使用，不需要登入遊戲帳戶。</p></div></div><div class="settings-grid"><div class="panel"><h3>資料備份</h3><p class="muted">所有修改只儲存於目前瀏覽器。換手機、清除網站資料或使用無痕模式可能遺失，請定期下載 JSON 備份。</p><div class="button-group"><button class="btn btn-accent" data-action="export">↓ 匯出 JSON</button><button class="btn btn-outline" data-action="import">↑ 匯入 JSON</button></div><input id="importFile" type="file" accept=".json,application/json" hidden></div><div class="panel"><h3>排位與每日設定</h3><p class="muted">每季 Rank 需要重新填寫。一般日子最多 25 場，2026 賽季的 GO 對戰星期四最多 50 場（特殊活動可能另有安排）。</p><div class="button-group"><button class="btn btn-outline" data-action="edit-rank">編輯 Rank</button><button class="btn btn-outline" data-action="edit-resources">編輯資源</button></div></div><div class="panel"><h3>資料來源與說明</h3><p class="muted">初始快照取自先前提供的寶可夢、隊伍與賽季紀錄；標記「約」或「待核對」的欄位尚未確認。CP 不可直接用來推算精確強化費用，費用請以遊戲畫面為準。</p><div class="external-links"><a href="https://pokemongo.com/news/go-battle-league-twilight-trails" target="_blank" rel="noopener">本季官方公告 ↗</a><a href="https://bulbapedia.bulbagarden.net/wiki/GO_Battle_League" target="_blank" rel="noopener">Rank 規則參考 ↗</a></div></div><div class="panel danger-panel"><h3>清除本機資料</h3><p class="muted">清除後會回到最初快照，無法復原目前修改。請先匯出備份。</p><button class="btn btn-danger" data-action="reset">重設資料</button></div></div></section>
+</main><footer>GO BATTLE LAB · 非 Pokémon GO 官方產品 · 所有資料均由使用者自行維護</footer>
+</div></div>
+<nav class="mobile-nav" aria-label="手機導覽"><button data-tab="overview" class="active"><span>◈</span>總覽</button><button data-tab="teams"><span>⬡</span>隊伍</button><button data-tab="roster"><span>◉</span>倉庫</button><button data-tab="battles"><span>⚔</span>對戰</button><button data-tab="notes"><span>▤</span>筆記</button></nav>
+<dialog id="editor"><div class="dialog-head"><div><div class="eyebrow">EDIT WORKSPACE</div><h2 id="dialogTitle"></h2></div><button id="dialogClose" class="icon-button" aria-label="關閉">✕</button></div><form id="editorForm" novalidate><div id="dialogFields"></div><div class="dialog-actions"><button type="button" class="btn btn-outline" id="dialogCancel">取消</button><button type="submit" class="btn btn-accent">儲存修改</button></div></form></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<script defer src="./app.js"></script>
+</body></html>
