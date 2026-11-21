@@ -238,13 +238,14 @@ Q("#moveList").innerHTML=html||'<div class="empty-state">沒有符合條件的�
 Q("#moveCount").textContent="顯示 "+Math.min(filtered.length,state.moveLimit)+" / "+filtered.length+" 個招式";
 Q("#moveMore").hidden=filtered.length<=state.moveLimit;
 }
+function currentRaids(){const r=DATA.raids;if(Array.isArray(r))return r;if(r&&r.current&&typeof r.current==="object")return Object.entries(r.current).flatMap(([tier,arr])=>Array.isArray(arr)?arr.map(x=>({...x,raid_level:tier})):[]);return [];}
 function raidPokemon(r){
 const id=r.pokemon_id||r.pokemon_id_number||r.pokemonId||r.id;
 return getPokemon(id)||allPokemon().find(p=>parsePvpId(p.pokemonName)===parsePvpId(r.pokemon||r.pokemon_name||r.name));
 }
 function renderRaids(){
-const r=DATA.raids;
-if(!Array.isArray(r)||!r.length){Q("#raidBosses").innerHTML='<div class="empty-state">目前公開團體戰 Boss 清單無法取得或格式未被支援。你仍可在圖鑑選擇任何寶可夢查詢其弱點。</div>';return;}
+const r=currentRaids();
+if(!r.length){Q("#raidBosses").innerHTML='<div class="empty-state">目前公開團體戰 Boss 清單無法取得或格式未被支援。你仍可在圖鑑選擇任何寶可夢查詢其弱點。</div>';return;}
 const selected=r.map((x,i)=>({i,x,p:raidPokemon(x)})).filter(v=>v.p).slice(0,40);
 if(!selected.length){Q("#raidBosses").innerHTML='<div class="empty-state">團體戰來源目前未提供可匹配的 Boss 清單，請使用圖鑑查詢克制。</div>';return;}
 Q("#raidBosses").innerHTML=selected.map(({i,x,p})=>'<button class="raid-card" data-raid="'+i+'"><img src="'+sprite(p.pokedexId)+'" alt=""><b>'+escaped(pokemonName(p))+'</b><small>團體戰 · '+escaped(x.raid_level||x.tier||"Boss")+'</small><div class="type-badges">'+typeBadges(p)+'</div></button>').join("");
@@ -260,7 +261,7 @@ return {a,score:max*num(a.attack),max};
 return {weak,candidates};
 }
 function showRaid(index){
-const raid=DATA.raids?.[index],p=raid&&raidPokemon(raid);if(!p)return;
+const raid=currentRaids()[index],p=raid&&raidPokemon(raid);if(!p)return;
 const {weak,candidates}=raidAdvice(p);
 Q("#raidDetail").innerHTML='<h3>團體戰 · '+escaped(pokemonName(p))+'</h3><div class="pill-list">'+weak.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div><h4 style="margin:22px 0 11px">簡易克制攻擊手（非 DPS 模擬）</h4><div class="ranking-list">'+candidates.map((x,i)=>'<div class="ranking-item"><span class="rank-number">#'+(i+1)+'</span><img src="'+sprite(x.a.pokedexId)+'" alt=""><span><b>'+escaped(pokemonName(x.a))+'</b><small>基礎攻擊 '+x.a.attack+' · 最大屬性加成 ×'+x.max.toFixed(2)+'</small></span></div>').join("")+'</div><p class="muted" style="font-size:.8rem;margin-top:15px">推介使用具克制屬性、同屬性加成及較高攻擊能力的寶可夢。實際有效傷害高度依賴招式、速度、耐久、隊伍及形態。</p>';
 Q("#raidDetail").scrollIntoView({behavior:"smooth",block:"start"});
