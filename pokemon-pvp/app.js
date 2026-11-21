@@ -15,10 +15,12 @@ let state={tab:"overview",dexLimit:42,moveLimit:70,selectedDex:null,selectedRank
 function notify(s){const t=Q("#toast");t.textContent=s;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3000);}
 function badge(t){return '<span class="type-badge">'+escaped(t)+'</span>';}
 function typeName(t){return LANG[Number(t)]||String(t||"未知");}
-function pokemonName(p){return DATA.names?.["poke_"+p.pokedexId]||p.pokemonName||"未知";}
-function moveName(id){return DATA.moveNames?.["move_"+id]||DATA.moveMap?.get(Number(id))?.moveName||String(id);}
+function pokemonKey(p){return String(p?.pokemonKey||p?.pokedexId||"");}
+function pokemonName(p){return p?.localizedName||DATA.names?.["poke_"+p?.pokedexId]||p?.pokemonName||"未知";}
+function moveName(id){return DATA.moveNames?.["move_"+id]||DATA.moveMap?.get(id)?.moveName||DATA.moveMap?.get(Number(id))?.moveName||DATA.gmMoveMap?.get(String(id))?.name||String(id);}
+function moveType(id){return DATA.moveMap?.get(id)?.type??DATA.moveMap?.get(Number(id))?.type??DATA.gmMoveMap?.get(String(id))?.typeId;}
 function allPokemon(){return DATA.pokemon||[];}
-function getPokemon(id){return DATA.pokemonMap?.get(Number(id));}
+function getPokemon(id){return DATA.pokemonMap?.get(String(id))||DATA.pokemonMap?.get(Number(id));}
 function sprite(id){return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"+Number(id)+".png";}
 function pokemonTypes(p){return (p.types||[]).map(typeName);}
 function typeBadges(p){return (p.types||[]).map(t=>badge(typeName(t))).join("");}
@@ -50,25 +52,34 @@ SOURCES[key]="讀取失敗";throw err||Error("資料來源無法連線");
 try{return await CACHE[key];}finally{delete CACHE[key];}
 }
 async function loadCore(){
-const keys=["pokemon","moves","types","names","moveNames","typeNames","cpm","rank1500","rank2500","rank10000","raids","evolutions"];
+const keys=["pokemon","forms","gmMoves","moves","types","names","moveNames","typeNames","cpm","rank1500","rank2500","rank10000","raids","evolutions"];
 await Promise.all(keys.map(k=>loadResource(k).catch(e=>console.warn("Resource",k,e))));
 buildIndexes();renderEverything();
 }
 function buildIndexes(){
-if(Array.isArray(DATA.pokemon))DATA.pokemonMap=new Map(DATA.pokemon.filter(p=>p&&Number.isInteger(Number(p.pokedexId))).map(p=>[Number(p.pokedexId),p]));
-if(Array.isArray(DATA.moves))DATA.moveMap=new Map(DATA.moves.map(m=>[Number(m.moveId),m]));
+const base=Array.isArray(DATA.pokemon)?DATA.pokemon:[];
+const forms=Array.isArray(DATA.forms)?DATA.forms:[];
+DATA.pokemon=[...base,...forms];
+DATA.pokemonMap=new Map();
+for(const p of DATA.pokemon){if(!p)continue;DATA.pokemonMap.set(pokemonKey(p),p);if(!forms.includes(p)&&Number.isInteger(Number(p.pokedexId)))DATA.pokemonMap.set(Number(p.pokedexId),p);}
+if(Array.isArray(DATA.moves))DATA.moveMap=new Map(DATA.moves.flatMap(m=>[[Number(m.moveId),m],[String(m.proto||""),m]]));
 if(Array.isArray(DATA.types))DATA.typeMap=new Map(DATA.types.map(t=>[Number(t.typeId),t]));
+if(Array.isArray(DATA.gmMoves))DATA.gmMoveMap=new Map(DATA.gmMoves.map(m=>[String(m.moveId),m]));
 }
 function parsePvpId(x){const source=String(x||"").toLowerCase();return source.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");}
 function rankName(r){
 const name=String(r.speciesName||r.speciesId||"");
+const p=allPokemon().find(x=>x.speciesId===r.speciesId||x.formId===r.speciesId);
+if(p)return pokemonName(p);
 const base=name.replace(/\s*\([^)]*\)/g,"").trim();
-const p=allPokemon().find(x=>parsePvpId(x.pokemonName)===parsePvpId(base));
-return p?pokemonName(p)+(base!==name?" "+name.slice(base.length).trim():""):name;
+const match=allPokemon().find(x=>!x.formId&&parsePvpId(x.pokemonName)===parsePvpId(base));
+return match?pokemonName(match)+(base!==name?" "+name.slice(base.length).trim():""):name;
 }
 function rankPokemon(r){
+const exact=allPokemon().find(x=>x.speciesId===r.speciesId||x.formId===r.speciesId);
+if(exact)return exact;
 const name=String(r.speciesName||"").replace(/\s*\([^)]*\)/g,"");
-return allPokemon().find(x=>parsePvpId(x.pokemonName)===parsePvpId(name));
+return allPokemon().find(x=>!x.formId&&parsePvpId(x.pokemonName)===parsePvpId(name));
 }
 function rankEntry(id,limit){const list=DATA["rank"+limit]||[];return list.find(r=>parsePvpId(r.speciesId)===parsePvpId(id))||list.find(r=>parsePvpId(r.speciesName)===parsePvpId(id));}
 function typeEffect(attack,defense){
@@ -110,21 +121,21 @@ return list.sort((a,b)=>a.pokedexId-b.pokedexId);
 function renderDex(){
 if(!allPokemon().length){Q("#dexGrid").innerHTML='<div class="loading-card">暫時無法載入圖鑑。請按右上「更新資料」。</div>';return;}
 const q=Q("#dexSearch").value.trim().toLowerCase(),type=Q("#dexType").value;
-const all=sortPokedex(allPokemon().filter(p=>(!type||p.types?.includes(Number(type)))&&(!q||String(p.pokedexId).includes(q)||pokemonName(p).toLowerCase().includes(q)||String(p.pokemonName).toLowerCase().includes(q))));
-Q("#dexGrid").innerHTML=all.slice(0,state.dexLimit).map(p=>'<button class="dex-card '+(state.selectedDex===p.pokedexId?"selected":"")+'" data-dex="'+p.pokedexId+'"><small class="dex-id">#'+String(p.pokedexId).padStart(4,"0")+'</small><img class="dex-sprite" loading="lazy" alt="" src="'+sprite(p.pokedexId)+'"><b>'+escaped(pokemonName(p))+'</b><div class="type-badges">'+typeBadges(p)+'</div></button>').join("")||'<div class="empty-state">找不到符合條件的寶可夢。</div>';
+const all=sortPokedex(allPokemon().filter(p=>(!type||p.types?.includes(Number(type)))&&(!q||String(p.pokedexId).includes(q)||pokemonName(p).toLowerCase().includes(q)||String(p.pokemonName).toLowerCase().includes(q)||(p.searchAliases||[]).some(x=>String(x).toLowerCase().includes(q)))));
+Q("#dexGrid").innerHTML=all.slice(0,state.dexLimit).map(p=>'<button class="dex-card '+(state.selectedDex===pokemonKey(p)?"selected":"")+'" data-dex="'+escaped(pokemonKey(p))+'"><small class="dex-id">#'+String(p.pokedexId).padStart(4,"0")+(p.formLabel?' · '+escaped(p.formLabel):'')+'</small><img class="dex-sprite" loading="lazy" alt="" src="'+sprite(p.pokedexId)+'"><b>'+escaped(pokemonName(p))+'</b><div class="type-badges">'+typeBadges(p)+'</div></button>').join("")||'<div class="empty-state">找不到符合條件的寶可夢。</div>';
 Q("#dexCount").textContent="顯示 "+Math.min(all.length,state.dexLimit)+" / "+all.length+" 隻";
 Q("#dexMore").hidden=all.length<=state.dexLimit;
 if(state.selectedDex)renderDexDetail(state.selectedDex);
 }
 function renderDexDetail(id){
-const p=getPokemon(id);if(!p)return;state.selectedDex=p.pokedexId;
+const p=getPokemon(id);if(!p)return;state.selectedDex=pokemonKey(p);
 const stat=(label,value,max=320)=>'<div class="detail-stat"><small>'+label+'</small><b>'+short(value)+'</b><div class="ability-bar"><span style="width:'+Math.min(100,num(value)/max*100)+'%"></span></div></div>';
 const fast=(p.quickMoves||[]).map(id=>moveName(id));
 const charged=(p.chargedMoves||[]).map(id=>moveName(id));
 const elite=(p.eliteQuickMoves||[]).concat(p.eliteChargedMoves||[]).map(id=>moveName(id));
-const evolutions=(DATA.evolutions||[]).filter(row=>Number(row.pokemon_id)===Number(id)).flatMap(row=>row.evolutions||[]);
+const evolutions=p.formId?[]:(DATA.evolutions||[]).filter(row=>Number(row.pokemon_id)===Number(p.pokedexId)).flatMap(row=>row.evolutions||[]);
 const weak=weakTo(p.types).filter(t=>t.m>1).slice(0,5),res=weakTo(p.types).filter(t=>t.m<1).slice(-5).reverse();
-Q("#dexDetail").innerHTML='<div class="detail-heading"><img src="'+sprite(id)+'" alt=""><div><small>#'+id+'</small><h3>'+escaped(pokemonName(p))+'</h3><small>'+escaped(p.pokemonName)+'</small></div></div><div class="type-badges">'+typeBadges(p)+'</div><div class="detail-block"><h4>GO 基礎能力值</h4><div class="detail-grid">'+stat("攻擊",p.attack)+stat("防禦",p.defense)+stat("體力",p.stamina)+stat("等級 50 · 100 IV CP",cp(p,[15,15,15],50),6000)+'</div></div><div class="detail-block"><h4>屬性相剋</h4><small>弱點</small><div class="pill-list">'+weak.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div><small style="display:block;margin-top:10px">抗性</small><div class="pill-list">'+res.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div></div><div class="detail-block"><h4>可學一般招式</h4><p class="detail-list">'+escaped(fast.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>可學特殊招式</h4><p class="detail-list">'+escaped(charged.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>厲害學習器招式（來源資料）</h4><p class="detail-list">'+escaped(elite.join("、")||"未列出")+'</p></div><div class="detail-block"><h4>進化路線</h4><p class="detail-list">'+escaped(evolutions.length?evolutions.map(x=>(DATA.names?.["poke_"+x.pokemon_id]||x.pokemon_name)+"（"+show(x.candy_required,"? ")+" 糖果"+(x.item_required?"、"+x.item_required:"")+(x.no_candy_cost_if_traded?"，交換進化可免糖果":"")+"）").join("、"):"目前無後續進化資料")+'</p></div><div class="detail-block"><h4>第二特殊招式</h4><p class="detail-list">星星沙子 '+short(p.thirdMoveStardust)+' ／ 糖果 '+short(p.thirdMoveCandy)+'</p></div><div class="detail-block"><button class="btn btn-primary btn-block" data-use-calc="'+id+'">計算這隻的 IV / CP →</button></div>';
+Q("#dexDetail").innerHTML='<div class="detail-heading"><img src="'+sprite(p.pokedexId)+'" alt=""><div><small>#'+p.pokedexId+(p.formLabel?" · "+escaped(p.formLabel):"")+'</small><h3>'+escaped(pokemonName(p))+'</h3><small>'+escaped(p.pokemonName)+'</small></div></div><div class="type-badges">'+typeBadges(p)+'</div><div class="detail-block"><h4>GO 基礎能力值</h4><div class="detail-grid">'+stat("攻擊",p.attack)+stat("防禦",p.defense)+stat("體力",p.stamina)+stat("等級 50 · 100 IV CP",cp(p,[15,15,15],50),6000)+'</div></div><div class="detail-block"><h4>屬性相剋</h4><small>弱點</small><div class="pill-list">'+weak.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div><small style="display:block;margin-top:10px">抗性</small><div class="pill-list">'+res.map(t=>badge(typeName(t.id)+" ×"+t.m.toFixed(2))).join("")+'</div></div><div class="detail-block"><h4>可學一般招式</h4><p class="detail-list">'+escaped(fast.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>可學特殊招式</h4><p class="detail-list">'+escaped(charged.join("、")||"尚無資料")+'</p></div><div class="detail-block"><h4>厲害學習器招式（來源資料）</h4><p class="detail-list">'+escaped(elite.join("、")||"未列出")+'</p></div><div class="detail-block"><h4>進化路線</h4><p class="detail-list">'+escaped(evolutions.length?evolutions.map(x=>(DATA.names?.["poke_"+x.pokemon_id]||x.pokemon_name)+"（"+show(x.candy_required,"? ")+" 糖果"+(x.item_required?"、"+x.item_required:"")+(x.no_candy_cost_if_traded?"，交換進化可免糖果":"")+"）").join("、"):"目前無後續進化資料")+'</p></div><div class="detail-block"><h4>第二特殊招式</h4><p class="detail-list">星星沙子 '+short(p.thirdMoveStardust)+' ／ 糖果 '+short(p.thirdMoveCandy)+'</p></div><div class="detail-block"><button class="btn btn-primary btn-block" data-use-calc="'+escaped(pokemonKey(p))+'">計算這隻的 IV / CP →</button></div>';
 }
 function renderPvp(){
 const list=DATA["rank"+state.league]||[];
@@ -142,7 +153,7 @@ function renderPvpDetail(id){
 const list=DATA["rank"+state.league]||[];const r=list.find(x=>x.speciesId===id);if(!r)return;state.selectedRank=id;
 const p=rankPokemon(r),moves=(r.moveset||[]).map(m=>{const match=DATA.moves?.find(x=>parsePvpId(x.proto)===parsePvpId(m));return match?moveName(match.moveId):m;});
 const matching=all=>all?.map(x=>{const rr=rankEntry(x.opponent,state.league);return rr?rankName(rr):x.opponent;}).join("、")||"未提供";
-Q("#pvpDetail").innerHTML='<div class="detail-heading">'+(p?'<img src="'+sprite(p.pokedexId)+'" alt="">':"")+'<div><small>PVP RANK #'+(list.indexOf(r)+1)+'</small><h3>'+escaped(rankName(r))+'</h3><small>模擬評分 '+show(r.score)+'</small></div></div><div class="detail-block"><h4>推薦招式</h4><p class="detail-list">'+escaped(moves.join(" ／ ")||"暫無推薦資料")+'</p></div><div class="detail-block"><h4>模擬中較有利的對局</h4><p class="detail-list">'+escaped(matching(r.matchups))+'</p></div><div class="detail-block"><h4>模擬中較不利的對局</h4><p class="detail-list">'+escaped(matching(r.counters))+'</p></div>'+(r.editorNotes?'<div class="detail-block"><h4>PvPoke 原文評語</h4><p class="detail-list">'+escaped(r.editorNotes)+'</p></div>':"")+'<div class="detail-block"><button class="btn btn-primary btn-block" data-use-team="'+(p?p.pokedexId:"")+'">加入隊伍分析 →</button></div>';
+Q("#pvpDetail").innerHTML='<div class="detail-heading">'+(p?'<img src="'+sprite(p.pokedexId)+'" alt="">':"")+'<div><small>PVP RANK #'+(list.indexOf(r)+1)+'</small><h3>'+escaped(rankName(r))+'</h3><small>模擬評分 '+show(r.score)+'</small></div></div><div class="detail-block"><h4>推薦招式</h4><p class="detail-list">'+escaped(moves.join(" ／ ")||"暫無推薦資料")+'</p></div><div class="detail-block"><h4>模擬中較有利的對局</h4><p class="detail-list">'+escaped(matching(r.matchups))+'</p></div><div class="detail-block"><h4>模擬中較不利的對局</h4><p class="detail-list">'+escaped(matching(r.counters))+'</p></div>'+(r.editorNotes?'<div class="detail-block"><h4>PvPoke 原文評語</h4><p class="detail-list">'+escaped(r.editorNotes)+'</p></div>':"")+'<div class="detail-block"><button class="btn btn-primary btn-block" data-use-team="'+(p?escaped(pokemonKey(p)):"")+'">加入隊伍分析 →</button></div>';
 }
 const pickerState={};
 function searchPokemon(query){
@@ -152,12 +163,14 @@ const clean=q.replace(/^#/,"").replace(/\s+/g,"");
 return allPokemon().map(p=>{
 const zh=String(pokemonName(p)||"").toLocaleLowerCase();
 const en=String(p.pokemonName||"").toLocaleLowerCase();
-const id=String(p.pokedexId);
-const fields=[zh,en,id,"#"+id].map(x=>x.toLocaleLowerCase());
+const id=String(p.pokedexId),key=pokemonKey(p);
+const aliases=(p.searchAliases||[]).map(x=>String(x).toLocaleLowerCase());
+const fields=[zh,en,id,"#"+id,key,...aliases].map(x=>x.toLocaleLowerCase());
 let score=0;
 if(fields.includes(q)||fields.includes(clean))score=100;
 else if(zh.startsWith(q)||en.startsWith(q)||id===clean)score=80;
 else if(zh.includes(q)||en.includes(q)||id.includes(clean))score=50;
+if(p.formId&&String(p.formId).includes(q.replace(/\s+/g,"_")))score=Math.max(score,85);
 return {p,score};
 }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.p.pokedexId-b.p.pokedexId).slice(0,9).map(x=>x.p);
 }
@@ -180,8 +193,8 @@ results.hidden=false;input.setAttribute("aria-expanded","true");
 }
 function choosePokemon(id,pokemonId){
 const p=getPokemon(pokemonId);if(!p)return;
-Q("#"+id).value=String(p.pokedexId);Q("#"+id+"Search").value=pokemonName(p);closePicker(id);
-if(/^team[123]$/.test(id)){state.teamIds[Number(id.slice(-1))-1]=String(p.pokedexId);renderTeam();}
+Q("#"+id).value=pokemonKey(p);Q("#"+id+"Search").value=pokemonName(p);closePicker(id);
+if(/^team[123]$/.test(id)){state.teamIds[Number(id.slice(-1))-1]=pokemonKey(p);renderTeam();}
 }
 function setupPokemonPicker(id){
 const input=Q("#"+id+"Search"),results=Q("#"+id+"Results");
@@ -221,7 +234,7 @@ function teamIssues(ids,league){
 const mons=ids.map(getPokemon).filter(Boolean);
 const weak=Array.from({length:18},(_,i)=>i+1).map(t=>({t,weak:mons.filter(p=>typeEffect(t,p.types)>1.01),resist:mons.filter(p=>typeEffect(t,p.types)<.99)})).sort((a,b)=>b.weak.length-a.weak.length);
 const ranks=mons.map(p=>({p,r:(DATA["rank"+league]||[]).find(x=>parsePvpId(x.speciesName?.replace(/\s*\([^)]*\)/g,""))===parsePvpId(p.pokemonName))}));
-const coverage=new Set(mons.flatMap(p=>(p.quickMoves||[]).concat(p.chargedMoves||[])).map(x=>DATA.moveMap?.get(Number(x))?.type).filter(Number.isFinite));
+const coverage=new Set(mons.flatMap(p=>(p.quickMoves||[]).concat(p.chargedMoves||[])).map(moveType).filter(Number.isFinite));
 return {mons,weak,ranks,coverage};
 }
 function analyzeTeam(){
@@ -246,7 +259,7 @@ return best;
 }
 function findCalcPokemon(){
 const q=Q("#calcPokemonSearch").value.trim().toLowerCase();
-const p=allPokemon().find(x=>pokemonName(x).toLowerCase()===q||x.pokemonName.toLowerCase()===q||String(x.pokedexId)===q);
+const p=allPokemon().find(x=>pokemonName(x).toLowerCase()===q||x.pokemonName.toLowerCase()===q||String(x.pokedexId)===q||(x.searchAliases||[]).some(a=>String(a).toLowerCase()===q));
 state.calcId=p?.pokedexId||null;return p;
 }
 function calculate(){
@@ -316,8 +329,8 @@ function raidAdvice(p){
 const weak=weakTo(p.types).filter(x=>x.m>1.01);
 const candidates=allPokemon().map(a=>{
 if(a.pokedexId===p.pokedexId)return null;
-const moves=(a.quickMoves||[]).concat(a.chargedMoves||[]).map(id=>DATA.moveMap?.get(Number(id))).filter(m=>m?.type);
-const max=Math.max(...moves.map(m=>typeEffect(m.type,p.types)*(a.types?.includes(m.type)?1.2:1)),0);
+const moves=(a.quickMoves||[]).concat(a.chargedMoves||[]).map(id=>moveType(id)).filter(Number.isFinite);
+const max=Math.max(...moves.map(t=>typeEffect(t,p.types)*(a.types?.includes(t)?1.2:1)),0);
 return {a,score:max*num(a.attack),max};
 }).filter(x=>x&&x.max>1).sort((a,b)=>b.score-a.score).slice(0,12);
 return {weak,candidates};
@@ -369,12 +382,12 @@ Q("#copyAdvisor").disabled=false;
 }
 document.addEventListener("click",e=>{
 const tab=e.target.closest("[data-tab],[data-jump]");if(tab){switchTab(tab.dataset.tab||tab.dataset.jump);return;}
-const dex=e.target.closest("[data-dex]");if(dex){state.selectedDex=Number(dex.dataset.dex);renderDex();if(innerWidth<620)Q("#dexDetail").scrollIntoView({behavior:"smooth"});return;}
+const dex=e.target.closest("[data-dex]");if(dex){state.selectedDex=dex.dataset.dex;renderDex();if(innerWidth<620)Q("#dexDetail").scrollIntoView({behavior:"smooth"});return;}
 const rk=e.target.closest("[data-rank]");if(rk){state.selectedRank=rk.dataset.rank;renderPvp();if(innerWidth<620)Q("#pvpDetail").scrollIntoView({behavior:"smooth"});return;}
 const lg=e.target.closest("[data-league]");if(lg){state.league=lg.dataset.league;state.selectedRank=null;renderPvp();return;}
 const tl=e.target.closest("[data-team-league]");if(tl){state.teamLeague=tl.dataset.teamLeague;renderTeam();return;}
 const raid=e.target.closest("[data-raid]");if(raid){showRaid(Number(raid.dataset.raid));return;}
-const calc=e.target.closest("[data-use-calc]");if(calc){const p=getPokemon(calc.dataset.useCalc);if(p){Q("#calcPokemonSearch").value=pokemonName(p);state.calcId=p.pokedexId;switchTab("calculator");calculate();}return;}
+const calc=e.target.closest("[data-use-calc]");if(calc){const p=getPokemon(calc.dataset.useCalc);if(p){Q("#calcPokemonSearch").value=pokemonName(p);state.calcId=pokemonKey(p);switchTab("calculator");calculate();}return;}
 const tt=e.target.closest("[data-use-team]");if(tt){if(tt.dataset.useTeam){state.teamIds[0]=tt.dataset.useTeam;switchTab("team");renderTeam();}return;}
 });
 for(const id of ["dexSearch","dexType","dexSort"]){Q("#"+id).addEventListener(id==="dexSearch"?"input":"change",()=>{state.dexLimit=42;renderDex();});}
