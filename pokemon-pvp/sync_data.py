@@ -351,19 +351,25 @@ def get_argos_zh_translation():
         _ARGOS_ZH_TRANSLATION = source.get_translation(target)
     return _ARGOS_ZH_TRANSLATION
 
+_POKEMON_NAME_PATTERN = None
+_POKEMON_NAME_LOOKUP = None
+
 def google_translate_zh(text, pokemon_names):
     """Translate public English game text to Traditional Chinese with the cached local Argos model."""
-    protected = text
-    placeholders = {}
-    for index, (english, chinese) in enumerate(sorted(pokemon_names.items(), key=lambda item: len(item[0]), reverse=True)):
-        if not english or not chinese or len(english) < 3:
-            continue
-        token = f"ZXQPKM{index:05d}QXZ"
-        pattern = re.compile(r"(?<![A-Za-z])" + re.escape(english) + r"(?![A-Za-z])", re.IGNORECASE)
-        protected, count = pattern.subn(token, protected)
-        if count:
-            placeholders[token] = chinese
+    global _POKEMON_NAME_PATTERN, _POKEMON_NAME_LOOKUP
+    if _POKEMON_NAME_PATTERN is None:
+        pairs = sorted(pokemon_names.items(), key=lambda item: len(item[0]), reverse=True)
+        _POKEMON_NAME_LOOKUP = {english.casefold(): chinese for english, chinese in pairs if english and chinese}
+        alternatives = "|".join(re.escape(english) for english, chinese in pairs if english and chinese and len(english) >= 3)
+        _POKEMON_NAME_PATTERN = re.compile(r"(?<![A-Za-z])(" + alternatives + r")(?![A-Za-z])", re.IGNORECASE)
 
+    placeholders = {}
+    def replace_pokemon(match):
+        token = f"ZXQPKM{len(placeholders):05d}QXZ"
+        placeholders[token] = _POKEMON_NAME_LOOKUP.get(match.group(0).casefold(), match.group(0))
+        return token
+
+    protected = _POKEMON_NAME_PATTERN.sub(replace_pokemon, text)
     try:
         candidate = get_argos_zh_translation().translate(protected)
         translated = candidate.strip() if candidate and candidate.strip() else protected
