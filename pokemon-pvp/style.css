@@ -155,3 +155,19 @@
 .info-footnote{font-size:.72rem;color:var(--muted);line-height:1.6;margin:20px 0}
 @media(max-width:900px){.info-event-grid,.info-two-col{grid-template-columns:1fr}}
 @media(max-width:560px){.info-event-card{grid-template-columns:1fr}.info-banner{height:130px;min-height:0}.info-egg-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Bilingual switch for all live Pokémon GO information */
+.news-language-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 15px;margin:14px 0;border:1px solid var(--line);border-radius:13px;background:var(--panel)}
+.news-language-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.news-language-copy b{font-size:.88rem}
+.news-language-copy small{font-size:.72rem;color:var(--muted);line-height:1.45}
+.news-language-toggle{display:inline-flex;flex-shrink:0;gap:4px;padding:4px;border:1px solid var(--line);border-radius:11px;background:#101b2b}
+.news-language-toggle button{border:0;border-radius:8px;padding:9px 14px;background:transparent;color:var(--muted);font:inherit;font-size:.8rem;font-weight:800;cursor:pointer;white-space:nowrap}
+.news-language-toggle button.active{background:var(--mint);color:#10241f;box-shadow:0 2px 8px #0003}
+.news-language-toggle button:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+@media(max-width:560px){
+ .news-language-row{align-items:stretch;flex-direction:column}
+ .news-language-toggle{width:100%}
+ .news-language-toggle button{flex:1}
+}
