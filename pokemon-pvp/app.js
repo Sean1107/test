@@ -521,7 +521,7 @@ renderEvents();renderResearch();renderRocket();renderEggs();
 renderNewsList("officialNewsList",DATA.officialNews,true);
 renderNewsList("communityNewsList",DATA.communityNews,false);
 const meta=DATA.meta||{},feeds=meta.feed_updated_at||{};
-Q("#infoMeta").textContent="資料快照："+(meta.updated_at||"時間未提供")+" · 活動 "+(meta.event_count??DATA.events&&Object.values(DATA.events).reduce((n,x)=>n+(x||[]).length,0)??"—")+" 項 · 最近來源更新："+(feeds.events||"未知")+" · 每小時自動同步";
+Q("#infoMeta").textContent="資料快照："+(meta.updated_at||"時間未提供")+" · 活動 "+(meta.event_count??(DATA.events?Object.values(DATA.events).reduce((n,x)=>n+(x||[]).length,0):"—"))+" 項 · 最近來源更新："+(feeds.events||"未知")+" · 每小時自動同步";
 }
 
 function renderRaids(){
