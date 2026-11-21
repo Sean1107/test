@@ -188,7 +188,7 @@ const input=Q("#"+id+"Search"),results=Q("#"+id+"Results");
 if(!input||!results||input.dataset.pickerReady==="true")return;
 input.dataset.pickerReady="true";pickerState[id]={active:-1,matches:[]};
 input.addEventListener("focus",()=>renderPickerResults(id));
-input.addEventListener("input",()=>{pickerState[id].active=0;renderPickerResults(id);});
+input.addEventListener("input",()=>{Q("#"+id).value="";if(/^team[123]$/.test(id)){state.teamIds[Number(id.slice(-1))-1]="";renderTeam();}pickerState[id].active=0;renderPickerResults(id);});
 input.addEventListener("keydown",e=>{
 const st=pickerState[id];
 if(e.key==="ArrowDown"&&st.matches.length){e.preventDefault();st.active=Math.min(st.active+1,st.matches.length-1);renderPickerResults(id);}
