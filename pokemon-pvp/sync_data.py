@@ -18,6 +18,8 @@ BASE = "https://raw.githubusercontent.com/WatWowMap/pogo-data-api/main/data/v1/"
 PVP = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-"
 GAMEMASTER = "https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/gamemaster.json"
 API = "https://pogoapi.net/api/v1/"
+LEEKDUCK_RAIDS = "https://raw.githubusercontent.com/pokelitee/leak-duck/data/raid_bosses.json"
+LEEKDUCK_MANIFEST = "https://raw.githubusercontent.com/pokelitee/leak-duck/data/manifest.json"
 SOURCES = {
     "pokemon": BASE + "pokemon.json",
     "moves": BASE + "moves.json",
@@ -30,11 +32,11 @@ SOURCES = {
     "rank10000": PVP + "10000.json",
     "cpm": API + "cp_multiplier.json",
     "powerups": API + "pokemon_powerup_requirements.json",
-    "raids": API + "raid_bosses.json",
+    "raids": LEEKDUCK_RAIDS,
     "evolutions": API + "pokemon_evolutions.json",
     "gamemaster": GAMEMASTER,
 }
-REQUIRED = {"pokemon", "moves", "types", "names", "moveNames", "rank1500", "rank2500", "rank10000", "cpm", "gamemaster"}
+REQUIRED = {"pokemon", "moves", "types", "names", "moveNames", "rank1500", "rank2500", "rank10000", "cpm", "gamemaster", "raids"}
 TYPE_IDS = {
     "normal": 1, "fighting": 2, "flying": 3, "poison": 4, "ground": 5,
     "rock": 6, "bug": 7, "ghost": 8, "steel": 9, "fire": 10, "water": 11,
@@ -78,10 +80,38 @@ def check(name, obj):
         raise ValueError(f"{name}: incomplete localization")
     if name == "cpm" and (not isinstance(obj, list) or len(obj) < 70):
         raise ValueError("incomplete CP multipliers")
+    if name == "raids":
+        if not isinstance(obj, dict):
+            raise ValueError("raid feed is not an object")
+        total = sum(len(v) for v in obj.values() if isinstance(v, list))
+        if total < 8:
+            raise ValueError(f"raid feed is incomplete: only {total} bosses")
     if name == "gamemaster" and (not isinstance(obj, dict) or len(obj.get("pokemon", [])) < 1000 or len(obj.get("moves", [])) < 100):
         raise ValueError("PvPoke gamemaster is incomplete")
 
 def normalize(name, obj):
+    if name == "raids":
+        tier_map = {"1-Star Raids": "1", "3-Star Raids": "3", "5-Star Raids": "5", "Mega Raids": "mega"}
+        current = {}
+        for label, entries in obj.items():
+            tier = tier_map.get(label)
+            if tier is None or not isinstance(entries, list):
+                continue
+            for entry in entries:
+                if not isinstance(entry, dict) or not entry.get("name"):
+                    continue
+                types = [TYPE_IDS[t.lower()] for t in entry.get("types", []) if isinstance(t, str) and t.lower() in TYPE_IDS]
+                current.setdefault(tier, []).append({
+                    "name": str(entry["name"]), "tier": tier,
+                    "is_shadow": bool(entry.get("is_shadow", False)), "types": types,
+                    "asset_url": entry.get("asset_url"), "cp_range": entry.get("cp_range"),
+                    "boosted_cp_range": entry.get("boosted_cp_range"),
+                    "shiny_available": entry.get("shiny_available"),
+                })
+        total = sum(len(v) for v in current.values())
+        if total < 8 or not all(k in current for k in ("1", "3", "5", "mega")):
+            raise ValueError(f"normalized raid lineup is incomplete: {total} bosses")
+        return {"current": current}
     if name == "pokemon":
         keys = {
             "pokedexId", "pokemonName", "types", "attack", "defense", "stamina",
@@ -196,6 +226,13 @@ def write_json(path, obj):
 def main():
     failures, updated = [], []
     gamemaster = None
+    raid_updated_at = None
+    try:
+        manifest = fetch_json(LEEKDUCK_MANIFEST)
+        raid_updated_at = (manifest.get("files", {}).get("raid_bosses.json", {}) or {}).get("updated_at")
+        print(f"OK raid manifest: last changed {raid_updated_at or 'unknown'}")
+    except Exception as exc:
+        print(f"WARN raid manifest: {exc}", file=sys.stderr)
     for name, url in SOURCES.items():
         dest = OUT / (name + ".json")
         try:
@@ -239,7 +276,10 @@ def main():
         json.dumps({
             "updated_at": datetime.now(timezone.utc).isoformat(timespec="minutes"),
             "datasets": updated, "stale_datasets": failures,
-            "source": "WatWowMap / PvPoke / PoGO API",
+            "source": "WatWowMap / PvPoke / PoGO API / Leek Duck",
+            "raid_source": "Leek Duck via Leak Duck API",
+            "raid_updated_at": raid_updated_at,
+            "raid_boss_count": sum(len(v) for v in json.loads((OUT / "raids.json").read_text(encoding="utf-8")).get("current", {}).values()),
             "pokemon_base_count": len(json.loads((OUT / "pokemon.json").read_text(encoding="utf-8"))),
             "pokemon_form_count": len(json.loads((OUT / "forms.json").read_text(encoding="utf-8"))),
             "note": "Includes PvPoke battle forms; unreleased entries are labelled. CPM 45.5–50 extrapolated if absent upstream.",
