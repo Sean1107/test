@@ -200,3 +200,5 @@
  .team-slot{padding:14px}
  .team-move-select{font-size:.86rem;padding:11px}
 }
+
+.team-move-unlock{font-size:.7rem;line-height:1.55;color:#e4ceaa;overflow-wrap:anywhere}
