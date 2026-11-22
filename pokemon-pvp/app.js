@@ -380,8 +380,8 @@ power:fromPogo?.pvpPower??gm?.power,energy:fast?gain:cost};
 function teamMoveDescription(m,kind){
 if(!m)return "未選擇";
 const pieces=[m.type?typeName(m.type):"屬性未知"];
-if(Number.isFinite(Number(m.power)))pieces.push("PVP 威力 "+m.power);
-if(Number.isFinite(Number(m.energy)))pieces.push((kind==="fast"?"獲得 ":"消耗 ")+m.energy+" 能量");
+if(m.power!=null&&Number.isFinite(Number(m.power)))pieces.push("PVP 威力 "+m.power);
+if(m.energy!=null&&Number.isFinite(Number(m.energy)))pieces.push((kind==="fast"?"獲得 ":"消耗 ")+m.energy+" 能量");
 if(m.elite)pieces.push("限定／特殊取得");
 return pieces.join(" · ");
 }
@@ -414,7 +414,7 @@ return '<div class="team-move-field"><label for="teamMove'+index+d.kind+'">'+d.l
 '<select id="teamMove'+index+d.kind+'" class="team-move-select" data-team-move-index="'+index+'" data-team-move-kind="'+d.kind+'">'+out.html+'</select>'+
 '<small class="team-move-details">'+escaped(teamMoveDescription(chosen,kind))+'</small></div>';
 }).join("")+
-'<div class="team-move-note">★ 限定／特殊取得：包含部分限定招式，未必能直接使用厲害學習器學會。</div>';
+'<div class="team-move-note">★ 限定／特殊取得：包含部分限定招式，未必能直接使用厲害學習器學會。</div>'+((p.thirdMoveStardust!=null||p.thirdMoveCandy!=null)?'<div class="team-move-unlock">第二特殊招式解鎖參考：'+(p.thirdMoveStardust!=null?short(p.thirdMoveStardust)+' 星星沙子':'星星沙子未知')+'、'+(p.thirdMoveCandy!=null?short(p.thirdMoveCandy)+' 糖果':'糖果未知')+'。網站選擇不會在遊戲內解鎖。</div>':'');
 }
 function renderTeam(){
 QA("[data-team-league]").forEach(x=>x.classList.toggle("active",x.dataset.teamLeague===state.teamLeague));
