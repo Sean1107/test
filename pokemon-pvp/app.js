@@ -11,7 +11,7 @@ const short=n=>typeof n==="string"?escaped(n):Number.isFinite(n)?n.toLocaleStrin
 const BASE="https://raw.githubusercontent.com/WatWowMap/pogo-data-api/main/data/v1/";
 const PVP="https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/rankings/all/overall/rankings-";
 const POGO="https://pogoapi.net/api/v1/";
-let state={tab:"overview",dexLimit:42,moveLimit:70,selectedDex:null,selectedRank:null,league:"1500",teamLeague:"1500",teamIds:["","",""],calcId:null,rankData:{},reportText:"",selectedRaid:null,newsLang:"zh"};
+let state={tab:"overview",dexLimit:42,moveLimit:70,selectedDex:null,selectedRank:null,league:"1500",teamLeague:"1500",teamIds:["","",""],teamMoves:[{fast:"",charged1:"",charged2:""},{fast:"",charged1:"",charged2:""},{fast:"",charged1:"",charged2:""}],teamAnalysisVisible:false,calcId:null,rankData:{},reportText:"",selectedRaid:null,newsLang:"zh"};
 function notify(s){const t=Q("#toast");t.textContent=s;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3000);}
 function badge(t){return '<span class="type-badge">'+escaped(t)+'</span>';}
 function typeName(t){return LANG[Number(t)]||String(t||"未知");}
@@ -309,14 +309,14 @@ results.hidden=false;input.setAttribute("aria-expanded","true");
 function choosePokemon(id,pokemonId){
 const p=getPokemon(pokemonId);if(!p)return;
 Q("#"+id).value=pokemonKey(p);Q("#"+id+"Search").value=pokemonName(p);closePicker(id);
-if(/^team[123]$/.test(id)){state.teamIds[Number(id.slice(-1))-1]=pokemonKey(p);renderTeam();}
+if(/^team[123]$/.test(id)){const index=Number(id.slice(-1))-1;if(state.teamIds[index]!==pokemonKey(p))state.teamMoves[index]=emptyTeamMoves();state.teamIds[index]=pokemonKey(p);saveTeamDraft();renderTeam();if(state.teamAnalysisVisible)analyzeTeam();}
 }
 function setupPokemonPicker(id){
 const input=Q("#"+id+"Search"),results=Q("#"+id+"Results");
 if(!input||!results||input.dataset.pickerReady==="true")return;
 input.dataset.pickerReady="true";pickerState[id]={active:-1,matches:[]};
 input.addEventListener("focus",()=>renderPickerResults(id));
-input.addEventListener("input",()=>{Q("#"+id).value="";if(/^team[123]$/.test(id)){state.teamIds[Number(id.slice(-1))-1]="";renderTeam();}pickerState[id].active=0;renderPickerResults(id);});
+input.addEventListener("input",()=>{Q("#"+id).value="";if(/^team[123]$/.test(id)){const index=Number(id.slice(-1))-1;state.teamIds[index]="";state.teamMoves[index]=emptyTeamMoves();saveTeamDraft();renderTeam();if(state.teamAnalysisVisible)analyzeTeam();}pickerState[id].active=0;renderPickerResults(id);});
 input.addEventListener("keydown",e=>{
 const st=pickerState[id];
 if(e.key==="ArrowDown"&&st.matches.length){e.preventDefault();st.active=Math.min(st.active+1,st.matches.length-1);renderPickerResults(id);}
@@ -328,12 +328,93 @@ results.addEventListener("click",e=>{const option=e.target.closest("[data-picker
 }
 function clearPokemonPicker(id){
 Q("#"+id).value="";Q("#"+id+"Search").value="";closePicker(id);
-if(/^team[123]$/.test(id)){state.teamIds[Number(id.slice(-1))-1]="";renderTeam();}
+if(/^team[123]$/.test(id)){const index=Number(id.slice(-1))-1;state.teamIds[index]="";state.teamMoves[index]=emptyTeamMoves();saveTeamDraft();renderTeam();if(state.teamAnalysisVisible)analyzeTeam();}
 }
 function fillPokemonControls(){
 if(!allPokemon().length)return;
 for(const id of ["team1","team2","team3","advisorPokemon","advisorOpponent"])setupPokemonPicker(id);
 Q("#pokemonOptions").innerHTML=allPokemon().map(p=>'<option value="'+escaped(pokemonName(p))+'">'+escaped(p.pokemonName)+'</option>').join("");
+}
+const TEAM_MOVE_KINDS=["fast","charged1","charged2"];
+function emptyTeamMoves(){return {fast:"",charged1:"",charged2:""};}
+function loadTeamDraft(){
+try{
+const v=JSON.parse(localStorage.getItem("goTeamMovesV1")||"null");
+if(!v||!Array.isArray(v.ids)||!Array.isArray(v.moves))return;
+state.teamIds=[0,1,2].map(i=>typeof v.ids[i]==="string"?v.ids[i]:"");
+state.teamMoves=[0,1,2].map(i=>{
+const m=v.moves[i]||{};
+return {fast:String(m.fast||""),charged1:String(m.charged1||""),charged2:String(m.charged2||"")};
+});
+if(["1500","2500","10000"].includes(String(v.league)))state.teamLeague=String(v.league);
+}catch(err){console.warn("Unable to restore local team draft",err);}
+}
+function saveTeamDraft(){
+try{localStorage.setItem("goTeamMovesV1",JSON.stringify({ids:state.teamIds,moves:state.teamMoves,league:state.teamLeague}));}catch(err){}
+}
+function moveRecordForTeam(id,kind){
+const key=String(id);
+const numeric=/^\d+$/.test(key);
+const fromPogo=numeric?DATA.moveMap?.get(Number(key)):DATA.moveMap?.get(kind==="fast"?key+"_FAST":key);
+const gm=DATA.gmMoveMap?.get(key);
+return {fromPogo,gm};
+}
+function teamMovePool(p,kind){
+if(!p)return [];
+const fast=kind==="fast";
+const ordinary=fast?(p.quickMoves||[]):(p.chargedMoves||[]);
+const special=fast?(p.eliteQuickMoves||[]):(p.eliteChargedMoves||[]);
+const specialIds=new Set(special.map(id=>String(id)));
+const unique=[...new Set([...ordinary,...special].map(id=>String(id)))];
+return unique.map(id=>{
+const {fromPogo,gm}=moveRecordForTeam(id,kind);
+const name=fromPogo?moveName(fromPogo.moveId):(gm?.name||moveName(id));
+const type=Number(fromPogo?.type??gm?.typeId);
+const rawEnergy=fromPogo?.pvpEnergyDelta;
+const gain=fast?(rawEnergy??gm?.energyGain):null;
+const cost=!fast?(rawEnergy!=null?Math.abs(rawEnergy):gm?.energy):null;
+return {id,name,type:Number.isInteger(type)&&type>=1&&type<=18?type:null,elite:specialIds.has(id),
+power:fromPogo?.pvpPower??gm?.power,energy:fast?gain:cost};
+}).sort((a,b)=>Number(a.elite)-Number(b.elite)||a.name.localeCompare(b.name,"zh-Hant"));
+}
+function teamMoveDescription(m,kind){
+if(!m)return "未選擇";
+const pieces=[m.type?typeName(m.type):"屬性未知"];
+if(Number.isFinite(Number(m.power)))pieces.push("PVP 威力 "+m.power);
+if(Number.isFinite(Number(m.energy)))pieces.push((kind==="fast"?"獲得 ":"消耗 ")+m.energy+" 能量");
+if(m.elite)pieces.push("限定／特殊取得");
+return pieces.join(" · ");
+}
+function renderMoveOptions(p,kind,current,placeholder){
+const pool=teamMovePool(p,kind),groups=[
+ {label:"一般招式池",list:pool.filter(m=>!m.elite)},
+ {label:"限定／特殊取得",list:pool.filter(m=>m.elite)}
+];
+const initial='<option value="">'+escaped(placeholder)+'</option>';
+const opts=groups.filter(g=>g.list.length).map(g=>'<optgroup label="'+escaped(g.label)+'">'+g.list.map(m=>
+'<option value="'+escaped(m.id)+'"'+(m.id===current?' selected':'')+'>'+escaped(m.name)+' · '+escaped(m.type?typeName(m.type):"未知屬性")+(m.elite?' ★限定':'')+'</option>'
+).join("")+'</optgroup>').join("");
+return {html:initial+opts,pool,selected:pool.find(m=>m.id===current)};
+}
+function renderTeamMoves(index,p){
+const area=Q("#team"+(index+1)+"Moves");if(!area)return;
+if(!p){area.innerHTML='<p class="team-move-empty">先選擇寶可夢，即可查看牠所有可學的招式。</p>';return;}
+const current=state.teamMoves[index]||emptyTeamMoves();
+const defs=[
+{kind:"fast",label:"一般招式",placeholder:"選擇一般招式"},
+{kind:"charged1",label:"特殊招式 1",placeholder:"選擇第一個特殊招式"},
+{kind:"charged2",label:"特殊招式 2（可選）",placeholder:"沒有第二個特殊招式"}
+];
+area.innerHTML='<div class="team-move-title">可學招式與目前配招</div>'+defs.map(d=>{
+const out=renderMoveOptions(p,d.kind,current[d.kind],d.placeholder);
+const chosen=out.selected;
+const kind=d.kind==="fast"?"fast":"charged";
+const count=out.pool.length;
+return '<div class="team-move-field"><label for="teamMove'+index+d.kind+'">'+d.label+' <small>'+count+' 個選項</small></label>'+
+'<select id="teamMove'+index+d.kind+'" class="team-move-select" data-team-move-index="'+index+'" data-team-move-kind="'+d.kind+'">'+out.html+'</select>'+
+'<small class="team-move-details">'+escaped(teamMoveDescription(chosen,kind))+'</small></div>';
+}).join("")+
+'<div class="team-move-note">★ 限定／特殊取得：包含部分限定招式，未必能直接使用厲害學習器學會。</div>';
 }
 function renderTeam(){
 QA("[data-team-league]").forEach(x=>x.classList.toggle("active",x.dataset.teamLeague===state.teamLeague));
@@ -342,23 +423,38 @@ const id="team"+(i+1),p=getPokemon(state.teamIds[i]),input=Q("#"+id+"Search");
 Q("#"+id).value=state.teamIds[i]||"";
 if(input&&document.activeElement!==input)input.value=p?pokemonName(p):"";
 Q("#"+id+"Card").innerHTML=p?'<img src="'+sprite(p.pokedexId)+'" alt=""><b>'+escaped(pokemonName(p))+'</b><br><span>'+pokemonTypes(p).join(" / ")+'</span><br><small>最高 CP '+cp(p,[15,15,15],50)+'</small>':"尚未選擇";
+renderTeamMoves(i,p);
 }
 }
 function teamIssues(ids,league){
-const mons=ids.map(getPokemon).filter(Boolean);
+const configs=ids.map((id,index)=>({p:getPokemon(id),index})).filter(x=>x.p);
+const mons=configs.map(x=>x.p);
 const weak=Array.from({length:18},(_,i)=>i+1).map(t=>({t,weak:mons.filter(p=>typeEffect(t,p.types)>1.01),resist:mons.filter(p=>typeEffect(t,p.types)<.99)})).sort((a,b)=>b.weak.length-a.weak.length);
 const ranks=mons.map(p=>({p,r:(DATA["rank"+league]||[]).find(x=>x.speciesId===p.speciesId||x.speciesId===pokemonKey(p))||(DATA["rank"+league]||[]).find(x=>!p.formId&&parsePvpId(x.speciesName?.replace(/\s*\([^)]*\)/g,""))===parsePvpId(p.pokemonName))}));
-const coverage=new Set(mons.flatMap(p=>(p.quickMoves||[]).concat(p.chargedMoves||[])).map(moveType).filter(Number.isFinite));
-return {mons,weak,ranks,coverage};
+const selectedMoves=[],missing=[];
+for(const {p,index} of configs){
+const moveSet=state.teamMoves[index]||emptyTeamMoves();
+for(const kind of TEAM_MOVE_KINDS){
+const value=moveSet[kind];
+const option=value?teamMovePool(p,kind).find(m=>m.id===value):null;
+if(option)selectedMoves.push({p,index,kind,...option});
+else if(kind!=="charged2")missing.push("第 "+(index+1)+" 隻（"+pokemonName(p)+"）未設定"+(kind==="fast"?"一般招式":"第一個特殊招式"));
+}
+}
+const coverage=new Set(selectedMoves.map(m=>m.type).filter(Number.isInteger));
+const effectiveTypes=Array.from({length:18},(_,i)=>i+1).filter(t=>selectedMoves.some(m=>m.type&&typeEffect(m.type,[t])>1.01));
+return {mons,weak,ranks,coverage,selectedMoves,missing,effectiveTypes};
 }
 function analyzeTeam(){
-const {mons,weak,ranks,coverage}=teamIssues(state.teamIds,state.teamLeague);
+state.teamAnalysisVisible=true;
+const {mons,weak,ranks,coverage,selectedMoves,missing,effectiveTypes}=teamIssues(state.teamIds,state.teamLeague);
 if(!mons.length){Q("#teamAnalysis").innerHTML='<div class="empty-state">請至少選擇一隻寶可夢。</div>';return;}
 const dangerous=weak.filter(x=>x.weak.length>=2),noResponse=weak.filter(x=>x.weak.length&&x.resist.length===0).slice(0,7);
 const proposed=[...coverage].sort((a,b)=>a-b).map(typeName);
 const ranked=ranks.map(x=>'<div class="matchup-item"><span>'+escaped(pokemonName(x.p))+'</span><small>'+(x.r?"模擬評分 "+x.r.score:"未找到直接對應的排名形態")+'</small></div>').join("");
 const suggestions=dangerous.length?dangerous.map(x=>typeName(x.t)+"：有 "+x.weak.length+" 隻成員怕此屬性，建議安排抗性替換位。"):[ "目前沒有兩隻以上成員共享的明顯屬性弱點，但招式與 PvP 對局仍可能構成風險。"];
-Q("#teamAnalysis").innerHTML='<div class="analysis-grid"><section class="panel"><h3>共同弱點</h3>'+(dangerous.map(x=>'<div class="matchup-item"><strong>'+typeName(x.t)+' · '+x.weak.length+' 隻弱點</strong><small>'+x.weak.map(pokemonName).join("、")+'</small></div>').join("")||'<p class="muted">沒有兩隻以上共享的弱點。</p>')+'</section><section class="panel"><h3>聯盟排名參考</h3>'+ranked+'<p class="muted" style="margin-top:12px;font-size:.78rem">排名以 PvPoke 模擬資料為準，形態不同時不強行匹配。</p></section><section class="panel"><h3>進攻屬性池（可學招式）</h3><div class="pill-list">'+(proposed.map(badge).join("")||"尚未有招式屬性資料")+'</div><p class="muted" style="margin-top:12px;font-size:.78rem">此處顯示全部可學招式的類型，並非目前配招；不能代替完整模擬。</p></section><section class="panel"><h3>改善方向</h3><ul class="tip-list">'+suggestions.map(x=>'<li>'+escaped(x)+'</li>').join("")+'</ul>'+(noResponse.length?'<p class="muted">需留意無抗性替補的屬性：'+noResponse.map(x=>typeName(x.t)).join("、")+'</p>':"")+'</section></div>';
+const summary=selectedMoves.map(m=>'<div class="team-selected-move"><b>'+escaped(pokemonName(m.p))+' · '+escaped(m.kind==="fast"?"一般招式":m.kind==="charged1"?"特殊招式 1":"特殊招式 2")+'</b><span>'+escaped(m.name)+'</span><small>'+escaped(teamMoveDescription(m,m.kind==="fast"?"fast":"charged"))+'</small></div>').join("");
+Q("#teamAnalysis").innerHTML='<div class="analysis-grid"><section class="panel"><h3>共同弱點</h3>'+(dangerous.map(x=>'<div class="matchup-item"><strong>'+typeName(x.t)+' · '+x.weak.length+' 隻弱點</strong><small>'+x.weak.map(pokemonName).join("、")+'</small></div>').join("")||'<p class="muted">沒有兩隻以上共享的弱點。</p>')+'</section><section class="panel"><h3>聯盟排名參考</h3>'+ranked+'<p class="muted" style="margin-top:12px;font-size:.78rem">排名以 PvPoke 模擬資料為準，實際配招的勝率需要另外模擬。</p></section><section class="panel"><h3>已選招式與進攻覆蓋</h3>'+(missing.length?'<div class="team-missing-moves">'+missing.map(x=>'<div>· '+escaped(x)+'</div>').join("")+'</div>':"")+(summary||'<p class="muted">尚未選擇任何招式。</p>')+'<h4 class="team-analysis-subhead">已選招式屬性</h4><div class="pill-list">'+(proposed.map(badge).join("")||"請先選擇招式")+'</div><h4 class="team-analysis-subhead">對單一屬性的有效克制</h4><div class="pill-list">'+(effectiveTypes.map(x=>badge(typeName(x))).join("")||"暫無明顯克制")+'</div><p class="muted" style="margin-top:12px;font-size:.78rem">僅依照選定招式的屬性計算單屬性克制，不含雙屬性組合、護盾、能量與對戰勝率。</p></section><section class="panel"><h3>改善方向</h3><ul class="tip-list">'+suggestions.map(x=>'<li>'+escaped(x)+'</li>').join("")+'</ul>'+(noResponse.length?'<p class="muted">需留意無抗性替補的屬性：'+noResponse.map(x=>typeName(x.t)).join("、")+'</p>':"")+'</section></div>';
 }
 function cp(p,ivs,level){
 const cpm=DATA.cpm?.find(x=>Math.abs(Number(x.level)-Number(level))<.001)?.multiplier ?? (Number(level)>45&&Number(level)<=50?0.8153+0.005*(Number(level)-45):null);
@@ -636,13 +732,15 @@ function generateAdvice(){
 const mode=Q("#advisorTarget").value,league=Q("#advisorLeague").value,question=Q("#advisorQuestion").value.trim();
 const tips=[],evidence=[],heading={team:"隊伍組合建議",counter:"對手克制分析",pokemon:"寶可夢培養價值分析"}[mode];
 if(mode==="team"){
-const {mons,weak,ranks}=teamIssues(state.teamIds,league);
+const {mons,weak,ranks,selectedMoves,missing}=teamIssues(state.teamIds,league);
 if(!mons.length){notify("請先在「隊伍分析」選擇寶可夢");return;}
 const doubles=weak.filter(x=>x.weak.length>=2);
 tips.push("目前隊伍："+mons.map(pokemonName).join("、")+"。");
 if(doubles.length)tips.push("主要共同弱點："+doubles.slice(0,6).map(x=>typeName(x.t)+"（"+x.weak.length+" 隻）").join("、")+"。建議避免讓多隻成員同時無法應對這些屬性。");
 else tips.push("這支隊伍沒有明顯的雙重共同屬性弱點，但仍需確認招式和能量對局。");
 for(const x of ranks){if(x.r)tips.push(pokemonName(x.p)+" 在此聯盟 PvPoke 模擬評分 "+x.r.score+"。");}
+if(selectedMoves.length)tips.push("目前選用的招式："+selectedMoves.map(m=>pokemonName(m.p)+" "+m.name).join("、")+"。");
+if(missing.length)tips.push("尚待設定："+missing.join("；")+"。未選招式不會計入進攻覆蓋。");
 evidence.push("使用公開寶可夢屬性及 PvPoke 聯盟排名；這不是完整 1v1 或 3v3 戰鬥模擬。");
 }else if(mode==="counter"){
 const p=getPokemon(Q("#advisorOpponent").value);if(!p){notify("請先選擇對手寶可夢");return;}
@@ -677,11 +775,11 @@ const evoPick=e.target.closest("[data-evo-select]");if(evoPick){state.selectedDe
 const dex=e.target.closest("[data-dex]");if(dex){state.selectedDex=dex.dataset.dex;renderDex();if(innerWidth<620)Q("#dexDetail").scrollIntoView({behavior:"smooth"});return;}
 const rk=e.target.closest("[data-rank]");if(rk){state.selectedRank=rk.dataset.rank;renderPvp();if(innerWidth<620)Q("#pvpDetail").scrollIntoView({behavior:"smooth"});return;}
 const lg=e.target.closest("[data-league]");if(lg){state.league=lg.dataset.league;state.selectedRank=null;renderPvp();return;}
-const tl=e.target.closest("[data-team-league]");if(tl){state.teamLeague=tl.dataset.teamLeague;renderTeam();return;}
+const tl=e.target.closest("[data-team-league]");if(tl){state.teamLeague=tl.dataset.teamLeague;saveTeamDraft();renderTeam();if(state.teamAnalysisVisible)analyzeTeam();return;}
 const raid=e.target.closest("[data-raid]");if(raid){showRaid(Number(raid.dataset.raid));return;}
 const infoLink=e.target.closest("[data-info-link]");if(infoLink){window.open(infoLink.dataset.infoLink,"_blank","noopener");return;}
 const calc=e.target.closest("[data-use-calc]");if(calc){const p=getPokemon(calc.dataset.useCalc);if(p){Q("#calcPokemonSearch").value=pokemonName(p);state.calcId=pokemonKey(p);switchTab("calculator");calculate();}return;}
-const tt=e.target.closest("[data-use-team]");if(tt){if(tt.dataset.useTeam){state.teamIds[0]=tt.dataset.useTeam;switchTab("team");renderTeam();}return;}
+const tt=e.target.closest("[data-use-team]");if(tt){if(tt.dataset.useTeam){if(state.teamIds[0]!==tt.dataset.useTeam)state.teamMoves[0]=emptyTeamMoves();state.teamIds[0]=tt.dataset.useTeam;saveTeamDraft();switchTab("team");renderTeam();if(state.teamAnalysisVisible)analyzeTeam();}return;}
 });
 for(const id of ["dexSearch","dexType","dexSort"]){Q("#"+id).addEventListener(id==="dexSearch"?"input":"change",()=>{state.dexLimit=42;renderDex();});}
 for(const id of ["pvpSearch","pvpLimit"]){Q("#"+id).addEventListener(id==="pvpSearch"?"input":"change",renderPvp);}
@@ -693,6 +791,25 @@ Q("#newsLangToggle").addEventListener("click",e=>{const button=e.target.closest(
 for(const id of ["moveSearch","moveKind","moveType"])Q("#"+id).addEventListener(id==="moveSearch"?"input":"change",()=>{state.moveLimit=70;renderMoves();});
 Q("#dexMore").addEventListener("click",()=>{state.dexLimit+=42;renderDex();});
 Q("#moveMore").addEventListener("click",()=>{state.moveLimit+=70;renderMoves();});
+document.addEventListener("change",e=>{
+const select=e.target.closest("select[data-team-move-index]");
+if(!select)return;
+const index=Number(select.dataset.teamMoveIndex),kind=select.dataset.teamMoveKind,p=getPokemon(state.teamIds[index]);
+if(!Number.isInteger(index)||index<0||index>=3||!TEAM_MOVE_KINDS.includes(kind)||!p)return;
+const choice=String(select.value);
+const allowed=!choice||teamMovePool(p,kind).some(m=>m.id===choice);
+if(!allowed){notify("此招式不在該寶可夢目前可學的招式池");renderTeam();return;}
+const other=kind==="charged1"?"charged2":kind==="charged2"?"charged1":null;
+if(choice&&other&&state.teamMoves[index][other]===choice){
+notify("兩個特殊招式不能相同，請選擇另一招式");
+select.value=state.teamMoves[index][kind]||"";
+return;
+}
+state.teamMoves[index][kind]=choice;
+saveTeamDraft();
+renderTeam();
+if(state.teamAnalysisVisible)analyzeTeam();
+});
 Q("#analyzeTeamBtn").addEventListener("click",analyzeTeam);
 Q("#calculateBtn").addEventListener("click",calculate);
 for(const id of ["calcLevel","targetLevel"])Q("#"+id).addEventListener("input",()=>{Q("#levelLabel").textContent=Q("#calcLevel").value;Q("#targetLevelLabel").textContent=Q("#targetLevel").value;});
@@ -701,4 +818,4 @@ Q("#advisorRun").addEventListener("click",generateAdvice);
 Q("#copyAdvisor").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(state.reportText);notify("分析報告已複製");}catch(e){notify("複製失敗，請手動選取報告");}});
 Q("#refreshBtn").addEventListener("click",()=>{location.reload();});
 window.addEventListener("hashchange",()=>{const tab=location.hash.slice(1);if(tab&&tab!==state.tab)switchTab(tab);});
-(function init(){try{state.newsLang=localStorage.getItem("goNewsLang")==="en"?"en":"zh";}catch(err){}const hash=location.hash.slice(1);if(hash&&Q("#"+hash)?.classList.contains("view"))switchTab(hash);advisorVisibility();getJSON("./data/meta.json").then(meta=>{DATA.meta=meta;sourceSummary();}).catch(()=>{});loadCore();})();
+(function init(){try{state.newsLang=localStorage.getItem("goNewsLang")==="en"?"en":"zh";}catch(err){}loadTeamDraft();const hash=location.hash.slice(1);if(hash&&Q("#"+hash)?.classList.contains("view"))switchTab(hash);advisorVisibility();getJSON("./data/meta.json").then(meta=>{DATA.meta=meta;sourceSummary();}).catch(()=>{});loadCore();})();
