@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-25T00:56+00:00",
+  "updated_at": "2026-11-25T09:57+00:00",
   "datasets": [
     "pokemon",
     "moves",
@@ -43,7 +43,7 @@
   "official_news_count": 30,
   "community_news_count": 30,
   "zh_translation_count": 375,
-  "zh_translations_added_this_run": 9,
+  "zh_translations_added_this_run": 0,
   "translation_source": "Cached local Argos en-to-Traditional-Chinese model (English originals retained)",
   "pokemon_base_count": 1025,
   "pokemon_form_count": 769,
