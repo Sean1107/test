@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-27T05:12+00:00",
+  "updated_at": "2026-11-27T15:21+00:00",
   "datasets": [
     "pokemon",
     "moves",
@@ -30,20 +30,20 @@
   "raid_updated_at": "2026-11-26T00:23:23Z",
   "feed_updated_at": {
     "raids": "2026-11-26T00:23:23Z",
-    "events": "2026-11-26T09:33:21Z",
+    "events": "2026-11-27T12:27:00Z",
     "researchTasks": "2026-11-26T09:33:21Z",
     "rocketLineups": "2026-10-12T17:30:07Z",
     "eggPool": "2026-11-16T02:45:51Z"
   },
   "raid_boss_count": 20,
-  "event_count": 30,
+  "event_count": 29,
   "research_task_count": 70,
   "rocket_lineup_count": 26,
   "egg_pokemon_count": 78,
   "official_news_count": 30,
   "community_news_count": 30,
-  "zh_translation_count": 398,
-  "zh_translations_added_this_run": 0,
+  "zh_translation_count": 404,
+  "zh_translations_added_this_run": 6,
   "translation_source": "Cached local Argos en-to-Traditional-Chinese model (English originals retained)",
   "pokemon_base_count": 1025,
   "pokemon_form_count": 769,
